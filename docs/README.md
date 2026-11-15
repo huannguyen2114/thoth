@@ -10,13 +10,13 @@ These docs are written for both people and AI agents.
 
 ## Map
 
-| Folder                                            | What it holds                                                      | Who edits it                     | Rule                                                                         |
-| ------------------------------------------------- | ------------------------------------------------------------------ | -------------------------------- | ---------------------------------------------------------------------------- |
-| [`decision/`](decision/README.md)                 | Architecture Decision Records (ADRs): **why** we chose something   | Anyone, through a new file       | **Append-only.** Never rewrite an accepted ADR. Supersede it with a new one. |
-| [`technical_design/`](technical_design/README.md) | **How** the system works today: architecture, modules, data, flows | Anyone                           | Keep it current. Update it in the same PR as the code change.                |
-| [`plan/`](plan/roadmap.md)                        | **What** we build next, phase by phase                             | Anyone                           | Tick off phases. Re-plan freely.                                             |
-| [`research/`](research/youlearn.md)               | Background: the YouLearn teardown, with screenshots                | Rarely                           | Reference only                                                               |
-| [`../design/hearth/`](../design/hearth/README.md) | The Hearth design system (tokens, component guidelines)            | Re-sync from the Hearth artifact | Treat it as vendored. Do not hand-edit it.                                   |
+| Folder                                            | What it holds                                                                                                            | Who edits it                     | Rule                                                                         |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------- | ---------------------------------------------------------------------------- |
+| [`decision/`](decision/README.md)                 | Architecture Decision Records (ADRs): **why** we chose something                                                         | Anyone, through a new file       | **Append-only.** Never rewrite an accepted ADR. Supersede it with a new one. |
+| [`technical_design/`](technical_design/README.md) | **How** the system works today: architecture, modules, data, flows                                                       | Anyone                           | Keep it current. Update it in the same PR as the code change.                |
+| [`plan/`](plan/roadmap.md)                        | **What** we build next, phase by phase                                                                                   | Anyone                           | Tick off phases. Re-plan freely.                                             |
+| [`research/`](research/youlearn.md)               | Background: the YouLearn teardown, with screenshots. **Local only (git-ignored)**, so it may be missing in a fresh clone | Rarely                           | Reference only                                                               |
+| [`../design/hearth/`](../design/hearth/README.md) | The Hearth design system (tokens, component guidelines)                                                                  | Re-sync from the Hearth artifact | Treat it as vendored. Do not hand-edit it.                                   |
 
 ## How the documents relate
 

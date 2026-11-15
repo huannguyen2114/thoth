@@ -8,3 +8,6 @@ coverage/
 .env
 data/
 .DS_Store
+
+# Local-only research notes and screenshots (not shared)
+docs/research/

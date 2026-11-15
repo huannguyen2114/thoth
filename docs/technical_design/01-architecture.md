@@ -103,7 +103,7 @@ thoth/
 │  ├─ ui/                    Hearth CSS (generated) and React components
 │  └─ tsconfig/              Shared tsconfig presets
 ├─ design/hearth/            Vendored Hearth design system (read-only)
-├─ docs/                     decision/ (ADRs), technical_design/, plan/, research/
+├─ docs/                     decision/ (ADRs), technical_design/, plan/, research/ (local only, git-ignored)
 ├─ tools/                    Repo scripts (ADR append-only check)
 ├─ data/                     Runtime data, git-ignored (SQLite, uploads)
 └─ CLAUDE.md                 Entry point for AI agents
