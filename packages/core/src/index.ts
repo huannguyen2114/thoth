@@ -13,4 +13,6 @@ export * from "./ports/repositories";
 export * from "./shared/id";
 export * from "./shared/result";
 export * from "./usecases/llm-settings";
+export * from "./usecases/notes";
 export * from "./usecases/spaces";
+export * from "./usecases/summary";
