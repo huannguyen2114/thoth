@@ -11,6 +11,7 @@ import {
   parseYoutube,
   youtubeVideoId,
 } from "./youtube";
+import { pickEnglishTrack } from "./youtube-sources";
 
 const fixture = (name: string) =>
   JSON.parse(readFileSync(join(import.meta.dirname, "__fixtures__", name), "utf8"));
@@ -44,11 +45,12 @@ describe("groupCues", () => {
   it("groups unpunctuated auto-captions into ~60 s segments with time locators", () => {
     const cues = Array.from({ length: 50 }, (_, i) => cue(i * 4, 4, `words ${i}`));
     const segs = groupCues(cues);
-    expect(segs.length).toBe(4);
+    expect(segs.length).toBe(3);
     expect(segs[0]?.locator).toEqual({ type: "time", startSec: 0, endSec: 60 });
     expect(segs[1]?.locator).toEqual({ type: "time", startSec: 60, endSec: 120 });
-    expect(segs.at(-1)?.locator).toEqual({ type: "time", startSec: 180, endSec: 200 });
-    expect(segs.map((s) => s.idx)).toEqual([0, 1, 2, 3]);
+    // The 20 s tail (180-200) joins the previous group.
+    expect(segs.at(-1)?.locator).toEqual({ type: "time", startSec: 120, endSec: 200 });
+    expect(segs.map((s) => s.idx)).toEqual([0, 1, 2]);
     expect(segs[0]?.text.startsWith("words 0 words 1")).toBe(true);
   });
 
@@ -57,11 +59,28 @@ describe("groupCues", () => {
       cue(0, 10, "First part"),
       cue(10, 10, "is here."),
       cue(20, 15, "This ends the thought."),
-      cue(35, 10, "Next topic starts"),
+      cue(35, 32, "Next topic starts"),
     ]);
     expect(segs.map((s) => s.locator)).toEqual([
       { type: "time", startSec: 0, endSec: 35 },
-      { type: "time", startSec: 35, endSec: 45 },
+      { type: "time", startSec: 35, endSec: 67 },
+    ]);
+  });
+
+  it("merges a short closing tail into the previous segment", () => {
+    const segs = groupCues([cue(0, 40, "Main point."), cue(40, 2, "Thanks.")]);
+    expect(segs).toHaveLength(1);
+    expect(segs[0]).toMatchObject({
+      text: "Main point. Thanks.",
+      locator: { type: "time", startSec: 0, endSec: 42 },
+    });
+  });
+
+  it("keeps a short tail separate when merging would pass 90 s", () => {
+    const segs = groupCues([cue(0, 80, "Long part"), cue(80, 15, "short end")]);
+    expect(segs.map((s) => s.locator)).toEqual([
+      { type: "time", startSec: 0, endSec: 80 },
+      { type: "time", startSec: 80, endSec: 95 },
     ]);
   });
 
@@ -166,5 +185,19 @@ describe("parseYoutube", () => {
     });
     expect(r.ok).toBe(false);
     expect(called).toBe(false);
+  });
+});
+
+describe("pickEnglishTrack", () => {
+  it("finds an English variant in the library's error message", () => {
+    expect(
+      pickEnglishTrack(
+        "[YoutubeTranscript] No transcripts are available in en this video (x). Available languages: ar, en-US, fr",
+      ),
+    ).toBe("en-US");
+  });
+  it("returns null when there is no English track", () => {
+    expect(pickEnglishTrack("Available languages: ar, fr")).toBeNull();
+    expect(pickEnglishTrack("something else")).toBeNull();
   });
 });

@@ -18,9 +18,10 @@ export async function parsePdf(
   data: Uint8Array,
   fileName: string | null = null,
 ): Promise<Result<ParsedSource, IngestFailure>> {
-  // pdfjs takes ownership of (detaches) the buffer, so hand it a copy.
+  // pdfjs detaches the buffer it is given and rejects Node Buffers (what fs.readFile returns),
+  // so hand it a plain Uint8Array copy.
   const task = getDocument({
-    data: data.slice(),
+    data: new Uint8Array(data),
     useSystemFonts: true,
     verbosity: 0,
   });

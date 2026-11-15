@@ -16,7 +16,7 @@ import {
  */
 export const CHAPTER_WINDOW_CHARS = 100_000;
 /** Roughly one chapter per this many characters, clamped to 1..12 per window. */
-const CHARS_PER_CHAPTER = 6_000;
+const CHARS_PER_CHAPTER = 4_000;
 const MAX_TITLE = 120;
 const MAX_SUMMARY = 600;
 

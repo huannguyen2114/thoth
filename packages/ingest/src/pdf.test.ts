@@ -21,6 +21,11 @@ describe("parsePdf", () => {
     });
   });
 
+  it("accepts a Node Buffer, as fs.readFile returns", async () => {
+    const r = await parsePdf(Buffer.from(makePdf([["From disk"]])), "disk.pdf");
+    expect(r.ok && r.value.segments[0]?.text).toBe("From disk");
+  });
+
   it("skips empty pages but keeps real page numbers", async () => {
     const r = await parsePdf(makePdf([["Intro"], [], ["Page three text"]]));
     expect(r.ok && r.value.segments.map((s) => s.locator)).toEqual([

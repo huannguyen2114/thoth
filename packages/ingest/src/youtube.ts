@@ -74,6 +74,21 @@ export function groupCues(cues: Cue[], options: GroupOptions = {}): NewSegment[]
     const length = cue.startSec + cue.durSec - first.startSec;
     if (length >= targetSec || (length >= minSec && /[.!?]["')\]]?$/.test(cue.text))) flush();
   }
+  // A short tail (a closing "thanks") joins the previous segment when that stays within maxSec.
+  const prev = segments.at(-1);
+  const tailStart = group[0]?.startSec;
+  const tailLast = group.at(-1);
+  if (
+    prev?.locator.type === "time" &&
+    tailStart !== undefined &&
+    tailLast &&
+    tailLast.startSec + tailLast.durSec - tailStart < minSec &&
+    tailLast.startSec + tailLast.durSec - prev.locator.startSec <= maxSec
+  ) {
+    prev.text = `${prev.text} ${group.map((c) => c.text).join(" ")}`;
+    prev.locator.endSec = round(tailLast.startSec + tailLast.durSec);
+    group = [];
+  }
   flush();
   return segments;
 }

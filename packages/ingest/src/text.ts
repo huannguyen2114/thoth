@@ -6,7 +6,7 @@ import type { NewSegment } from "@thoth/core";
  * Offsets are character positions in the exact string passed in, so
  * `text.slice(locator.start, locator.end) === segment.text`.
  *
- * - Paragraphs are separated by blank lines. Text with no blank lines falls back to single
+ * - Paragraphs are separated by blank lines (LF or CRLF; browsers submit CRLF). Text with no blank lines falls back to single
  *   line breaks.
  * - Very short paragraphs (headings, one-liners) are merged into the next one, so every
  *   segment carries enough text for search and chapters.
@@ -28,8 +28,8 @@ const DEFAULTS = { minChars: 200, maxChars: 2000 };
 
 export function paragraphSegments(text: string, options: ParagraphOptions = {}): NewSegment[] {
   const { minChars, maxChars } = { ...DEFAULTS, ...options };
-  let spans = splitSpans(text, /\n[ \t]*\n/g);
-  if (spans.length === 1 && spanLength(spans) > maxChars) spans = splitSpans(text, /\n/g);
+  let spans = splitSpans(text, /\r?\n[ \t]*\r?\n/g);
+  if (spans.length === 1 && spanLength(spans) > maxChars) spans = splitSpans(text, /\r?\n/g);
 
   const merged = mergeShort(spans, minChars, maxChars);
   const sized = merged.flatMap((s) => splitLong(text, s, maxChars));

@@ -50,6 +50,17 @@ describe("paragraphSegments", () => {
     expect(paragraphSegments(text, { maxChars: 500 }).length).toBeGreaterThan(1);
   });
 
+  it("splits CRLF text the way browsers submit a textarea", () => {
+    const text = `Title\r\n\r\n${para(50, "alpha")}.\r\n\r\n${para(50, "beta")}.`;
+    const segs = paragraphSegments(text);
+    expect(segs).toHaveLength(2);
+    expect(segs[1]?.text.startsWith("beta")).toBe(true);
+    for (const s of segs) {
+      if (s.locator.type === "offset")
+        expect(text.slice(s.locator.start, s.locator.end)).toBe(s.text);
+    }
+  });
+
   it("returns nothing for blank text", () => {
     expect(paragraphSegments("  \n\n \t ")).toEqual([]);
   });

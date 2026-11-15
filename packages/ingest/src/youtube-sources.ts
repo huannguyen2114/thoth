@@ -7,6 +7,7 @@ import {
   YoutubeTranscript,
   YoutubeTranscriptDisabledError,
   YoutubeTranscriptNotAvailableError,
+  YoutubeTranscriptNotAvailableLanguageError,
   YoutubeTranscriptTooManyRequestError,
   YoutubeTranscriptVideoUnavailableError,
 } from "youtube-transcript";
@@ -16,12 +17,17 @@ import { type CueFetcher, normaliseLibraryCues, parseJson3 } from "./youtube";
  * Network-facing YouTube sources. Unit tests replace these with fixtures; see youtube.test.ts.
  */
 
-/** Captions through the `youtube-transcript` library (InnerTube, then page scraping). */
+/**
+ * Captions through the `youtube-transcript` library (InnerTube, then page scraping).
+ * The library takes the first caption track when no language is given, which is often a
+ * translation (for example Arabic on an English video). So we ask for English first, then
+ * any English variant the video lists, and only then the default track.
+ */
 export const libraryCueFetcher: CueFetcher = async (videoId, signal) => {
   try {
     const fetchWithSignal: typeof fetch = (input, init) =>
       fetch(input, { ...init, signal: signal ?? null });
-    const raw = await YoutubeTranscript.fetchTranscript(videoId, { fetch: fetchWithSignal });
+    const raw = await fetchPreferringEnglish(videoId, fetchWithSignal);
     return ok(normaliseLibraryCues(raw));
   } catch (e) {
     if (e instanceof YoutubeTranscriptTooManyRequestError) {
@@ -59,6 +65,33 @@ export const libraryCueFetcher: CueFetcher = async (videoId, signal) => {
     );
   }
 };
+
+async function fetchPreferringEnglish(videoId: string, fetchImpl: typeof fetch) {
+  try {
+    return await YoutubeTranscript.fetchTranscript(videoId, { lang: "en", fetch: fetchImpl });
+  } catch (e) {
+    if (!(e instanceof YoutubeTranscriptNotAvailableLanguageError)) throw e;
+    const lang = pickEnglishTrack(e.message);
+    return YoutubeTranscript.fetchTranscript(
+      videoId,
+      lang ? { lang, fetch: fetchImpl } : { fetch: fetchImpl },
+    );
+  }
+}
+
+/**
+ * Reads the library's "Available languages: a, b, c" error text and returns the first
+ * English variant (`en-US`, `en-GB`, ...), or null when the video has none.
+ */
+export function pickEnglishTrack(message: string): string | null {
+  const list = /Available languages: (.*)$/.exec(message)?.[1] ?? "";
+  return (
+    list
+      .split(",")
+      .map((l) => l.trim())
+      .find((l) => /^en(-|$)/i.test(l)) ?? null
+  );
+}
 
 /**
  * Fallback: subtitles (manual first, then automatic) through the `yt-dlp` CLI, if installed.
