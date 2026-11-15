@@ -16,8 +16,10 @@ export default function ContentPage({ params }: PageProps<"/content/[id]">) {
   return (
     <Suspense fallback={<WorkspaceSkeleton />}>
       <AppShell>
-        {/* Cancel AppShell's page padding: this page fills the viewport and scrolls per column. */}
-        <div className="-mx-4 -my-10 h-dvh md:-mx-8">
+        {/* Cancel AppShell's page padding: this page fills the viewport and scrolls per column.
+            contain-inline-size stops long nowrap content (the title) from widening AppShell's
+            flex main past the viewport. */}
+        <div className="-mx-4 -my-10 h-dvh contain-inline-size md:-mx-8">
           <Workspace params={params} />
         </div>
       </AppShell>
