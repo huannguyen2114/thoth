@@ -107,7 +107,7 @@ export class ClaudeSubscriptionProvider implements LlmProvider {
     const run = (await this.q())({
       prompt: toPrompt(req),
       options: this.options(req, {
-        outputFormat: { type: "json_schema", schema: z.toJSONSchema(schema) },
+        outputFormat: { type: "json_schema", schema: toCliJsonSchema(schema) },
         // Structured output is delivered through an internal turn.
         maxTurns: 3,
       }),
@@ -159,13 +159,24 @@ export function toPrompt(req: LlmRequest): string {
   return `${turns}\n\nReply as the assistant to the last user turn.`;
 }
 
+/**
+ * The CLI's validator does not know the draft 2020-12 meta-schema that zod emits as `$schema`,
+ * so drop that key. The schema body itself is unchanged.
+ */
+export function toCliJsonSchema(schema: z.ZodType): Record<string, unknown> {
+  const { $schema: _meta, ...rest } = z.toJSONSchema(schema) as Record<string, unknown>;
+  return rest;
+}
+
 function toAppError(e: unknown) {
   if (e instanceof Error && e.name === "AbortError") {
     return appError("llm_unavailable", "The request was cancelled.", e);
   }
+  // Keep the CLI's own words (first line): they say what actually went wrong.
+  const detail = e instanceof Error ? e.message.split("\n")[0]?.slice(0, 300) : undefined;
   return appError(
     "llm_unavailable",
-    "Could not run Claude Code. Make sure it is installed and signed in (`claude`).",
+    `Could not run Claude Code${detail ? `: ${detail}` : ""}. Check that it is installed and signed in (\`claude\`).`,
     e,
   );
 }

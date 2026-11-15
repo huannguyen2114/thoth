@@ -47,3 +47,14 @@ flowchart TD
 - Use Conventional Commits: `feat(quiz): ...`, `fix(db): ...`, `docs(adr): ...`, `chore: ...`.
 - Do one phase or one feature per branch, and merge to `main` through a pull request.
 - Never commit `.env*.local` or `data/`.
+
+## Live LLM smoke tests (manual, uses real quota)
+
+`packages/llm/src/live.test.ts` is skipped unless `THOTH_LIVE` is set. It checks structured output and streaming against real providers.
+
+```bash
+THOTH_LIVE=subscription pnpm --filter @thoth/llm test live
+THOTH_LIVE=api,subscription THOTH_LIVE_MODEL=claude-haiku-5-5 pnpm --filter @thoth/llm test live
+```
+
+The default model is `claude-sonnet-5-5`. Run these after changing an adapter. CI never runs them.

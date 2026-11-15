@@ -2,7 +2,7 @@ import type { Options, query } from "@anthropic-ai/claude-agent-sdk";
 import { defaultLlmSettings } from "@thoth/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { z } from "zod";
-import { ClaudeSubscriptionProvider, toPrompt } from "./claude-subscription";
+import { ClaudeSubscriptionProvider, toCliJsonSchema, toPrompt } from "./claude-subscription";
 
 const success = (extra: object = {}) => ({
   type: "result",
@@ -124,5 +124,13 @@ describe("ClaudeSubscriptionProvider auth errors", () => {
       expect(r.error.message).toContain("OAuth session expired");
       expect(r.error.message).toContain("/login");
     }
+  });
+});
+
+describe("toCliJsonSchema", () => {
+  it("drops the $schema meta key the CLI rejects, keeps the body", () => {
+    const s = toCliJsonSchema(z.object({ a: z.string() }));
+    expect(s).not.toHaveProperty("$schema");
+    expect(s).toMatchObject({ type: "object", required: ["a"] });
   });
 });
