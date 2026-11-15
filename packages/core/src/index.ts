@@ -12,5 +12,7 @@ export * from "./ports/llm";
 export * from "./ports/repositories";
 export * from "./shared/id";
 export * from "./shared/result";
+export * from "./usecases/flashcards";
 export * from "./usecases/llm-settings";
+export * from "./usecases/quiz";
 export * from "./usecases/spaces";
