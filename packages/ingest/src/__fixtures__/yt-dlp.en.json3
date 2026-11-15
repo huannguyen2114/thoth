@@ -1,0 +1,9 @@
+{
+  "wireMagic": "pb3",
+  "events": [
+    { "tStartMs": 0, "dDurationMs": 4200, "segs": [{ "utf8": "Today we look " }, { "utf8": "at memory." }] },
+    { "tStartMs": 2100, "dDurationMs": 4000, "aAppend": 1, "segs": [{ "utf8": "\n" }] },
+    { "tStartMs": 4200, "dDurationMs": 5000, "segs": [{ "utf8": "Memory has three stages." }] },
+    { "tStartMs": 9200, "dDurationMs": 100 }
+  ]
+}
