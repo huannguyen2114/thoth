@@ -8,6 +8,20 @@
       "when": 1794746579924,
       "tag": "0000_lonely_dakota_north",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1794748511805,
+      "tag": "0001_mvp_contracts",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794748512219,
+      "tag": "0002_chunks_fts",
+      "breakpoints": true
     }
   ]
 }

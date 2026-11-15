@@ -1,6 +1,6 @@
 # 04. Data model
 
-Status: Current for Phase 0 tables. Planned tables are marked. Decision: ADR-0006.
+Status: Current (all MVP tables, Step 0 contracts). Decision: ADR-0006.
 
 ## Current (Phase 0)
 
@@ -35,22 +35,41 @@ erDiagram
   }
 ```
 
-## Planned
+## MVP tables (Step 0, migration `0001_mvp_contracts` + `0002_chunks_fts`)
+
+Every repository below exists in `packages/db/src/repositories/` and is tested in `contracts.test.ts`.
 
 ```mermaid
 erDiagram
-  contents ||--o{ segments : "has (Phase 2)"
-  contents ||--o{ chapters : "has (Phase 2)"
-  contents ||--o{ chats : "has (Phase 3)"
-  chats ||--o{ messages : ""
-  contents ||--o{ sets : "generated (Phase 4+)"
-  spaces ||--o{ sets : "exams (Phase 7)"
-  sets ||--o{ quiz_questions : "Phase 5"
-  quiz_questions ||--o{ quiz_attempts : ""
-  sets ||--o{ flashcards : "Phase 6"
-  flashcards ||--o{ reviews : "FSRS log"
-  contents ||--o| notes : "Phase 4"
+  contents ||--o{ segments : "cascade"
+  contents ||--o{ chapters : "cascade"
+  contents ||--o{ chats : "cascade"
+  chats ||--o{ chat_messages : "cascade"
+  contents ||--o{ study_sets : "summary, quiz, flashcards"
+  spaces ||--o{ study_sets : "exam"
+  study_sets ||--o{ quiz_questions : "cascade"
+  quiz_questions ||--o{ quiz_attempts : "cascade"
+  study_sets ||--o{ flashcards : "cascade"
+  flashcards ||--o{ reviews : "cascade"
+  contents ||--o| notes : "one per content"
+  segments ||--|| chunks_fts : "mirrored for search"
 ```
+
+| Table                             | Holds                                                                                                  | Port                                                  |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| `segments`                        | Source text pieces with a JSON `locator` (page, time or offset)                                        | `SegmentRepository` (`search` = FTS5 BM25)            |
+| `chunks_fts`                      | FTS5 virtual table (`text`, `segment_id`, `content_id`), porter tokenizer                              | written only by `SegmentRepository.replaceForContent` |
+| `chapters`                        | AI sections: title, summary, locator                                                                   | `ChapterRepository`                                   |
+| `chats`, `chat_messages`          | Conversations per content, messages with parsed `citations`                                            | `ChatRepository`                                      |
+| `study_sets`                      | "My Sets": summary (markdown `body`), quiz, flashcards, exam. Exactly one of `content_id` / `space_id` | `StudySetRepository`                                  |
+| `notes`                           | One markdown document per content                                                                      | `NoteRepository`                                      |
+| `quiz_questions`, `quiz_attempts` | Typed questions (`answer` JSON per type), attempts with score 0..1                                     | `QuizRepository`                                      |
+| `flashcards`, `reviews`           | Cards with FSRS fields (`due`, `stability`, ...) and the review log                                    | `FlashcardRepository`                                 |
+| `jobs`                            | Background work queue: `queued` → `running` → `done` / `failed`, retry via `run_after`                 | `JobRepository`                                       |
+
+**Foreign keys** are enforced: `migrateDb` runs `PRAGMA foreign_keys = ON`, so deleting a content removes its children.
+
+**Seed:** `pnpm --filter @thoth/db seed` adds `sample-lecture` and `sample-pdf` (`packages/db/src/seed.ts`).
 
 ## Conventions
 

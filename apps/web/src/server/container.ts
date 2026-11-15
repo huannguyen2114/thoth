@@ -1,12 +1,35 @@
 import "server-only";
 import { resolve } from "node:path";
 import {
+  type ChapterRepository,
+  type ChatRepository,
+  type ContentRepository,
+  type FlashcardRepository,
   getLlmSettings,
+  type JobRepository,
   type LlmProvider,
+  type NoteRepository,
+  type QuizRepository,
+  type SegmentRepository,
   type SettingsRepository,
   type SpaceRepository,
+  type StudySetRepository,
 } from "@thoth/core";
-import { createDb, DrizzleSettingsRepository, DrizzleSpaceRepository, migrateDb } from "@thoth/db";
+import {
+  createDb,
+  DrizzleChapterRepository,
+  DrizzleChatRepository,
+  DrizzleContentRepository,
+  DrizzleFlashcardRepository,
+  DrizzleJobRepository,
+  DrizzleNoteRepository,
+  DrizzleQuizRepository,
+  DrizzleSegmentRepository,
+  DrizzleSettingsRepository,
+  DrizzleSpaceRepository,
+  DrizzleStudySetRepository,
+  migrateDb,
+} from "@thoth/db";
 import { createLlmProvider } from "@thoth/llm";
 import { env } from "./env";
 
@@ -17,6 +40,15 @@ import { env } from "./env";
  */
 export interface Container {
   spaces: SpaceRepository;
+  contents: ContentRepository;
+  segments: SegmentRepository;
+  chapters: ChapterRepository;
+  chats: ChatRepository;
+  studySets: StudySetRepository;
+  notes: NoteRepository;
+  quizzes: QuizRepository;
+  flashcards: FlashcardRepository;
+  jobs: JobRepository;
   settings: SettingsRepository;
   /** Built per call from saved settings, so a settings change applies immediately. */
   llm(): Promise<LlmProvider>;
@@ -31,6 +63,15 @@ async function build(): Promise<Container> {
   const settings = new DrizzleSettingsRepository(db);
   return {
     spaces: new DrizzleSpaceRepository(db),
+    contents: new DrizzleContentRepository(db),
+    segments: new DrizzleSegmentRepository(db),
+    chapters: new DrizzleChapterRepository(db),
+    chats: new DrizzleChatRepository(db),
+    studySets: new DrizzleStudySetRepository(db),
+    notes: new DrizzleNoteRepository(db),
+    quizzes: new DrizzleQuizRepository(db),
+    flashcards: new DrizzleFlashcardRepository(db),
+    jobs: new DrizzleJobRepository(db),
     settings,
     llm: async () =>
       createLlmProvider(await getLlmSettings({ settings }), {

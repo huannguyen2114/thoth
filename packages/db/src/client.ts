@@ -15,9 +15,11 @@ export function createDb(url: string) {
 }
 
 /**
- * Applies pending migrations from `migrationsFolder` (packages/db/drizzle).
- * The caller passes the path: bundlers rewrite import.meta.url, so this package cannot.
+ * Prepares the database: turns on foreign keys (SQLite leaves them off, so ON DELETE CASCADE
+ * would silently do nothing) and applies pending migrations from `migrationsFolder`
+ * (packages/db/drizzle). The caller passes the path: bundlers rewrite import.meta.url.
  */
 export async function migrateDb(db: Db, migrationsFolder: string) {
+  await db.run("PRAGMA foreign_keys = ON");
   await migrate(db, { migrationsFolder });
 }
