@@ -13,6 +13,7 @@ export * from "./ports/llm";
 export * from "./ports/repositories";
 export * from "./shared/id";
 export * from "./shared/result";
+export * from "./usecases/chat";
 export * from "./usecases/flashcards";
 export * from "./usecases/ingest";
 export * from "./usecases/llm-settings";
