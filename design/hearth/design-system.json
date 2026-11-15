@@ -1,0 +1,28 @@
+{
+  "v": 3,
+  "assetGroups": {},
+  "blobs": {},
+  "createdOnFiles": {
+    "at": "2026-10-08T16:20:00Z",
+    "v": 1
+  },
+  "docs": {
+    "readme": "project/README.md",
+    "sections": [
+      "project/implementation.md",
+      "project/motion-and-states.md"
+    ]
+  },
+  "groups": [],
+  "lastChange": {
+    "at": "2026-10-08T17:05:00Z",
+    "by": "Ngọc",
+    "via": "Claude chat",
+    "note": "Primary buttons now use ink (new primary tokens); orange accent kept for small highlights"
+  },
+  "layout": "files",
+  "libraries": [],
+  "namespace": "Hearth",
+  "sections": {},
+  "title": "Hearth"
+}

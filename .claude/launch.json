@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "thoth-web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@thoth/web", "dev", "--port", "3100"],
+      "port": 3100
+    },
+    {
+      "name": "thoth-web-prod",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@thoth/web", "start", "--port", "3101"],
+      "port": 3101
+    }
+  ]
+}

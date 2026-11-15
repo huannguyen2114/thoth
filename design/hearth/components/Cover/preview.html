@@ -1,0 +1,49 @@
+<!-- @dsCard height=300 -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Newsreader:wght@400;500&display=swap">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--surface-100); }
+  body { padding: 0; }
+  .cover { position: relative; width: 960px; height: 300px; overflow: hidden; background: var(--surface-100); }
+  .cover svg { position: absolute; inset: 0; width: 960px; height: 300px; }
+  .name-block { position: absolute; left: 40px; bottom: 36px; max-width: 440px; }
+  .name { margin: 0; font-family: var(--font-serif); font-weight: 400; font-size: 120px; line-height: 0.92; letter-spacing: -0.02em; color: var(--ink); }
+  .tag { margin: 12px 0 0; font-family: var(--font-sans); font-size: 14px; line-height: 20px; color: var(--ink-muted); }
+  .accent { fill: var(--accent); }
+  .ink { fill: var(--ink); }
+  .tint { fill: var(--accent-muted); }
+  .muted { fill: var(--ink-muted); }
+  .ground { fill: var(--surface-100); }
+  .on-ink-tint { fill: var(--accent-tint); }
+  .r-xl { rx: var(--radius-xl); ry: var(--radius-xl); }
+</style>
+</head>
+<body>
+<div class="cover">
+  <svg viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hearth color and shape sampler">
+    <!--
+      blocks: accent 192x216 (bleeds top), ink 272x120 (bleeds right), accent-muted 144x156, ink-muted 192x100 (bleeds bottom); sizes are multiples of space-4 / space-6.
+      arrangement: staggered stack, slabs bleeding off the top, right and bottom edges, all right of x=480.
+      pattern: soft, friendly, large radii -> discs and one pill cut from the radius scale (radius-xl corners, radius-pill pill, circles).
+      steps and radii: 16px / 24px gaps (space-4, space-6), corners radius-xl, the 48px-tall pill uses radius-xl (24px, half its short side).
+    -->
+    <rect class="accent r-xl" x="496" y="-24" width="192" height="216"/>
+    <rect class="ink r-xl" x="704" y="24" width="272" height="120"/>
+    <rect class="tint r-xl" x="704" y="160" width="144" height="156"/>
+    <rect class="muted r-xl" x="496" y="208" width="192" height="108"/>
+    <circle class="ground" cx="592" cy="96" r="48"/>
+    <circle class="on-ink-tint" cx="752" cy="84" r="16"/>
+    <circle class="on-ink-tint" cx="800" cy="84" r="16"/>
+    <circle class="on-ink-tint" cx="848" cy="84" r="16"/>
+    <rect class="accent r-xl" x="728" y="236" width="96" height="48"/>
+  </svg>
+  <div class="name-block">
+    <h1 class="name">Hearth</h1>
+    <p class="tag">Calm, warm, readable software.</p>
+  </div>
+</div>
+</body>
+</html>

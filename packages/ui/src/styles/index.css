@@ -1,0 +1,31 @@
+/* Hearth for Thoth. Import once from the app's global CSS, after `@import "tailwindcss"`. */
+@import "./tokens.css";
+@import "./theme.css";
+/* Layered so Tailwind utilities can override Hearth component defaults. */
+@import "./components.css" layer(components);
+
+@layer base {
+  html {
+    color-scheme: light dark;
+  }
+  body {
+    background: var(--surface-100);
+    color: var(--ink);
+    font: 400 15px / 23px var(--font-sans);
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  /* Reduced motion must beat every component transition, hence !important. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      /* biome-ignore lint/complexity/noImportantStyles: see above */
+      transition: none !important;
+      /* biome-ignore lint/complexity/noImportantStyles: see above */
+      animation: none !important;
+    }
+  }
+}

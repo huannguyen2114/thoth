@@ -1,0 +1,28 @@
+<!-- @dsCard group="Status" height=330 subtitle="Info, success, warning, danger" -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Newsreader:wght@400;500&display=swap">
+</head>
+<body>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div class="callout callout--info" role="note">
+      <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true" style="flex:none;margin-top:2px"><circle cx="8" cy="8" r="6.2"/><path d="M8 7.2V11.4M8 4.9v.1"/></svg>
+      <div><p class="callout__title">Autosave is on</p><p class="callout__text">Changes are saved as you type.</p></div>
+    </div>
+    <div class="callout callout--success" role="status">
+      <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;margin-top:2px"><circle cx="8" cy="8" r="6.2"/><path d="M5.2 8.3l2 2 3.6-4.2"/></svg>
+      <div><p class="callout__title">Invite sent</p><p class="callout__text">They will get an email shortly.</p></div>
+    </div>
+    <div class="callout callout--warning" role="alert">
+      <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;margin-top:2px"><path d="M8 2.2l6.2 11H1.8z"/><path d="M8 6.6v3.2M8 11.6v.1"/></svg>
+      <div><p class="callout__title">Storage almost full</p><p class="callout__text">You have used 92% of your space.</p></div>
+    </div>
+    <div class="callout callout--danger" role="alert">
+      <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true" style="flex:none;margin-top:2px"><circle cx="8" cy="8" r="6.2"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
+      <div><p class="callout__title">Upload failed</p><p class="callout__text">The file is over 20 MB. Choose a smaller one.</p></div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "name": "@thoth/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "@thoth/core": "workspace:*",
+    "@libsql/client": "0.18.0",
+    "drizzle-orm": "0.45.4"
+  },
+  "devDependencies": {
+    "@thoth/tsconfig": "workspace:*",
+    "@types/node": "^22",
+    "typescript": "5.9.3",
+    "vitest": "5.1.0",
+    "drizzle-kit": "0.31.11"
+  }
+}

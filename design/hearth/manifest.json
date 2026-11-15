@@ -1,0 +1,105 @@
+{
+  "manifestVersion": 3,
+  "name": "Hearth",
+  "namespace": "Hearth",
+  "files": [
+    "components/Badge/README.md",
+    "components/Button/README.md",
+    "components/Callout/README.md",
+    "components/Card/README.md",
+    "components/Checkbox/README.md",
+    "components/CodeBlock/README.md",
+    "components/Conversation/README.md",
+    "components/Menu/README.md",
+    "components/Modal/README.md",
+    "components/Select/README.md",
+    "components/Sidebar/README.md",
+    "components/Tabs/README.md",
+    "components/TextField/README.md",
+    "components/Toggle/README.md",
+    "components/Tooltip/README.md",
+    "components/bundle.css",
+    "implementation.md",
+    "motion-and-states.md",
+    "tokens.css"
+  ],
+  "libraries": [],
+  "components": [
+    {
+      "name": "Badge",
+      "group": "Status",
+      "summary": "A small label that states a status or category."
+    },
+    {
+      "name": "Button",
+      "group": "Actions",
+      "summary": "A single action."
+    },
+    {
+      "name": "Callout",
+      "group": "Status",
+      "summary": "A block-level message that explains what happened and what to do next."
+    },
+    {
+      "name": "Card",
+      "group": "Surfaces",
+      "summary": "A grouped block of related content on surface-100."
+    },
+    {
+      "name": "Checkbox",
+      "group": "Forms",
+      "summary": "A box for choosing any number of independent options, or for agreeing to one statement."
+    },
+    {
+      "name": "CodeBlock",
+      "group": "Content",
+      "summary": "Shows code as a block with a file bar, or inline inside a sentence."
+    },
+    {
+      "name": "Conversation",
+      "group": "Patterns",
+      "summary": "The signature pattern: a quiet reading column with a soft composer, where the reader's words sit in a bubble and the reply sits directly on the page."
+    },
+    {
+      "name": "Menu",
+      "group": "Overlays",
+      "summary": "A floating list of actions opened from a button."
+    },
+    {
+      "name": "Modal",
+      "group": "Overlays",
+      "summary": "A dialog that interrupts the page for a decision that must be made now."
+    },
+    {
+      "name": "Select",
+      "group": "Forms",
+      "summary": "A dropdown for picking one option from a list of five or more."
+    },
+    {
+      "name": "Sidebar",
+      "group": "Navigation",
+      "summary": "The persistent left navigation of an app."
+    },
+    {
+      "name": "Tabs",
+      "group": "Navigation",
+      "summary": "Switches between views of the same subject without leaving the page."
+    },
+    {
+      "name": "TextField",
+      "group": "Forms",
+      "summary": "A labeled single-line input with optional helper or error text."
+    },
+    {
+      "name": "Toggle",
+      "group": "Forms",
+      "summary": "A switch for a setting that takes effect immediately."
+    },
+    {
+      "name": "Tooltip",
+      "group": "Overlays",
+      "summary": "A short label that names an icon-only control on hover and keyboard focus."
+    }
+  ],
+  "assetGroups": []
+}
