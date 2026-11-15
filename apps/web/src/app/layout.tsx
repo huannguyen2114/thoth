@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, JetBrains_Mono, Newsreader } from "next/font/google";
+import { CommandsProvider } from "./_components/commands";
+import { PREFS_SCRIPT } from "./_components/prefs";
 import { ServiceWorkerRegister } from "./_components/service-worker-register";
 import "./globals.css";
 
@@ -28,9 +30,19 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${sans.variable} ${serif.variable} ${mono.variable} antialiased`}>
-      <body className="min-h-dvh">
-        {children}
+    <html
+      lang="en"
+      className={`${sans.variable} ${serif.variable} ${mono.variable} antialiased`}
+      data-sidebar="expanded"
+      suppressHydrationWarning
+    >
+      <head>
+        {/* Applies saved theme and sidebar width before first paint (ADR-0020). */}
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static, first-party script */}
+        <script dangerouslySetInnerHTML={{ __html: PREFS_SCRIPT }} />
+      </head>
+      <body>
+        <CommandsProvider>{children}</CommandsProvider>
         <ServiceWorkerRegister />
       </body>
     </html>

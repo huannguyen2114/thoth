@@ -3,12 +3,14 @@ import type { Chat, ChatMessage } from "../../domain/chat";
 import { parseCitations } from "../../domain/citation";
 import type { LlmMessage, LlmProvider } from "../../ports/llm";
 import type {
+  ActivityRepository,
   ChatRepository,
   ContentRepository,
   SegmentRepository,
 } from "../../ports/repositories";
 import type { ChatId, ContentId } from "../../shared/id";
 import { appError, err, ok, type Result } from "../../shared/result";
+import { recordActivity } from "../activity";
 import {
   buildChatContext,
   type ChatContextMode,
@@ -25,6 +27,7 @@ export interface ChatDeps {
 
 export interface ChatTurnDeps extends ChatDeps {
   llm: LlmProvider;
+  activity?: ActivityRepository;
 }
 
 export const MAX_QUESTION_CHARS = 8_000;
@@ -113,6 +116,7 @@ export async function startChatTurn(
   }
 
   const userMessage = await deps.chats.addMessage(chat.id, "user", text, []);
+  await recordActivity(deps.activity, "chat_question", userMessage.id);
   const system = buildChatSystemPrompt({
     kind: content.kind,
     title: content.title,

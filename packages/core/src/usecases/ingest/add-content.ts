@@ -1,13 +1,19 @@
 import { z } from "zod";
 import type { Content, ContentKind, NewContent } from "../../domain/content";
-import type { ContentRepository, JobRepository } from "../../ports/repositories";
+import type {
+  ActivityRepository,
+  ContentRepository,
+  JobRepository,
+} from "../../ports/repositories";
 import type { ContentId, SpaceId } from "../../shared/id";
 import { type AppError, appError, err, ok, type Result } from "../../shared/result";
+import { recordActivity } from "../activity";
 import { detectLinkKind } from "./source-url";
 
 export interface AddContentDeps {
   contents: ContentRepository;
   jobs: JobRepository;
+  activity?: ActivityRepository;
 }
 
 /** Longest pasted text we accept: about a 500-page book. */
@@ -97,6 +103,7 @@ export async function addContent(
   const created = await deps.contents.create(content);
   const payload: IngestJobPayload = { contentId: created.id, ...(text ? { text } : {}) };
   await deps.jobs.enqueue("ingest", payload);
+  await recordActivity(deps.activity, "content_added", created.id);
   return ok(created);
 }
 

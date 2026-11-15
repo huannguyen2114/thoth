@@ -287,3 +287,23 @@ describe("paragraph numbers (ADR-0019)", () => {
     expect(b?.locator).toMatchObject({ paragraph: 7 });
   });
 });
+
+describe("activity log (ADR-0023)", () => {
+  it("records, throttles note edits, and counts by local day", async () => {
+    const { DrizzleActivityRepository } = await import("./activity-repository");
+    const repo = new DrizzleActivityRepository(db);
+    // 23:30 UTC on Nov 14 is Nov 15 06:30 in UTC+7 (offset -420).
+    const lateUtc = new Date("2026-11-14T23:30:00Z");
+    await repo.record("quiz_answer", "q1", lateUtc);
+    await repo.record("card_review", "c1", new Date("2026-11-15T03:00:00Z"));
+    await repo.recordThrottled("note_edit", "n1", new Date("2026-11-15T04:00:00Z"), 3_600_000);
+    await repo.recordThrottled("note_edit", "n1", new Date("2026-11-15T04:30:00Z"), 3_600_000);
+    const from = new Date("2026-11-01T00:00:00Z");
+    const to = new Date("2026-11-30T00:00:00Z");
+    expect(await repo.countByDay(from, to, -420)).toEqual([{ day: "2026-11-15", count: 3 }]);
+    expect(await repo.countByDay(from, to, 0)).toEqual([
+      { day: "2026-11-14", count: 1 },
+      { day: "2026-11-15", count: 2 },
+    ]);
+  });
+});

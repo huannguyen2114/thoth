@@ -1,3 +1,4 @@
+import type { ActivityDay, ActivityKind } from "../domain/activity";
 import type { Chat, ChatMessage } from "../domain/chat";
 import type { CitationRef } from "../domain/citation";
 import type {
@@ -142,4 +143,16 @@ export interface SettingsRepository {
   /** Returns null when the owner has never saved LLM settings. */
   getLlmSettings(): Promise<LlmSettings | null>;
   saveLlmSettings(settings: LlmSettings): Promise<void>;
+}
+
+/** Habit tracker log (ADR-0023). Use cases record through this; recording never blocks them. */
+export interface ActivityRepository {
+  record(kind: ActivityKind, ref: string | null, at: Date): Promise<void>;
+  /** Records unless the same kind + ref was recorded within `windowMs` before `at`. */
+  recordThrottled(kind: ActivityKind, ref: string, at: Date, windowMs: number): Promise<void>;
+  /**
+   * Event counts per local day between `from` and `to` (inclusive), days without events
+   * omitted. `tzOffsetMin` is the client's `Date#getTimezoneOffset()` (minutes behind UTC).
+   */
+  countByDay(from: Date, to: Date, tzOffsetMin: number): Promise<ActivityDay[]>;
 }

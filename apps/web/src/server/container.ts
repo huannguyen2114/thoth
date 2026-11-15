@@ -1,6 +1,7 @@
 import "server-only";
 import { resolve } from "node:path";
 import {
+  type ActivityRepository,
   type ChapterRepository,
   type ChatRepository,
   type ContentRepository,
@@ -19,6 +20,7 @@ import {
 } from "@thoth/core";
 import {
   createDb,
+  DrizzleActivityRepository,
   DrizzleChapterRepository,
   DrizzleChatRepository,
   DrizzleContentRepository,
@@ -54,6 +56,7 @@ export interface Container {
   quizzes: QuizRepository;
   flashcards: FlashcardRepository;
   jobs: JobRepository;
+  activity: ActivityRepository;
   settings: SettingsRepository;
   /** Source parsers (PDF, YouTube, web page, text) used by ingest jobs. */
   ingest: SourceParser;
@@ -80,6 +83,7 @@ async function build(): Promise<Container> {
     quizzes: new DrizzleQuizRepository(db),
     flashcards: new DrizzleFlashcardRepository(db),
     jobs: new DrizzleJobRepository(db),
+    activity: new DrizzleActivityRepository(db),
     settings,
     ingest: new SourceIngestor(),
     llm: async () =>

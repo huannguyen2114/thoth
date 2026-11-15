@@ -244,3 +244,28 @@ export const examSessions = sqliteTable(
   },
   (t) => [index("exam_sessions_set_idx").on(t.setId, t.startedAt)],
 );
+
+/** Habit tracker log (ADR-0023). Backfilled from existing data by migration 0005. */
+export const activityEvents = sqliteTable(
+  "activity_events",
+  {
+    id: text("id").primaryKey(),
+    kind: text("kind", {
+      enum: [
+        "quiz_answer",
+        "card_review",
+        "chat_question",
+        "note_edit",
+        "content_added",
+        "exam_submitted",
+        "summary_generated",
+      ],
+    }).notNull(),
+    at: integer("at", { mode: "timestamp_ms" }).notNull(),
+    ref: text("ref"),
+  },
+  (t) => [
+    index("activity_events_at_idx").on(t.at),
+    index("activity_events_ref_idx").on(t.kind, t.ref),
+  ],
+);

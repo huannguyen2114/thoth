@@ -15,11 +15,9 @@ export default function ContentPage({ params, searchParams }: PageProps<"/conten
   // runtime data on a dynamic route and must not block the prerendered shell.
   return (
     <Suspense fallback={<WorkspaceSkeleton />}>
-      <AppShell>
-        {/* Cancel AppShell's page padding: this page fills the viewport and scrolls per column.
-            contain-inline-size stops long nowrap content (the title) from widening AppShell's
-            flex main past the viewport. */}
-        <div className="-mx-4 -my-10 h-dvh contain-inline-size md:-mx-8">
+      <AppShell bleed>
+        {/* contain-inline-size stops long nowrap content (the title) from widening the main column. */}
+        <div className="h-full contain-inline-size">
           <Workspace params={params} searchParams={searchParams} />
         </div>
       </AppShell>

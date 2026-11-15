@@ -1,4 +1,5 @@
 export { createDb, type Db, migrateDb } from "./client";
+export { DrizzleActivityRepository } from "./repositories/activity-repository";
 export { DrizzleChapterRepository } from "./repositories/chapter-repository";
 export { DrizzleChatRepository } from "./repositories/chat-repository";
 export { DrizzleContentRepository } from "./repositories/content-repository";

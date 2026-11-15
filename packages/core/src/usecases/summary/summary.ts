@@ -3,12 +3,14 @@ import { formatClock } from "../../domain/citation";
 import type { StudySet } from "../../domain/study-set";
 import type { LlmProvider } from "../../ports/llm";
 import type {
+  ActivityRepository,
   ContentRepository,
   SegmentRepository,
   StudySetRepository,
 } from "../../ports/repositories";
 import type { ContentId, StudySetId } from "../../shared/id";
 import { appError, err, ok, type Result } from "../../shared/result";
+import { recordActivity } from "../activity";
 import { failStaleSets } from "../study-sets";
 import {
   buildSourceContext,
@@ -31,6 +33,7 @@ export interface SummaryDeps {
   studySets: StudySetRepository;
   /** Built per call so a settings change applies at once (see container.llm). */
   llm: () => Promise<LlmProvider>;
+  activity?: ActivityRepository;
   /** Minimum gap between partial-text saves while streaming. Default 1000 ms. */
   flushIntervalMs?: number;
   now?: () => Date;
@@ -162,6 +165,7 @@ export async function startSummary(
         });
       } else {
         await deps.studySets.update(set.id, { body: text.trim(), status: "ready", error: null });
+        await recordActivity(deps.activity, "summary_generated", set.id);
       }
     } catch (cause) {
       // A bug or an adapter that threw: never leave the set "generating" forever.

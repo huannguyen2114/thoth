@@ -1,8 +1,13 @@
 import type { Flashcard, FsrsState, ReviewRating } from "../../domain/flashcard";
 import type { StudySet } from "../../domain/study-set";
-import type { FlashcardRepository, StudySetRepository } from "../../ports/repositories";
+import type {
+  ActivityRepository,
+  FlashcardRepository,
+  StudySetRepository,
+} from "../../ports/repositories";
 import type { ContentId, FlashcardId, StudySetId } from "../../shared/id";
 import { appError, err, ok, type Result } from "../../shared/result";
+import { recordActivity } from "../activity";
 import { failStaleSets } from "../study-sets";
 import { formatInterval, previewReview, scheduleReview } from "./fsrs";
 import { cardTextSchema } from "./schemas";
@@ -10,6 +15,7 @@ import { cardTextSchema } from "./schemas";
 export interface FlashcardDeps {
   flashcards: FlashcardRepository;
   studySets: StudySetRepository;
+  activity?: ActivityRepository;
   now?: () => Date;
 }
 
@@ -66,6 +72,7 @@ export async function reviewCard(
   const now = clock(deps);
   const next = scheduleReview(card.fsrs, input.rating, now);
   await deps.flashcards.recordReview(card.id, input.rating, next, now);
+  await recordActivity(deps.activity, "card_review", card.id, now);
   const updated = { ...card, fsrs: next };
   return ok({ card: updated, next, dueCard: withIntervals(updated, now) });
 }

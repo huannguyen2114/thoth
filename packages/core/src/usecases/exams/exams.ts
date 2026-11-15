@@ -10,6 +10,7 @@ import type { NewQuizQuestion, QuizAttempt, QuizQuestion } from "../../domain/qu
 import type { StudySet } from "../../domain/study-set";
 import type { LlmProvider } from "../../ports/llm";
 import type {
+  ActivityRepository,
   ChapterRepository,
   ContentRepository,
   ExamSessionRepository,
@@ -19,6 +20,7 @@ import type {
 } from "../../ports/repositories";
 import type { ContentId, ExamSessionId, SpaceId, StudySetId } from "../../shared/id";
 import { appError, err, ok, type Result } from "../../shared/result";
+import { recordActivity } from "../activity";
 import { toNewQuestions } from "../quiz/generate-quiz";
 import { gradeFreeResponse, gradeObjective } from "../quiz/grading";
 import { quizSystemPrompt } from "../quiz/prompts";
@@ -34,6 +36,7 @@ export interface ExamDeps {
   quizzes: QuizRepository;
   examSessions: ExamSessionRepository;
   llm: () => Promise<LlmProvider>;
+  activity?: ActivityRepository;
 }
 
 /* ---------------- Generation (ADR-0016 pattern) ---------------- */
@@ -214,7 +217,7 @@ export const LATE_GRACE_MS = 60_000;
 
 /** Grades every answered question, stores attempts and the session score. Idempotent. */
 export async function submitExam(
-  deps: Pick<ExamDeps, "studySets" | "examSessions" | "quizzes" | "llm">,
+  deps: Pick<ExamDeps, "studySets" | "examSessions" | "quizzes" | "llm" | "activity">,
   input: { sessionId: ExamSessionId; responses: Record<string, unknown> },
   now: Date,
 ): Promise<Result<ExamResult>> {
@@ -246,9 +249,11 @@ export async function submitExam(
       feedback: grade.feedback,
     });
     total += grade.score;
+    await recordActivity(deps.activity, "quiz_answer", q.id, now);
   }
   const score = questions.length ? total / questions.length : 0;
   await deps.examSessions.submit(session.id, now, score);
+  await recordActivity(deps.activity, "exam_submitted", session.id, now);
   return getExamResult(deps, session.id);
 }
 

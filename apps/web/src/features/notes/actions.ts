@@ -5,7 +5,13 @@ import { getContainer } from "@/server/container";
 
 async function deps() {
   const c = await getContainer();
-  return { contents: c.contents, segments: c.segments, notes: c.notes, llm: () => c.llm() };
+  return {
+    contents: c.contents,
+    segments: c.segments,
+    notes: c.notes,
+    activity: c.activity,
+    llm: () => c.llm(),
+  };
 }
 
 export async function loadNoteAction(contentId: string): Promise<{ markdown: string }> {

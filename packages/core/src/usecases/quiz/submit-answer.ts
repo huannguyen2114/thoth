@@ -1,14 +1,16 @@
 import type { QuizAttempt, QuizQuestion } from "../../domain/quiz";
 import type { LlmProvider } from "../../ports/llm";
-import type { QuizRepository } from "../../ports/repositories";
+import type { ActivityRepository, QuizRepository } from "../../ports/repositories";
 import type { QuizQuestionId } from "../../shared/id";
 import { appError, err, ok, type Result } from "../../shared/result";
+import { recordActivity } from "../activity";
 import { gradeFreeResponse, gradeObjective } from "./grading";
 import { type QuizResponse, quizResponseSchema } from "./schemas";
 
 export interface SubmitAnswerDeps {
   quizzes: QuizRepository;
   llm: () => Promise<LlmProvider>;
+  activity?: ActivityRepository;
 }
 
 export interface SubmittedAnswer {
@@ -50,5 +52,6 @@ export async function submitQuizAnswer(
     score: grade.score,
     feedback: grade.feedback,
   });
+  await recordActivity(deps.activity, "quiz_answer", question.id);
   return ok({ attempt, question });
 }

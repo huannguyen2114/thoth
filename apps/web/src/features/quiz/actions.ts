@@ -75,7 +75,10 @@ export async function submitQuizAnswerAction(
   response: unknown,
 ): Promise<ActionResult<SubmittedAnswer>> {
   const { quizzes, llm } = await getContainer();
-  return toActionResult(await submitQuizAnswer({ quizzes, llm }, { questionId, response }));
+  const { activity } = await getContainer();
+  return toActionResult(
+    await submitQuizAnswer({ quizzes, llm, activity }, { questionId, response }),
+  );
 }
 
 export async function deleteQuizSetAction(setId: StudySetId): Promise<ActionResult<null>> {

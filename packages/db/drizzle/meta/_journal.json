@@ -29,6 +29,20 @@
       "when": 1794751418777,
       "tag": "0003_exams",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1794754110130,
+      "tag": "0004_activity_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1794754110550,
+      "tag": "0005_activity_backfill",
+      "breakpoints": true
     }
   ]
 }

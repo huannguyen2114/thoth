@@ -32,6 +32,7 @@ async function deps() {
     segments: c.segments,
     studySets: c.studySets,
     flashcards: c.flashcards,
+    activity: c.activity,
     llm: () => c.llm(),
   };
 }

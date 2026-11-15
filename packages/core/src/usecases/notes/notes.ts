@@ -2,12 +2,14 @@ import { z } from "zod";
 import type { Note } from "../../domain/note";
 import type { LlmProvider } from "../../ports/llm";
 import type {
+  ActivityRepository,
   ContentRepository,
   NoteRepository,
   SegmentRepository,
 } from "../../ports/repositories";
 import type { ContentId } from "../../shared/id";
 import { appError, err, ok, type Result } from "../../shared/result";
+import { recordActivity } from "../activity";
 import { buildSourceContext } from "../summary/prompts";
 import { MAX_SOURCE_CHARS } from "../summary/summary";
 import { buildNotesSystem, notesUserMessage } from "./prompts";
@@ -17,6 +19,7 @@ export interface NotesDeps {
   segments: SegmentRepository;
   notes: NoteRepository;
   llm: () => Promise<LlmProvider>;
+  activity?: ActivityRepository;
 }
 
 export const MAX_NOTES_CHARS = 200_000;
@@ -35,7 +38,7 @@ export async function getNote(
 }
 
 export async function saveNote(
-  deps: Pick<NotesDeps, "contents" | "notes">,
+  deps: Pick<NotesDeps, "contents" | "notes" | "activity">,
   contentId: ContentId,
   markdown: string,
 ): Promise<Result<Note>> {
@@ -46,7 +49,9 @@ export async function saveNote(
   if (!(await deps.contents.get(contentId))) {
     return err(appError("not_found", "This content no longer exists."));
   }
-  return ok(await deps.notes.save(contentId, parsed.data));
+  const note = await deps.notes.save(contentId, parsed.data);
+  await recordActivity(deps.activity, "note_edit", contentId);
+  return ok(note);
 }
 
 /**

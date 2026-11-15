@@ -69,5 +69,9 @@ What becomes easier, what becomes harder, and the follow-ups.
 | [0017](0017-quiz-grading-and-fsrs-scheduling.md)            | Quiz grading rules; FSRS via `ts-fsrs` in core (amends 0004)                         | Accepted                   |
 | [0018](0018-exams-and-progress.md)                          | Space exams with timed sessions, server-only answer keys, progress computed on read  | Accepted                   |
 | [0019](0019-one-based-paragraph-citations.md)               | Paragraph citations are 1-based everywhere and stored on text locators               | Accepted                   |
+| [0020](0020-native-app-feel-and-app-frame.md)               | Native app feel: fixed app frame, collapsible sidebar, Cmd+K, theme switch           | Accepted                   |
+| [0021](0021-dockable-content-workspace.md)                  | Dockable content workspace with dockview                                             | Accepted                   |
+| [0022](0022-notes-live-preview-editor.md)                   | Notes use a live-preview Tiptap editor, stored as Markdown                           | Accepted                   |
+| [0023](0023-activity-log-for-habit-tracker.md)              | Activity log for the habit tracker                                                   | Accepted                   |
 
 Add a new row when you add an ADR. When you supersede one, change its status here as well.

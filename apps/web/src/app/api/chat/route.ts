@@ -16,7 +16,13 @@ export async function POST(req: Request) {
   }
   const c = await getContainer();
   const turn = await startChatTurn(
-    { contents: c.contents, segments: c.segments, chats: c.chats, llm: await c.llm() },
+    {
+      contents: c.contents,
+      segments: c.segments,
+      chats: c.chats,
+      activity: c.activity,
+      llm: await c.llm(),
+    },
     (body ?? {}) as Parameters<typeof startChatTurn>[1],
     { signal: req.signal },
   );

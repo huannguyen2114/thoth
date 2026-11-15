@@ -1,3 +1,4 @@
+export * from "./domain/activity";
 export * from "./domain/chat";
 export * from "./domain/citation";
 export * from "./domain/content";
@@ -14,6 +15,7 @@ export * from "./ports/llm";
 export * from "./ports/repositories";
 export * from "./shared/id";
 export * from "./shared/result";
+export * from "./usecases/activity";
 export * from "./usecases/chat";
 export * from "./usecases/exams";
 export * from "./usecases/flashcards";
