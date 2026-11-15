@@ -27,6 +27,7 @@ flowchart LR
 | Spacing                         | Tailwind steps, which follow Hearth's 4px base (`p-4` = `space-4`)                    | arbitrary px              |
 
 - **Hearth component classes** (`btn`, `field`, `composer`, `nav-item`, `card`, `badge`, `callout`, `tabs`, `menu`, `modal`) are available. Prefer the typed React wrapper in `@thoth/ui` when one exists.
+- **Typed components in `@thoth/ui`:** `Button`, `Select`, and `Dialog` (a native `<dialog>` modal: render it only while open; pass footer buttons as `actions`). Server Action results use `ActionResult` from `apps/web/src/lib/action-result.ts`.
 - **Voice** (from Hearth): sentence case, verb-first buttons, errors that say what to do, no exclamation marks and no emoji.
 - **One `primary` button per view.** The accent colour is used sparingly.
 

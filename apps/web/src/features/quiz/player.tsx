@@ -109,7 +109,8 @@ export function QuizPlayer({
         <span className="badge badge--neutral self-start">{typeLabels[question.type]}</span>
         <h3 className="type-heading-3 text-ink">{question.prompt}</h3>
         <QuestionInput
-          question={question}
+          // Answers are hidden until graded (ADR-0018): show right/wrong from the graded question.
+          question={result?.question ?? question}
           draft={draft}
           onChange={setDraft}
           locked={result !== null || pending}
@@ -137,8 +138,8 @@ export function QuizPlayer({
               </p>
               {attempt.feedback && <p className="callout__text">{attempt.feedback}</p>}
               <p className="callout__text">{result?.question.explanation}</p>
-              {question.type === "free_response" && question.answer.type === "free_response" && (
-                <p className="callout__text mt-2">Key points: {question.answer.rubric}</p>
+              {result?.question.answer.type === "free_response" && (
+                <p className="callout__text mt-2">Key points: {result.question.answer.rubric}</p>
               )}
               {question.locator && onCite && (
                 <button

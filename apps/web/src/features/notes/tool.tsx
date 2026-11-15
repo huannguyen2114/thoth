@@ -1,10 +1,9 @@
 "use client";
 
-import { Button, cx } from "@thoth/ui";
+import { Button, cx, Dialog } from "@thoth/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { LearnTool, LearnToolProps } from "@/features/learn-panel/types";
 import { Callout } from "@/features/summary/callout";
-import { Dialog } from "@/features/summary/dialog";
 import { Markdown } from "@/features/summary/markdown";
 import { draftNotesAction, loadNoteAction, saveNoteAction } from "./actions";
 
@@ -188,21 +187,28 @@ function NotesPanel({ contentId, onCite }: LearnToolProps) {
         </div>
       </div>
 
-      <Dialog open={askDraft} onClose={() => setAskDraft(false)} title="Replace your notes?">
-        <p className="modal__body">
-          You already have notes here. Claude can add its draft below them, or replace them with the
-          draft. Replacing cannot be undone.
-        </p>
-        <div className="modal__actions">
-          <Button variant="ghost" onClick={() => setAskDraft(false)}>
-            Cancel
-          </Button>
-          <Button onClick={() => void draft("append")}>Add below</Button>
-          <Button variant="danger" onClick={() => void draft("replace")}>
-            Replace notes
-          </Button>
-        </div>
-      </Dialog>
+      {askDraft && (
+        <Dialog
+          onClose={() => setAskDraft(false)}
+          title="Replace your notes?"
+          actions={
+            <>
+              <Button variant="ghost" onClick={() => setAskDraft(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => void draft("append")}>Add below</Button>
+              <Button variant="danger" onClick={() => void draft("replace")}>
+                Replace notes
+              </Button>
+            </>
+          }
+        >
+          <p className="modal__body">
+            You already have notes here. Claude can add its draft below them, or replace them with
+            the draft. Replacing cannot be undone.
+          </p>
+        </Dialog>
+      )}
     </div>
   );
 }

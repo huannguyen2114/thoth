@@ -1,8 +1,9 @@
-import type { QuizAttempt, QuizQuestion } from "../../domain/quiz";
+import { hideAnswer, type QuizAttempt, type QuizQuestion } from "../../domain/quiz";
 import type { StudySet } from "../../domain/study-set";
 import type { QuizRepository, StudySetRepository } from "../../ports/repositories";
 import type { ContentId, StudySetId } from "../../shared/id";
 import { appError, err, ok, type Result } from "../../shared/result";
+import { failStaleSets } from "../study-sets";
 import { latestAttempts, type TopicScore, topicScores, weakTopics } from "./stats";
 
 export interface QuizDeps {
@@ -26,8 +27,13 @@ export interface QuizOverview {
 }
 
 /** Quiz sets of one content with progress, plus the topics the learner is weakest in. */
-export async function getQuizOverview(deps: QuizDeps, contentId: ContentId): Promise<QuizOverview> {
-  const sets = (await deps.studySets.listByContent(contentId, "quiz")).sort(
+export async function getQuizOverview(
+  deps: QuizDeps,
+  contentId: ContentId,
+  now: Date = new Date(),
+): Promise<QuizOverview> {
+  const listed = await deps.studySets.listByContent(contentId, "quiz");
+  const sets = (await failStaleSets(deps.studySets, listed, now)).sort(
     (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
   );
   const allQuestions: QuizQuestion[] = [];
@@ -55,12 +61,15 @@ export async function getQuizOverview(deps: QuizDeps, contentId: ContentId): Pro
   };
 }
 
-/** Questions of one set, in order. */
+/**
+ * Questions of one set, in order, with answers hidden (`hideAnswer`). The player gets each
+ * full question back from `submitQuizAnswer` once it is answered.
+ */
 export async function getQuizQuestions(
   deps: Pick<QuizDeps, "quizzes">,
   setId: StudySetId,
 ): Promise<QuizQuestion[]> {
-  return (await deps.quizzes.listQuestions(setId)).sort((a, b) => a.idx - b.idx);
+  return (await deps.quizzes.listQuestions(setId)).sort((a, b) => a.idx - b.idx).map(hideAnswer);
 }
 
 export async function deleteQuizSet(deps: QuizDeps, setId: StudySetId): Promise<Result<void>> {

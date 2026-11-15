@@ -9,6 +9,7 @@ import type {
 } from "../../ports/repositories";
 import type { ContentId, StudySetId } from "../../shared/id";
 import { appError, err, ok, type Result } from "../../shared/result";
+import { failStaleSets } from "../study-sets";
 import {
   buildSourceContext,
   buildSummarySystem,
@@ -39,7 +40,7 @@ export interface SummaryDeps {
 export const MAX_SOURCE_CHARS = 600_000;
 
 /** A "generating" set older than this is treated as interrupted (the server was restarted). */
-export const STALE_GENERATING_MS = 15 * 60 * 1000;
+export { STALE_GENERATING_MS } from "../study-sets";
 
 export const summaryOptionsSchema = z.object({
   template: z.enum(summaryTemplates),
@@ -190,18 +191,9 @@ export async function listSummaries(
   deps: Pick<SummaryDeps, "studySets" | "now">,
   contentId: ContentId,
 ): Promise<StudySet[]> {
-  const now = (deps.now ?? (() => new Date()))().getTime();
+  const now = (deps.now ?? (() => new Date()))();
   const sets = await deps.studySets.listByContent(contentId, "summary");
-  const out: StudySet[] = [];
-  for (const s of sets) {
-    if (s.status === "generating" && now - s.updatedAt.getTime() > STALE_GENERATING_MS) {
-      const error = "Generation was interrupted. Generate it again.";
-      await deps.studySets.update(s.id, { status: "failed", error });
-      out.push({ ...s, status: "failed", error });
-    } else {
-      out.push(s);
-    }
-  }
+  const out = await failStaleSets(deps.studySets, sets, now);
   return out.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
 

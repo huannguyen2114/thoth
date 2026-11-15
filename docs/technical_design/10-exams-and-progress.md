@@ -70,9 +70,13 @@ sequenceDiagram
   - `content_id` set to null when its content is deleted;
   - paragraph numbers filled in on text segments.
 
-## Known limits and follow-ups
+## Resolved follow-ups (2026-11-15)
 
-- Practice quizzes (Phase 5) still send answers to the browser before answering (ADR-0018, Consequences).
-- A quiz, flashcard or exam set left `generating` by a server restart is not marked failed automatically (ADR-0016 follow-up).
-- Quiz and exam radio inputs are named "on" for screen readers. `QuestionInput` should label each choice.
-- Summary has its own modal. Move it to the shared `Dialog` in `@thoth/ui`.
+- **Answers hidden in practice quizzes too.** `getQuizQuestions` returns `hideAnswer(q)`; the player shows the key only from the graded result of `submitQuizAnswer`.
+- **Stale sets.** `failStaleSets` (`packages/core/src/usecases/study-sets.ts`) marks a summary, quiz, flashcard or exam set that has been `generating` for more than 15 minutes as failed, wherever those lists are read.
+- **Radio names.** These were a false alarm: every choice is labelled by its wrapping `<label>`. A browser tool showed the input `value` ("on").
+- **One modal.** Every feature uses `Dialog` from `@thoth/ui`: a native `<dialog>` (focus trap, inert page, Escape, focus returned to the opener), rendered only while open.
+
+## Known limits
+
+- A few features still import from another feature (ADR-0012): notes uses summary's `Markdown` and `Callout`, flashcards uses quiz's `TopicFields`, and chat and content-viewer import each other. Move the shared pieces to `@thoth/ui` when next touched.

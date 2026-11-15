@@ -10,6 +10,7 @@ import type {
 } from "../ports/repositories";
 import type { ContentId, SpaceId } from "../shared/id";
 import { appError, err, ok, type Result } from "../shared/result";
+import { failStaleSets } from "./study-sets";
 
 export interface SpaceDeps {
   spaces: SpaceRepository;
@@ -46,13 +47,14 @@ export async function getSpaceOverview(
     examSessions: ExamSessionRepository;
   },
   spaceId: SpaceId,
+  now: Date = new Date(),
 ): Promise<Result<SpaceOverview>> {
   const space = await deps.spaces.get(spaceId);
   if (!space) return err(appError("not_found", "This space no longer exists."));
   const [contents, recent, sets] = await Promise.all([
     deps.contents.listBySpace(spaceId),
     deps.contents.listRecent(500),
-    deps.studySets.listBySpace(spaceId, "exam"),
+    deps.studySets.listBySpace(spaceId, "exam").then((s) => failStaleSets(deps.studySets, s, now)),
   ]);
   const exams = await Promise.all(
     sets.map(async (set) => {

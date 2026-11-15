@@ -10,9 +10,8 @@ import {
   summaryTemplateLabels,
   summaryTemplates,
 } from "@thoth/core";
-import { Button, cx, Select } from "@thoth/ui";
+import { Button, cx, Dialog, Select } from "@thoth/ui";
 import { useState } from "react";
-import { Dialog } from "./dialog";
 
 const templateHelp: Record<SummaryTemplate, string> = {
   detailed: "Comprehensive notes with sections and key takeaways.",
@@ -89,8 +88,9 @@ export function GenerateSummaryDialog({
   /** Returns an error message, or null when the summary started. */
   onSubmit: (input: SummaryOptionsInput) => Promise<string | null>;
 }) {
+  if (!open) return null;
   return (
-    <Dialog open={open} onClose={onClose} title="Generate summary">
+    <Dialog onClose={onClose} title="Generate summary">
       <GenerateForm onClose={onClose} bounds={bounds} onSubmit={onSubmit} />
     </Dialog>
   );

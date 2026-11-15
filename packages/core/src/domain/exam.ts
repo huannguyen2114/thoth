@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { ContentId, ExamSessionId, StudySetId } from "../shared/id";
-import { type QuizAnswer, type QuizQuestion, quizDifficulties, quizQuestionTypes } from "./quiz";
+import { hideAnswer, type QuizQuestion, quizDifficulties, quizQuestionTypes } from "./quiz";
 
 /** What the owner chooses in the New exam dialog. Stored as the exam StudySet's options. */
 export const examOptionsSchema = z.object({
@@ -38,24 +38,7 @@ export interface ExamSession {
  */
 export type ExamQuestionView = QuizQuestion;
 
-const emptyAnswer = (a: QuizAnswer): QuizAnswer => {
-  switch (a.type) {
-    case "multiple_choice":
-      return { type: "multiple_choice", index: -1 };
-    case "multi_select":
-      return { type: "multi_select", indices: [] };
-    case "true_false":
-      return { type: "true_false", value: false };
-    case "fill_blank":
-      return { type: "fill_blank", accepted: [] };
-    case "free_response":
-      return { type: "free_response", rubric: "" };
-  }
-};
-
-/** Strips everything that would give the answer away. */
-export function toExamQuestionView(q: QuizQuestion): ExamQuestionView {
-  return { ...q, answer: emptyAnswer(q.answer), explanation: "" };
-}
+/** Strips everything that would give the answer away (see `hideAnswer`). */
+export const toExamQuestionView = (q: QuizQuestion): ExamQuestionView => hideAnswer(q);
 
 export type ExamContentRef = { contentId: ContentId; title: string };

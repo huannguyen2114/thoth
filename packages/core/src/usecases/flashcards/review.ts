@@ -3,6 +3,7 @@ import type { StudySet } from "../../domain/study-set";
 import type { FlashcardRepository, StudySetRepository } from "../../ports/repositories";
 import type { ContentId, FlashcardId, StudySetId } from "../../shared/id";
 import { appError, err, ok, type Result } from "../../shared/result";
+import { failStaleSets } from "../study-sets";
 import { formatInterval, previewReview, scheduleReview } from "./fsrs";
 import { cardTextSchema } from "./schemas";
 
@@ -104,7 +105,11 @@ export async function listFlashcardSets(
   contentId: ContentId,
 ): Promise<FlashcardSetSummary[]> {
   const now = clock(deps);
-  const sets = await deps.studySets.listByContent(contentId, "flashcards");
+  const sets = await failStaleSets(
+    deps.studySets,
+    await deps.studySets.listByContent(contentId, "flashcards"),
+    now,
+  );
   return Promise.all(
     sets.map(async (set) => {
       const cards = await deps.flashcards.listBySet(set.id);

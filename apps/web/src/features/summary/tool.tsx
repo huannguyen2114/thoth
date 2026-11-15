@@ -1,7 +1,7 @@
 "use client";
 
 import type { SourceBounds, SummaryOptionsInput } from "@thoth/core";
-import { Button, cx } from "@thoth/ui";
+import { Button, cx, Dialog } from "@thoth/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { LearnTool, LearnToolProps } from "@/features/learn-panel/types";
 import {
@@ -12,7 +12,6 @@ import {
   startSummaryAction,
 } from "./actions";
 import { Callout } from "./callout";
-import { Dialog } from "./dialog";
 import { GenerateSummaryDialog } from "./generate-dialog";
 import { Markdown } from "./markdown";
 
@@ -185,21 +184,24 @@ function SummaryPanel({ contentId, onCite }: LearnToolProps) {
         onSubmit={generate}
       />
 
-      <Dialog
-        open={deleting !== null}
-        onClose={() => setDeleting(null)}
-        title="Delete this summary?"
-      >
-        <p className="modal__body">“{deleting?.title}” will be removed. You cannot undo this.</p>
-        <div className="modal__actions">
-          <Button variant="ghost" onClick={() => setDeleting(null)}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={() => deleting && void confirmDelete(deleting)}>
-            Delete summary
-          </Button>
-        </div>
-      </Dialog>
+      {deleting && (
+        <Dialog
+          onClose={() => setDeleting(null)}
+          title="Delete this summary?"
+          actions={
+            <>
+              <Button variant="ghost" onClick={() => setDeleting(null)}>
+                Cancel
+              </Button>
+              <Button variant="danger" onClick={() => void confirmDelete(deleting)}>
+                Delete summary
+              </Button>
+            </>
+          }
+        >
+          <p className="modal__body">“{deleting.title}” will be removed. You cannot undo this.</p>
+        </Dialog>
+      )}
     </div>
   );
 }

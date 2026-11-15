@@ -4,8 +4,10 @@ import { type ReactNode, useEffect, useId, useRef } from "react";
 import { Button } from "./button";
 
 /**
- * Hearth modal: dims the page, moves focus in, closes on Escape, returns focus on close.
- * See design/hearth/components/Modal/README.md.
+ * Hearth modal on a native <dialog>, opened with showModal(): the browser traps focus, makes
+ * the page behind inert, closes on Escape and returns focus to the opener.
+ * Render it only while it should be open (`{open && <Dialog …/>}`), so forms reset each time.
+ * Guideline: design/hearth/components/Modal/README.md
  */
 export function Dialog({
   title,
@@ -16,42 +18,37 @@ export function Dialog({
   title: string;
   onClose: () => void;
   children: ReactNode;
-  actions: ReactNode;
+  /** Buttons in the footer. Omit when the children render their own (for example a form). */
+  actions?: ReactNode;
 }) {
+  const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
-  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const opener = document.activeElement as HTMLElement | null;
-    ref.current?.querySelector<HTMLElement>("input, select, textarea, button")?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      opener?.focus();
-    };
-  }, [onClose]);
+    const el = ref.current;
+    const opener = el?.open ? null : (document.activeElement as HTMLElement | null);
+    if (el && !el.open) el.showModal();
+    // No cleanup close(): it fires "close" → onClose, which would unmount the dialog during
+    // React's dev double-run of effects. Removing an open <dialog> from the DOM already takes
+    // it out of the top layer and ends the page's inertness. Then focus returns to the
+    // opener (while the dialog is still open the opener is inert, so this is a no-op).
+    return () => opener?.focus();
+  }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex">
-      <div className="scrim flex flex-1 items-start justify-center overflow-y-auto rounded-none">
-        <div
-          ref={ref}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={titleId}
-          className="modal flex flex-col gap-4"
-        >
-          <h2 id={titleId} className="modal__title">
-            {title}
-          </h2>
-          {children}
-          <div className="modal__actions">{actions}</div>
-        </div>
-      </div>
-    </div>
+    <dialog
+      ref={ref}
+      // Escape and form[method=dialog] fire "close"; the parent unmounts us in response.
+      onClose={onClose}
+      aria-labelledby={titleId}
+      className="modal m-auto flex max-h-screen flex-col gap-4 overflow-y-auto backdrop:bg-scrim"
+    >
+      <h2 id={titleId} className="modal__title">
+        {title}
+      </h2>
+      {children}
+      {actions && <div className="modal__actions">{actions}</div>}
+    </dialog>
   );
 }
 

@@ -59,3 +59,27 @@ export interface QuizAttempt {
   createdAt: Date;
 }
 export type NewQuizAttempt = Omit<QuizAttempt, "id" | "createdAt">;
+
+const emptyAnswer = (a: QuizAnswer): QuizAnswer => {
+  switch (a.type) {
+    case "multiple_choice":
+      return { type: "multiple_choice", index: -1 };
+    case "multi_select":
+      return { type: "multi_select", indices: [] };
+    case "true_false":
+      return { type: "true_false", value: false };
+    case "fill_blank":
+      return { type: "fill_blank", accepted: [] };
+    case "free_response":
+      return { type: "free_response", rubric: "" };
+  }
+};
+
+/**
+ * A question as the browser may see it before it is answered: the answer key and explanation
+ * are replaced by empty values of the same type, so the input UI still works (ADR-0018).
+ * The full question comes back with the graded attempt.
+ */
+export function hideAnswer(q: QuizQuestion): QuizQuestion {
+  return { ...q, answer: emptyAnswer(q.answer), explanation: "" };
+}

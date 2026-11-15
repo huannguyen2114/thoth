@@ -22,4 +22,5 @@ export * from "./usecases/llm-settings";
 export * from "./usecases/notes";
 export * from "./usecases/quiz";
 export * from "./usecases/spaces";
+export * from "./usecases/study-sets";
 export * from "./usecases/summary";
