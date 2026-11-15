@@ -12,6 +12,7 @@ import {
   type QuizRepository,
   type SegmentRepository,
   type SettingsRepository,
+  type SourceParser,
   type SpaceRepository,
   type StudySetRepository,
 } from "@thoth/core";
@@ -30,6 +31,7 @@ import {
   DrizzleStudySetRepository,
   migrateDb,
 } from "@thoth/db";
+import { SourceIngestor } from "@thoth/ingest";
 import { createLlmProvider } from "@thoth/llm";
 import { env } from "./env";
 
@@ -50,6 +52,8 @@ export interface Container {
   flashcards: FlashcardRepository;
   jobs: JobRepository;
   settings: SettingsRepository;
+  /** Source parsers (PDF, YouTube, web page, text) used by ingest jobs. */
+  ingest: SourceParser;
   /** Built per call from saved settings, so a settings change applies immediately. */
   llm(): Promise<LlmProvider>;
   hasAnthropicApiKey: boolean;
@@ -73,6 +77,7 @@ async function build(): Promise<Container> {
     flashcards: new DrizzleFlashcardRepository(db),
     jobs: new DrizzleJobRepository(db),
     settings,
+    ingest: new SourceIngestor(),
     llm: async () =>
       createLlmProvider(await getLlmSettings({ settings }), {
         anthropicApiKey: env.ANTHROPIC_API_KEY,

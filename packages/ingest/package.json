@@ -1,0 +1,27 @@
+{
+  "name": "@thoth/ingest",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@mozilla/readability": "0.6.0",
+    "@thoth/core": "workspace:*",
+    "jsdom": "30.1.3",
+    "pdfjs-dist": "6.5.438",
+    "youtube-transcript": "1.3.1"
+  },
+  "devDependencies": {
+    "@thoth/tsconfig": "workspace:*",
+    "@types/jsdom": "30.0.0",
+    "@types/node": "^22",
+    "typescript": "5.9.3",
+    "vitest": "5.1.0"
+  }
+}
