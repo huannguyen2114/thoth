@@ -1,6 +1,6 @@
 # Thoth roadmap
 
-> **Status:** Phase 0 done (2026-11-15). Next: Phase 1.
+> **Status:** Phase 0 done. Phase 1 built (2026-11-15); a live reply is waiting on a Claude Code sign-in or an API key. Next: Phase 2.
 > Where this plan and an ADR disagree, **the ADR wins** (`docs/decision/`). The architecture below is the original sketch. The current design is `docs/technical_design/`.
 
 ## Context
@@ -145,7 +145,7 @@ Each phase ends with something that runs. After each phase I check it in the bro
 - Run `git init`.
 - **Done when:** `npm run dev` shows the home page and it can be installed as a PWA.
 
-### Phase 1: LLM provider layer + Settings (about 1 day)
+### Phase 1: LLM provider layer + Settings (about 1 day) — BUILT 2026-11-15
 
 - Files: `lib/llm/types.ts`, `anthropic-api.ts`, `claude-subscription.ts`, `index.ts` (a factory driven by settings).
 - A Settings page: provider radio buttons, API key, model per task, and a "Test connection" button.

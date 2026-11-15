@@ -111,9 +111,9 @@ thoth/
 
 ## Planned growth (no restructuring needed)
 
-| Phase               | Where it lands                                                                                                |
-| ------------------- | ------------------------------------------------------------------------------------------------------------- |
-| 1 LLM providers     | `packages/llm/src/{anthropic-api,claude-subscription}.ts`; a settings use case in core; `features/settings`   |
-| 2 Ingestion         | A new `packages/ingest` (parsers, which depend on core); a jobs table and runner in `db`                      |
-| 3–7 Learning tools  | Use cases in `core/usecases/*`; tables in `db/schema`; UIs in `features/{chat,summary,quiz,flashcards,exams}` |
-| 12 Chrome extension | A new `apps/extension` that reuses `core` and `ui`                                                            |
+| Phase                  | Where it lands                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 LLM providers (done) | `packages/llm/src/{anthropic-api,claude-subscription}.ts`, `core/usecases/llm-settings.ts`, `features/settings`, `app/api/llm/stream` |
+| 2 Ingestion            | A new `packages/ingest` (parsers, which depend on core); a jobs table and runner in `db`                                              |
+| 3–7 Learning tools     | Use cases in `core/usecases/*`; tables in `db/schema`; UIs in `features/{chat,summary,quiz,flashcards,exams}`                         |
+| 12 Chrome extension    | A new `apps/extension` that reuses `core` and `ui`                                                                                    |

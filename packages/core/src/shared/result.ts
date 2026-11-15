@@ -13,6 +13,7 @@ export type AppErrorCode =
   | "conflict"
   | "llm_unavailable"
   | "llm_bad_output"
+  | "llm_refused"
   | "ingest_failed";
 
 export interface AppError {

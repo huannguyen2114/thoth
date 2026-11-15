@@ -1,6 +1,6 @@
 # ADR-0008: One LLM port with two adapters: API key and Claude subscription
 
-- Status: Accepted
+- Status: Accepted; structured-output mechanism superseded by ADR-0013
 - Date: 2026-11-15
 
 ## Context
