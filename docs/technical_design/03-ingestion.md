@@ -1,6 +1,6 @@
 # 03. Ingestion
 
-Status: Current (Phase 2). Decision draft: `docs/decision/NNNN-draft-lane-a.md`.
+Status: Current (Phase 2). Decision draft: ADR-0014.
 
 ## Goal
 

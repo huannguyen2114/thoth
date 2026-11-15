@@ -1,6 +1,6 @@
-# ADR-NNNN: Chat source context: whole source under 150k tokens, else FTS top-k
+# ADR-0015: Chat source context: whole source under 150k tokens, else FTS top-k
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-15
 
 ## Context

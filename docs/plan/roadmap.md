@@ -1,6 +1,6 @@
 # Thoth roadmap
 
-> **Status:** Phase 0 done. Phase 1 built (2026-11-15); a live reply is waiting on a Claude Code sign-in or an API key. Next: Phase 2.
+> **Status (2026-11-15):** Phases 0–6 done and verified live on Sonnet 5.5 (2–6 built in parallel lanes, see `parallel-development.md`). Next: Phase 7 (exams + progress), then Phase 8 (polish + phone).
 > Where this plan and an ADR disagree, **the ADR wins** (`docs/decision/`). The architecture below is the original sketch. The current design is `docs/technical_design/`.
 
 ## Context
@@ -145,20 +145,20 @@ Each phase ends with something that runs. After each phase I check it in the bro
 - Run `git init`.
 - **Done when:** `npm run dev` shows the home page and it can be installed as a PWA.
 
-### Phase 1: LLM provider layer + Settings (about 1 day) — BUILT 2026-11-15
+### Phase 1: LLM provider layer + Settings (about 1 day) — DONE 2026-11-15
 
 - Files: `lib/llm/types.ts`, `anthropic-api.ts`, `claude-subscription.ts`, `index.ts` (a factory driven by settings).
 - A Settings page: provider radio buttons, API key, model per task, and a "Test connection" button.
 - A `/api/llm/test` route.
 - **Done when:** a test prompt streams back through **both** providers. The subscription provider uses your logged-in `claude`.
 
-### Phase 2: Ingestion + library (about 2 days)
+### Phase 2: Ingestion + library (about 2 days) — DONE 2026-11-15
 
 - The home prompt box with Upload (PDF), Link (YouTube or URL), and Paste. Spaces CRUD. Recents. A sidebar matching YouLearn's layout.
 - An ingestion pipeline that turns each source into segments, then FTS chunks, and then **LLM chapter generation**: timestamped or page-ranged sections with a title and summary.
 - **Done when:** adding a YouTube link and a PDF shows each one in Recents with status processing → ready.
 
-### Phase 3: Content page + chat with citations (about 2–3 days)
+### Phase 3: Content page + chat with citations (about 2–3 days) — DONE 2026-11-15
 
 - A three-column layout:
   - the viewer (YouTube or PDF) with Chapters and Transcript tabs and auto-scroll;
@@ -168,7 +168,7 @@ Each phase ends with something that runs. After each phase I check it in the bro
 - Chat history for each content. Custom chat instructions. An "Add context" option to pull in other contents.
 - **Done when:** you can ask a question about a lecture and click a citation to jump to that timestamp.
 
-### Phase 4: Summary + Notes (about 1–2 days)
+### Phase 4: Summary + Notes (about 1–2 days) — DONE 2026-11-15
 
 - A Summary dialog with:
   - templates (Detailed, Cheat Sheet, Short);
@@ -179,7 +179,7 @@ Each phase ends with something that runs. After each phase I check it in the bro
 - Notes: a Tiptap or markdown editor for each content. It can auto-generate notes and has an "Add to notes" button on chat messages.
 - **Done when:** both appear in My Sets and reopen as tabs.
 
-### Phase 5: Quiz (about 2–3 days)
+### Phase 5: Quiz (about 2–3 days) — DONE 2026-11-15
 
 - Quiz dialog options:
   - the 5 question types;
@@ -196,7 +196,7 @@ Each phase ends with something that runs. After each phase I check it in the bro
 - Attempts are stored, and weak topics are tracked.
 - **Done when:** a 10-question mixed quiz is generated, played, and scored.
 
-### Phase 6: Flashcards with spaced repetition (about 2 days)
+### Phase 6: Flashcards with spaced repetition (about 2 days) — DONE 2026-11-15 (offline review deferred, ADR-0017)
 
 - Flashcard dialog: count, topics, focus, language.
 - Cards with front, back, and a citation. They can be edited and deleted.

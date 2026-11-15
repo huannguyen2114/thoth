@@ -1,6 +1,6 @@
 # ADR-0004: Hexagonal architecture: core, ports, adapters, one composition root
 
-- Status: Accepted
+- Status: Accepted; dependency rule amended by ADR-0017
 - Date: 2026-11-15
 
 ## Context

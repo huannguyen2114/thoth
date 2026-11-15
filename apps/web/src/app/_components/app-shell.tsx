@@ -14,6 +14,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NavLink href="/">
             <PlusIcon /> Add content
           </NavLink>
+          <NavLink href="/review">
+            <CardsIcon /> Review
+          </NavLink>
           <p className="sidebar__group type-overline text-ink-muted">Spaces</p>
           <div className="flex-1" />
           <NavLink href="/settings">
@@ -23,6 +26,20 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
       <main className="flex-1 px-4 py-10 md:px-8">{children}</main>
     </div>
+  );
+}
+
+function CardsIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <rect x="2.5" y="4" width="9" height="9.5" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M5 2.5h7a1.5 1.5 0 0 1 1.5 1.5v7"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 

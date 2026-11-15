@@ -58,4 +58,13 @@ export class DrizzleJobRepository implements JobRepository {
     const row = await this.db.query.jobs.findFirst({ where: eq(jobs.id, id) });
     return row ? toDomain(row) : null;
   }
+
+  async requeueRunning() {
+    const rows = await this.db
+      .update(jobs)
+      .set({ status: "queued", runAfter: new Date(), ...touch })
+      .where(eq(jobs.status, "running"))
+      .returning({ id: jobs.id });
+    return rows.length;
+  }
 }

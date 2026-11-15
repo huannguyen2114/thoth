@@ -1,6 +1,6 @@
 # 09. Quiz and flashcards
 
-Status: Current (Phases 5 and 6, Lane D). Decision draft: `docs/decision/NNNN-draft-lane-d.md`.
+Status: Current (Phases 5 and 6, Lane D). Decision draft: ADR-0016 and ADR-0017.
 
 ## Flow
 

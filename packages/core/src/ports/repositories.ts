@@ -118,6 +118,12 @@ export interface JobRepository {
   complete(id: JobId): Promise<void>;
   fail(id: JobId, error: string, retryAt: Date | null): Promise<void>;
   get(id: JobId): Promise<Job | null>;
+  /**
+   * Puts jobs still marked `running` back in the queue. Called once when the runner starts:
+   * in a single process, any `running` job at boot was cut off by a crash or restart.
+   * Returns how many jobs were re-queued.
+   */
+  requeueRunning(): Promise<number>;
 }
 
 export interface SettingsRepository {

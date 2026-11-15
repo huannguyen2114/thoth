@@ -48,20 +48,24 @@ What becomes easier, what becomes harder, and the follow-ups.
 
 ## Index
 
-| #                                                           | Decision                                                                     | Status                     |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------- |
-| [0001](0001-record-architecture-decisions.md)               | Record architecture decisions as append-only ADRs                            | Accepted                   |
-| [0002](0002-single-user-local-first-pwa.md)                 | Single-user, local-first, installable PWA                                    | Accepted                   |
-| [0003](0003-pnpm-turborepo-monorepo.md)                     | pnpm + Turborepo monorepo with source-only internal packages                 | Accepted                   |
-| [0004](0004-hexagonal-architecture.md)                      | Hexagonal architecture: core, ports, adapters, one composition root          | Accepted                   |
-| [0005](0005-result-type-for-expected-errors.md)             | `Result` type for expected failures; exceptions only for bugs                | Accepted                   |
-| [0006](0006-sqlite-libsql-drizzle.md)                       | SQLite through libSQL and Drizzle ORM                                        | Accepted                   |
-| [0007](0007-pwa-manifest-and-handwritten-service-worker.md) | Built-in manifest + a hand-written service worker                            | Accepted                   |
-| [0008](0008-llm-provider-port-api-key-and-subscription.md)  | One LLM port with two adapters: API key and Claude subscription              | Accepted (amended by 0013) |
-| [0009](0009-hearth-design-system-vendored-tokens.md)        | Hearth design system, vendored, with generated CSS tokens                    | Accepted                   |
-| [0010](0010-tooling-biome-vitest-strict-ts.md)              | Biome, Vitest, strict TypeScript 5.9                                         | Accepted                   |
-| [0011](0011-nextjs-16-cache-components-server-actions.md)   | Next.js 16 App Router with Cache Components; Server Actions as thin adapters | Accepted                   |
-| [0012](0012-feature-folders-in-web-app.md)                  | Feature folders in the web app                                               | Accepted                   |
-| [0013](0013-llm-adapter-defaults-and-isolation.md)          | LLM adapter defaults, structured output, subscription isolation              | Accepted                   |
+| #                                                           | Decision                                                                             | Status                     |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------- |
+| [0001](0001-record-architecture-decisions.md)               | Record architecture decisions as append-only ADRs                                    | Accepted                   |
+| [0002](0002-single-user-local-first-pwa.md)                 | Single-user, local-first, installable PWA                                            | Accepted                   |
+| [0003](0003-pnpm-turborepo-monorepo.md)                     | pnpm + Turborepo monorepo with source-only internal packages                         | Accepted                   |
+| [0004](0004-hexagonal-architecture.md)                      | Hexagonal architecture: core, ports, adapters, one composition root                  | Accepted (amended by 0017) |
+| [0005](0005-result-type-for-expected-errors.md)             | `Result` type for expected failures; exceptions only for bugs                        | Accepted                   |
+| [0006](0006-sqlite-libsql-drizzle.md)                       | SQLite through libSQL and Drizzle ORM                                                | Accepted                   |
+| [0007](0007-pwa-manifest-and-handwritten-service-worker.md) | Built-in manifest + a hand-written service worker                                    | Accepted                   |
+| [0008](0008-llm-provider-port-api-key-and-subscription.md)  | One LLM port with two adapters: API key and Claude subscription                      | Accepted (amended by 0013) |
+| [0009](0009-hearth-design-system-vendored-tokens.md)        | Hearth design system, vendored, with generated CSS tokens                            | Accepted                   |
+| [0010](0010-tooling-biome-vitest-strict-ts.md)              | Biome, Vitest, strict TypeScript 5.9                                                 | Accepted                   |
+| [0011](0011-nextjs-16-cache-components-server-actions.md)   | Next.js 16 App Router with Cache Components; Server Actions as thin adapters         | Accepted                   |
+| [0012](0012-feature-folders-in-web-app.md)                  | Feature folders in the web app                                                       | Accepted                   |
+| [0013](0013-llm-adapter-defaults-and-isolation.md)          | LLM adapter defaults, structured output, subscription isolation                      | Accepted                   |
+| [0014](0014-ingestion-pipeline-and-job-runner.md)           | Ingestion: `@thoth/ingest` adapter, in-process job runner, segment-anchored chapters | Accepted                   |
+| [0015](0015-chat-source-context.md)                         | Chat context: whole source under 150k tokens, else FTS top-k                         | Accepted                   |
+| [0016](0016-learn-tools-background-generation.md)           | Learn tools generate in the background with `after()`; panels poll                   | Accepted                   |
+| [0017](0017-quiz-grading-and-fsrs-scheduling.md)            | Quiz grading rules; FSRS via `ts-fsrs` in core (amends 0004)                         | Accepted                   |
 
 Add a new row when you add an ADR. When you supersede one, change its status here as well.

@@ -1,6 +1,6 @@
-# ADR-NNNN: Ingestion pipeline: `@thoth/ingest` adapter, in-process job runner, model-picked chapter starts
+# ADR-0014: Ingestion pipeline: `@thoth/ingest` adapter, in-process job runner, model-picked chapter starts
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-15
 
 ## Context
@@ -27,7 +27,7 @@ Phase 2 turns PDFs, YouTube videos, web pages and pasted text into segments and 
 ## Consequences
 
 - Swapping a parser library touches `packages/ingest` only. Use cases are tested with a fake `SourceParser`.
-- A crash during a job leaves it `running`. Re-queuing stale jobs needs a new `JobRepository` method (requested from the orchestrator).
+- A crash during a job leaves it `running`. At merge the orchestrator added `JobRepository.requeueRunning()`, which the runner calls once at startup, so an interrupted job runs again.
 - The model cannot invent timestamps or pages; a bad start index is dropped, not stored.
 - Offsets for web pages do not map back to the original HTML. A reader view for web content must render the stored segments, not the live page.
 - Pasted text that fails before it is parsed cannot be retried without pasting it again. This is rare, because text parsing is local and only fails on empty input, which validation already rejects.

@@ -1,6 +1,6 @@
 # Parallel development plan (Phases 2–6)
 
-Status: **Active** (2026-11-15). Step 0 done; lanes A–D running in worktree sessions.
+Status: **Done** (2026-11-15). Step 0 and lanes A–D merged; ADRs 0014–0017 record the lane decisions. Reuse this pattern for later phases.
 
 ## Why a "contracts first" step
 

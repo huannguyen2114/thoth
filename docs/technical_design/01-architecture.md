@@ -1,6 +1,6 @@
 # 01. Architecture
 
-Status: Current (Phase 0)
+Status: Current (Phases 0–6)
 
 ## System context
 
@@ -27,26 +27,30 @@ flowchart TD
     web["apps/web<br/>Next.js 16 · delivery adapter<br/>composition root: src/server/container.ts"]
   end
   subgraph packages
-    core["@thoth/core<br/>domain · use cases · ports<br/>(depends on zod only)"]
+    core["@thoth/core<br/>domain · use cases · ports<br/>(zod + ADR-approved pure libs: ts-fsrs)"]
     db["@thoth/db<br/>Drizzle + libSQL repositories"]
     llm["@thoth/llm<br/>LlmProvider adapters"]
+    ingest["@thoth/ingest<br/>SourceParser adapter: PDF, YouTube, web, text"]
     ui["@thoth/ui<br/>Hearth styles + React components"]
   end
   web --> core
   web --> db
   web --> llm
+  web --> ingest
   web --> ui
   db --> core
   llm --> core
+  ingest --> core
 ```
 
-| Package                         | Owns                                                                                          | Must not                                                      |
-| ------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `@thoth/core` (`packages/core`) | Entities (`domain/`), use cases (`usecases/`), ports (`ports/`), `Result` and IDs (`shared/`) | Import React, Next, Drizzle, SDKs, or `node:` modules         |
-| `@thoth/db` (`packages/db`)     | Schema, migrations (`drizzle/`), repository adapters                                          | Contain business rules. It maps rows to domain types and back |
-| `@thoth/llm` (`packages/llm`)   | Provider adapters, prompt plumbing, JSON repair and retry                                     | Know about UI or the DB                                       |
-| `@thoth/ui` (`packages/ui`)     | Generated Hearth CSS, typed components such as `Button`                                       | Fetch data or call server code                                |
-| `apps/web`                      | Routes, feature UIs, Server Actions, route handlers, wiring                                   | Put business rules in actions or components                   |
+| Package                             | Owns                                                                                          | Must not                                                      |
+| ----------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `@thoth/core` (`packages/core`)     | Entities (`domain/`), use cases (`usecases/`), ports (`ports/`), `Result` and IDs (`shared/`) | Import React, Next, Drizzle, SDKs, or `node:` modules         |
+| `@thoth/db` (`packages/db`)         | Schema, migrations (`drizzle/`), repository adapters                                          | Contain business rules. It maps rows to domain types and back |
+| `@thoth/llm` (`packages/llm`)       | Provider adapters, prompt plumbing, JSON repair and retry                                     | Know about UI or the DB                                       |
+| `@thoth/ingest` (`packages/ingest`) | Source parsers behind the `SourceParser` port (ADR-0014)                                      | Write to the DB or call the LLM. Use cases do that            |
+| `@thoth/ui` (`packages/ui`)         | Generated Hearth CSS, typed components such as `Button`                                       | Fetch data or call server code                                |
+| `apps/web`                          | Routes, feature UIs, Server Actions, route handlers, wiring                                   | Put business rules in actions or components                   |
 
 ## Request flow (write path)
 
@@ -100,6 +104,7 @@ thoth/
 │  ├─ core/                  Domain, use cases, ports. Pure TypeScript.
 │  ├─ db/                    Drizzle schema, migrations, repositories
 │  ├─ llm/                   LLM provider adapters
+│  ├─ ingest/                Source parsers (PDF, YouTube, web, text)
 │  ├─ ui/                    Hearth CSS (generated) and React components
 │  └─ tsconfig/              Shared tsconfig presets
 ├─ design/hearth/            Vendored Hearth design system (read-only)
@@ -109,11 +114,16 @@ thoth/
 └─ CLAUDE.md                 Entry point for AI agents
 ```
 
-## Planned growth (no restructuring needed)
+## Where each phase lives
 
-| Phase                  | Where it lands                                                                                                                        |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 LLM providers (done) | `packages/llm/src/{anthropic-api,claude-subscription}.ts`, `core/usecases/llm-settings.ts`, `features/settings`, `app/api/llm/stream` |
-| 2 Ingestion            | A new `packages/ingest` (parsers, which depend on core); a jobs table and runner in `db`                                              |
-| 3–7 Learning tools     | Use cases in `core/usecases/*`; tables in `db/schema`; UIs in `features/{chat,summary,quiz,flashcards,exams}`                         |
-| 12 Chrome extension    | A new `apps/extension` that reuses `core` and `ui`                                                                                    |
+Phases 2–6 were built in parallel lanes on frozen contracts (`docs/plan/parallel-development.md`) and landed without restructuring.
+
+| Phase                 | Where it lives                                                                                                                |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| 1 LLM providers       | `packages/llm`, `core/usecases/llm-settings.ts`, `features/settings`, `app/api/llm/stream`                                    |
+| 2 Ingestion           | `packages/ingest`, `core/usecases/ingest`, `server/jobs`, `features/library`, `app/api/upload`, `instrumentation.ts` (doc 03) |
+| 3 Content page + chat | `app/content/[id]`, `features/{content-viewer,learn-panel,chat}`, `core/usecases/chat`, `app/api/{chat,content}` (doc 07)     |
+| 4 Summary + notes     | `features/{summary,notes}`, `core/usecases/{summary,notes}` (doc 08)                                                          |
+| 5–6 Quiz + flashcards | `features/{quiz,flashcards}`, `app/review`, `core/usecases/{quiz,flashcards}` (doc 09)                                        |
+| 7 Exams (next)        | `core/usecases/exams`, `features/exams`, space-level study sets                                                               |
+| 12 Chrome extension   | A new `apps/extension` that reuses `core`, `ingest` and `ui`                                                                  |

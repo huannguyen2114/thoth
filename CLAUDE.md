@@ -13,6 +13,9 @@ Thoth is a single-user, local-first study PWA. It is a personal alternative to Y
    - database: `04`
    - UI and Hearth: `05`
    - tests and CI: `06`
+   - content page and chat: `07`
+   - summary and notes: `08`
+   - quiz and flashcards: `09`
 5. `docs/plan/roadmap.md`: what phase we are in and what comes next.
 
 Only then search the code. Most "where is X" questions are answered by `01-architecture.md`.
@@ -20,7 +23,7 @@ Only then search the code. Most "where is X" questions are answered by `01-archi
 ## Non-negotiable rules
 
 - **Architecture (ADR-0004).**
-  - `@thoth/core` imports nothing but `zod`.
+  - `@thoth/core` imports only `zod` and pure libraries approved by an ADR (today: `ts-fsrs`, ADR-0017).
   - Only `apps/web/src/server/container.ts` constructs adapters.
   - Server Actions are thin. Business rules belong in core use cases.
 - **Errors (ADR-0005).** Expected failures return `Result`. Throw only for bugs.

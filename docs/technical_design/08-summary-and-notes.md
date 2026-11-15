@@ -1,6 +1,6 @@
 # 08. Summary and notes
 
-Status: Current (Phase 4, Lane C). Decision: draft ADR `docs/decision/NNNN-draft-lane-c.md`.
+Status: Current (Phase 4, Lane C). Decision: ADR-0016.
 
 ## What it does
 

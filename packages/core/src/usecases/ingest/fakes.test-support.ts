@@ -121,6 +121,12 @@ export class InMemoryJobs implements JobRepository {
   async get(id: JobId) {
     return this.rows.find((r) => r.id === id) ?? null;
   }
+
+  async requeueRunning() {
+    const running = this.rows.filter((r) => r.status === "running");
+    for (const r of running) r.status = "queued";
+    return running.length;
+  }
 }
 
 export class FakeParser implements SourceParser {

@@ -189,6 +189,16 @@ describe("MVP contract repositories", () => {
     expect((await repo.get(job.id))?.status).toBe("failed");
   });
 
+  it("jobs: requeueRunning puts interrupted jobs back in the queue", async () => {
+    const repo = new DrizzleJobRepository(db);
+    const now = new Date();
+    const job = await repo.enqueue("ingest", {}, now);
+    await repo.claimNext(now);
+    expect(await repo.requeueRunning()).toBe(1);
+    expect((await repo.get(job.id))?.status).toBe("queued");
+    expect(await repo.requeueRunning()).toBe(0);
+  });
+
   it("deleting a content cascades to its children", async () => {
     const c = await newContent(db);
     await new DrizzleChapterRepository(db).replaceForContent(c.id, [

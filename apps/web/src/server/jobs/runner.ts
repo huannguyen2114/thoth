@@ -36,6 +36,13 @@ export function wakeJobRunner(): void {
 }
 
 async function loop(): Promise<never> {
+  // A job still `running` at boot was cut off by a crash or restart: give it another go.
+  try {
+    const requeued = await (await getContainer()).jobs.requeueRunning();
+    if (requeued > 0) console.info(`[jobs] re-queued ${requeued} interrupted job(s)`);
+  } catch (e) {
+    console.error("[jobs] could not re-queue interrupted jobs", e);
+  }
   for (;;) {
     try {
       const c = await getContainer();

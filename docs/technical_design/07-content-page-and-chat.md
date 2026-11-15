@@ -1,6 +1,6 @@
 # 07. Content page and chat
 
-Status: Current (Phase 3, Lane B). Decisions: ADR-0004, ADR-0005, ADR-0011, ADR-0013, draft `NNNN-draft-lane-b` (chat context).
+Status: Current (Phase 3, Lane B). Decisions: ADR-0004, ADR-0005, ADR-0011, ADR-0013, ADR-0015 (chat context).
 
 The content page mirrors YouLearn's layout in Hearth style: the app sidebar, the source in the middle, and a Learn panel with tools and chat on the right.
 
