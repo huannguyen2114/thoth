@@ -1,4 +1,4 @@
-import { citationToken } from "../../domain/citation";
+import { citationToken, paragraphOf } from "../../domain/citation";
 import type { Segment } from "../../domain/content";
 
 export const summaryTemplates = ["detailed", "cheat_sheet", "short"] as const;
@@ -55,7 +55,9 @@ export function buildSummarySystem(options: SummaryPromptOptions): string {
 
 /** The source text sent as cached context: each segment prefixed with its citation token. */
 export function buildSourceContext(segments: Segment[]): string {
-  return segments.map((s) => `${citationToken(s.locator, s.idx)} ${s.text.trim()}`).join("\n\n");
+  return segments
+    .map((s) => `${citationToken(s.locator, paragraphOf(s))} ${s.text.trim()}`)
+    .join("\n\n");
 }
 
 export const summaryUserMessage = "Write the summary of the source now.";

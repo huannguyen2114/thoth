@@ -67,4 +67,11 @@ export class DrizzleContentRepository implements ContentRepository {
       .set({ title, ...touch })
       .where(eq(contents.id, id));
   }
+
+  async setSpace(id: ContentId, spaceId: SpaceId | null) {
+    await this.db
+      .update(contents)
+      .set({ spaceId, ...touch })
+      .where(eq(contents.id, id));
+  }
 }

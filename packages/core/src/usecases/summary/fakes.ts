@@ -68,6 +68,7 @@ export class FakeContents implements ContentRepository {
   }
   async setStatus() {}
   async setTitle() {}
+  async setSpace() {}
 }
 
 export class FakeSegments implements SegmentRepository {

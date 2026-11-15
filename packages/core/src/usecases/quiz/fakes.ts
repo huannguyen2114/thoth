@@ -28,6 +28,7 @@ import {
   type QuizQuestionId,
   type ReviewId,
   type SegmentId,
+  type SpaceId,
   type StudySetId,
 } from "../../shared/id";
 import { appError, err, ok } from "../../shared/result";
@@ -75,8 +76,8 @@ export class MemStudySets implements StudySetRepository {
   async listByContent(contentId: ContentId, kind?: StudySetKind) {
     return this.rows.filter((r) => r.contentId === contentId && (!kind || r.kind === kind));
   }
-  async listBySpace() {
-    return [];
+  async listBySpace(spaceId: SpaceId, kind?: StudySetKind) {
+    return this.rows.filter((r) => r.spaceId === spaceId && (!kind || r.kind === kind));
   }
   async update(id: StudySetId, patch: Partial<StudySet>) {
     const i = this.rows.findIndex((r) => r.id === id);
@@ -92,7 +93,12 @@ export class MemQuizzes implements QuizRepository {
   questions: QuizQuestion[] = [];
   attempts: QuizAttempt[] = [];
   async addQuestions(setId: StudySetId, qs: NewQuizQuestion[]) {
-    const rows = qs.map((q) => ({ ...q, id: newId<QuizQuestionId>(), setId }));
+    const rows: QuizQuestion[] = qs.map((q) => ({
+      ...q,
+      contentId: q.contentId ?? null,
+      id: newId<QuizQuestionId>(),
+      setId,
+    }));
     this.questions.push(...rows);
     return rows;
   }
@@ -178,6 +184,7 @@ export function fakeContent(status: Content["status"] = "ready"): ContentReposit
     listBySpace: async () => [content],
     setStatus: async () => {},
     setTitle: async () => {},
+    setSpace: async () => {},
   };
 }
 

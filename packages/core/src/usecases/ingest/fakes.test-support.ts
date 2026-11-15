@@ -20,7 +20,14 @@ import type {
   JobRepository,
   SegmentRepository,
 } from "../../ports/repositories";
-import { type ChapterId, type ContentId, type JobId, newId, type SegmentId } from "../../shared/id";
+import {
+  type ChapterId,
+  type ContentId,
+  type JobId,
+  newId,
+  type SegmentId,
+  type SpaceId,
+} from "../../shared/id";
 import { type AppError, err, ok, type Result } from "../../shared/result";
 import type { IngestDeps } from "./run-ingest-job";
 
@@ -55,6 +62,11 @@ export class InMemoryContents implements ContentRepository {
   async setTitle(id: ContentId, title: string) {
     const c = this.rows.find((r) => r.id === id);
     if (c) c.title = title;
+  }
+
+  async setSpace(id: ContentId, spaceId: SpaceId | null) {
+    const c = this.rows.find((r) => r.id === id);
+    if (c) c.spaceId = spaceId;
   }
 }
 

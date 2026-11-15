@@ -1,4 +1,5 @@
 import { listSpaces } from "@thoth/core";
+import Link from "next/link";
 import { connection } from "next/server";
 import { getContainer } from "@/server/container";
 
@@ -21,11 +22,16 @@ export async function SpacesList() {
   return (
     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {spaces.map((s) => (
-        <li key={s.id} className="rounded-lg border border-border-subtle bg-surface-200 p-6">
-          <h3 className="type-heading-3 text-ink">{s.name}</h3>
-          <p className="mt-1 type-caption text-ink-muted">
-            Created {s.createdAt.toLocaleDateString("en", { dateStyle: "medium" })}
-          </p>
+        <li key={s.id}>
+          <Link
+            href={`/spaces/${s.id}`}
+            className="block rounded-lg border border-border-subtle bg-surface-200 p-6 no-underline hover:bg-surface-300"
+          >
+            <h3 className="type-heading-3 text-ink">{s.name}</h3>
+            <p className="mt-1 type-caption text-ink-muted">
+              Created {s.createdAt.toLocaleDateString("en", { dateStyle: "medium" })}
+            </p>
+          </Link>
         </li>
       ))}
     </ul>

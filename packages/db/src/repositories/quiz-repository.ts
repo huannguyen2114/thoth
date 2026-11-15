@@ -1,4 +1,5 @@
 import {
+  type ContentId,
   type Locator,
   type NewQuizAttempt,
   type NewQuizQuestion,
@@ -22,6 +23,7 @@ const toQuestion = (r: typeof quizQuestions.$inferSelect): QuizQuestion => ({
   choices: r.choices ?? null,
   answer: r.answer as unknown as QuizAnswer,
   locator: (r.locator ?? null) as Locator | null,
+  contentId: (r.contentId ?? null) as ContentId | null,
 });
 const toAttempt = (r: typeof quizAttempts.$inferSelect): QuizAttempt => ({
   ...r,
@@ -41,6 +43,7 @@ export class DrizzleQuizRepository implements QuizRepository {
           id: newId<QuizQuestionId>(),
           setId,
           ...q,
+          contentId: q.contentId ?? null,
           answer: q.answer as unknown as Record<string, unknown>,
         })),
       )

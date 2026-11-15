@@ -1,4 +1,4 @@
-import { citationToken } from "../../domain/citation";
+import { citationToken, paragraphOf } from "../../domain/citation";
 import type { Content, Segment } from "../../domain/content";
 import type { SegmentRepository } from "../../ports/repositories";
 import type { ContentId } from "../../shared/id";
@@ -39,7 +39,7 @@ export const estimateTokens = (text: string): number => Math.ceil(text.length / 
  * segment), and the viewer anchors paragraphs the same way.
  */
 export function segmentToken(segment: Segment): string {
-  return citationToken(segment.locator, segment.idx + 1);
+  return citationToken(segment.locator, paragraphOf(segment));
 }
 
 /** One line per segment: the token, then the text, so the model can copy the token exactly. */

@@ -6,10 +6,9 @@ import {
   quizDifficulties,
   quizQuestionTypes,
 } from "@thoth/core";
-import { Button, Select } from "@thoth/ui";
+import { Button, CancelButton, Dialog, Select } from "@thoth/ui";
 import { useEffect, useState } from "react";
 import { generateQuizAction, listTopicsAction, type TopicOption } from "./actions";
-import { CancelButton, Dialog } from "./dialog";
 import { LANGUAGES, TopicFields } from "./topic-fields";
 
 export const typeLabels: Record<QuizQuestionType, string> = {

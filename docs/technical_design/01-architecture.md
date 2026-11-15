@@ -118,12 +118,12 @@ thoth/
 
 Phases 2–6 were built in parallel lanes on frozen contracts (`docs/plan/parallel-development.md`) and landed without restructuring.
 
-| Phase                 | Where it lives                                                                                                                |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| 1 LLM providers       | `packages/llm`, `core/usecases/llm-settings.ts`, `features/settings`, `app/api/llm/stream`                                    |
-| 2 Ingestion           | `packages/ingest`, `core/usecases/ingest`, `server/jobs`, `features/library`, `app/api/upload`, `instrumentation.ts` (doc 03) |
-| 3 Content page + chat | `app/content/[id]`, `features/{content-viewer,learn-panel,chat}`, `core/usecases/chat`, `app/api/{chat,content}` (doc 07)     |
-| 4 Summary + notes     | `features/{summary,notes}`, `core/usecases/{summary,notes}` (doc 08)                                                          |
-| 5–6 Quiz + flashcards | `features/{quiz,flashcards}`, `app/review`, `core/usecases/{quiz,flashcards}` (doc 09)                                        |
-| 7 Exams (next)        | `core/usecases/exams`, `features/exams`, space-level study sets                                                               |
-| 12 Chrome extension   | A new `apps/extension` that reuses `core`, `ingest` and `ui`                                                                  |
+| Phase                 | Where it lives                                                                                                                      |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 1 LLM providers       | `packages/llm`, `core/usecases/llm-settings.ts`, `features/settings`, `app/api/llm/stream`                                          |
+| 2 Ingestion           | `packages/ingest`, `core/usecases/ingest`, `server/jobs`, `features/library`, `app/api/upload`, `instrumentation.ts` (doc 03)       |
+| 3 Content page + chat | `app/content/[id]`, `features/{content-viewer,learn-panel,chat}`, `core/usecases/chat`, `app/api/{chat,content}` (doc 07)           |
+| 4 Summary + notes     | `features/{summary,notes}`, `core/usecases/{summary,notes}` (doc 08)                                                                |
+| 5–6 Quiz + flashcards | `features/{quiz,flashcards}`, `app/review`, `core/usecases/{quiz,flashcards}` (doc 09)                                              |
+| 7 Exams + progress    | `core/usecases/exams`, `core/usecases/spaces.ts`, `features/quiz/exam`, `features/progress`, `app/{spaces,exams,progress}` (doc 10) |
+| 12 Chrome extension   | A new `apps/extension` that reuses `core`, `ingest` and `ui`                                                                        |

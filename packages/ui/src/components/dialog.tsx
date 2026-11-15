@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@thoth/ui";
 import { type ReactNode, useEffect, useId, useRef } from "react";
+import { Button } from "./button";
 
 /**
  * Hearth modal: dims the page, moves focus in, closes on Escape, returns focus on close.

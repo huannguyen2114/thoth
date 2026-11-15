@@ -13,5 +13,6 @@ This folder describes **how Thoth works today**, plus clearly marked **planned**
 | [07-content-page-and-chat.md](07-content-page-and-chat.md)           | Content page, source viewers, Learn panel, chat with citations                | Current |
 | [08-summary-and-notes.md](08-summary-and-notes.md)                   | Summary templates and ranges, notes editor                                    | Current |
 | [09-quiz-and-flashcards.md](09-quiz-and-flashcards.md)               | Quiz generation and grading, flashcards with FSRS, the review page            | Current |
+| [10-exams-and-progress.md](10-exams-and-progress.md)                 | Spaces, timed exams, results, progress and weak-spot practice                 | Current |
 
 Related: the reasons behind each choice are in [`../decision/`](../decision/README.md), and the phase plan is in [`../plan/roadmap.md`](../plan/roadmap.md).

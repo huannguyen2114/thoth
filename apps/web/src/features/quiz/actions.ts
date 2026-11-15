@@ -15,8 +15,8 @@ import {
   submitQuizAnswer,
 } from "@thoth/core";
 import { after } from "next/server";
+import { type ActionResult, toActionResult } from "@/lib/action-result";
 import { getContainer } from "@/server/container";
-import { type ActionResult, toActionResult } from "./action-result";
 
 /** Thin adapters: container -> core use case -> plain result. No business rules here. */
 

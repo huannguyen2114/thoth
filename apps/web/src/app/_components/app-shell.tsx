@@ -1,6 +1,52 @@
+import { listSpaces } from "@thoth/core";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { connection } from "next/server";
+import { type ReactNode, Suspense } from "react";
+import { getContainer } from "@/server/container";
 import { NavLink } from "./nav-link";
+
+/** The owner's spaces, newest first (data, so it renders inside Suspense). */
+async function SpacesNav() {
+  await connection();
+  const spaces = await listSpaces(await getContainer());
+  if (spaces.length === 0) {
+    return <p className="px-3 type-caption text-ink-muted">No spaces yet</p>;
+  }
+  return spaces.map((s) => (
+    <NavLink key={s.id} href={`/spaces/${s.id}`}>
+      <FolderIcon />
+      <span className="truncate" title={s.name}>
+        {s.name}
+      </span>
+    </NavLink>
+  ));
+}
+
+function FolderIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M2 4.5A1.5 1.5 0 0 1 3.5 3h2.6l1.4 1.5h5A1.5 1.5 0 0 1 14 6v5.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5v-7Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ChartIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M3 13V8M8 13V3M13 13V6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 /** Left sidebar + main column. Mirrors the YouLearn layout using Hearth's sidebar pattern. */
 export function AppShell({ children }: { children: ReactNode }) {
@@ -17,7 +63,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NavLink href="/review">
             <CardsIcon /> Review
           </NavLink>
+          <NavLink href="/progress">
+            <ChartIcon /> Progress
+          </NavLink>
           <p className="sidebar__group type-overline text-ink-muted">Spaces</p>
+          <Suspense fallback={null}>
+            <SpacesNav />
+          </Suspense>
           <div className="flex-1" />
           <NavLink href="/settings">
             <GearIcon /> Settings

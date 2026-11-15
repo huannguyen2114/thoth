@@ -70,6 +70,7 @@ class FakeContents implements ContentRepository {
   }
   async setStatus() {}
   async setTitle() {}
+  async setSpace() {}
 }
 
 class FakeSegments implements SegmentRepository {

@@ -49,14 +49,24 @@ export function formatClock(sec: number): string {
   return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
-/** The citation token a prompt should ask the model to use for this locator. */
-export function citationToken(locator: Locator, paragraphIndex?: number): string {
+/**
+ * The citation token for a locator. Paragraph tokens are 1-based everywhere (prompts, viewer,
+ * stored locators): `[§1]` is the first paragraph (ADR-0019). For an offset locator the number
+ * comes from `locator.paragraph`; `paragraph` is only a fallback for locators without one.
+ */
+export function citationToken(locator: Locator, paragraph?: number): string {
   switch (locator.type) {
     case "page":
       return `[p.${locator.page}]`;
     case "time":
       return `[${formatClock(locator.startSec)}]`;
     case "offset":
-      return `[§${paragraphIndex ?? 0}]`;
+      return `[§${locator.paragraph ?? paragraph ?? 1}]`;
   }
 }
+
+/** The 1-based paragraph number of a segment: its stored number, else its position + 1. */
+export const paragraphOf = (segment: { idx: number; locator: Locator }): number =>
+  segment.locator.type === "offset"
+    ? (segment.locator.paragraph ?? segment.idx + 1)
+    : segment.idx + 1;

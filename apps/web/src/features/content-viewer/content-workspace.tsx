@@ -5,6 +5,7 @@ import { cx } from "@thoth/ui";
 import { useCallback, useState } from "react";
 import type { ChatSummary } from "@/features/chat/use-chat";
 import { LearnPanel } from "@/features/learn-panel/learn-panel";
+import { InitialJump } from "./initial-jump";
 import { SourceOutline } from "./source-outline";
 import { SourceViewer } from "./source-viewer";
 import { Tabs } from "./tabs";
@@ -22,11 +23,14 @@ export function ContentWorkspace({
   segments,
   chapters,
   chats,
+  initialCite,
 }: {
   content: Content;
   segments: Segment[];
   chapters: Chapter[];
   chats: ChatSummary[];
+  /** Citation token to jump to on load, from `?at=`. */
+  initialCite?: string | undefined;
 }) {
   const [view, setView] = useState<MobileView>("source");
   const showSource = useCallback(() => setView("source"), []);
@@ -34,6 +38,7 @@ export function ContentWorkspace({
 
   return (
     <ViewerProvider onJump={showSource}>
+      <InitialJump token={initialCite} />
       <div className="flex h-full flex-col">
         <header className="flex shrink-0 flex-col gap-2 border-b border-border-subtle px-4 pt-4 lg:pb-3">
           <h1 className="type-heading-3 truncate text-ink" title={content.title}>

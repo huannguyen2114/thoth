@@ -4,6 +4,7 @@ import {
   type ChapterRepository,
   type ChatRepository,
   type ContentRepository,
+  type ExamSessionRepository,
   type FlashcardRepository,
   getLlmSettings,
   type JobRepository,
@@ -21,6 +22,7 @@ import {
   DrizzleChapterRepository,
   DrizzleChatRepository,
   DrizzleContentRepository,
+  DrizzleExamSessionRepository,
   DrizzleFlashcardRepository,
   DrizzleJobRepository,
   DrizzleNoteRepository,
@@ -47,6 +49,7 @@ export interface Container {
   chapters: ChapterRepository;
   chats: ChatRepository;
   studySets: StudySetRepository;
+  examSessions: ExamSessionRepository;
   notes: NoteRepository;
   quizzes: QuizRepository;
   flashcards: FlashcardRepository;
@@ -72,6 +75,7 @@ async function build(): Promise<Container> {
     chapters: new DrizzleChapterRepository(db),
     chats: new DrizzleChatRepository(db),
     studySets: new DrizzleStudySetRepository(db),
+    examSessions: new DrizzleExamSessionRepository(db),
     notes: new DrizzleNoteRepository(db),
     quizzes: new DrizzleQuizRepository(db),
     flashcards: new DrizzleFlashcardRepository(db),

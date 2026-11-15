@@ -10,7 +10,7 @@ import { getContainer } from "@/server/container";
  * /content/[id]: the content page. Sidebar (AppShell), source viewer with Chapters and
  * Transcript, and the Learn panel with chat. See docs/technical_design/07-content-page-and-chat.md.
  */
-export default function ContentPage({ params }: PageProps<"/content/[id]">) {
+export default function ContentPage({ params, searchParams }: PageProps<"/content/[id]">) {
   // The Suspense boundary wraps AppShell too: its NavLink reads the pathname, which is
   // runtime data on a dynamic route and must not block the prerendered shell.
   return (
@@ -20,16 +20,23 @@ export default function ContentPage({ params }: PageProps<"/content/[id]">) {
             contain-inline-size stops long nowrap content (the title) from widening AppShell's
             flex main past the viewport. */}
         <div className="-mx-4 -my-10 h-dvh contain-inline-size md:-mx-8">
-          <Workspace params={params} />
+          <Workspace params={params} searchParams={searchParams} />
         </div>
       </AppShell>
     </Suspense>
   );
 }
 
-async function Workspace({ params }: { params: Promise<{ id: string }> }) {
+async function Workspace({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   await connection();
   const id = (await params).id as ContentId;
+  const at = (await searchParams).at;
   const c = await getContainer();
   const content = await c.contents.get(id);
   if (!content) notFound();
@@ -44,6 +51,7 @@ async function Workspace({ params }: { params: Promise<{ id: string }> }) {
       segments={segments}
       chapters={chapters}
       chats={chats.map((x) => ({ id: x.id, title: x.title, instructions: x.instructions }))}
+      initialCite={typeof at === "string" ? at : undefined}
     />
   );
 }

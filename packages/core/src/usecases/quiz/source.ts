@@ -1,4 +1,9 @@
-import { type CitationRef, citationToken, parseCitations } from "../../domain/citation";
+import {
+  type CitationRef,
+  citationToken,
+  paragraphOf,
+  parseCitations,
+} from "../../domain/citation";
 import type { Chapter, Locator, Segment } from "../../domain/content";
 
 /** Max characters of source text sent for one topic. Keeps one request well inside the context window. */
@@ -36,7 +41,7 @@ export function renderSourceText(
   const lines: string[] = [];
   let used = 0;
   for (const s of segments) {
-    const line = `${citationToken(s.locator, s.idx)} ${s.text.trim()}`;
+    const line = `${citationToken(s.locator, paragraphOf(s))} ${s.text.trim()}`;
     if (used + line.length > maxChars) break;
     lines.push(line);
     used += line.length + 1;
@@ -58,7 +63,12 @@ export function resolveCitation(
       null
     );
   }
-  if (ref.type === "paragraph") return segments.find((s) => s.idx === ref.index)?.locator ?? null;
+  if (ref.type === "paragraph") {
+    return (
+      segments.find((s) => s.locator.type === "offset" && paragraphOf(s) === ref.index)?.locator ??
+      null
+    );
+  }
   // Time: the last segment starting at or before the cited second.
   const timed = segments
     .filter((s) => s.locator.type === "time" && s.locator.startSec <= ref.sec)

@@ -55,17 +55,20 @@ erDiagram
   segments ||--|| chunks_fts : "mirrored for search"
 ```
 
-| Table                             | Holds                                                                                                  | Port                                                  |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
-| `segments`                        | Source text pieces with a JSON `locator` (page, time or offset)                                        | `SegmentRepository` (`search` = FTS5 BM25)            |
-| `chunks_fts`                      | FTS5 virtual table (`text`, `segment_id`, `content_id`), porter tokenizer                              | written only by `SegmentRepository.replaceForContent` |
-| `chapters`                        | AI sections: title, summary, locator                                                                   | `ChapterRepository`                                   |
-| `chats`, `chat_messages`          | Conversations per content, messages with parsed `citations`                                            | `ChatRepository`                                      |
-| `study_sets`                      | "My Sets": summary (markdown `body`), quiz, flashcards, exam. Exactly one of `content_id` / `space_id` | `StudySetRepository`                                  |
-| `notes`                           | One markdown document per content                                                                      | `NoteRepository`                                      |
-| `quiz_questions`, `quiz_attempts` | Typed questions (`answer` JSON per type), attempts with score 0..1                                     | `QuizRepository`                                      |
-| `flashcards`, `reviews`           | Cards with FSRS fields (`due`, `stability`, ...) and the review log                                    | `FlashcardRepository`                                 |
-| `jobs`                            | Background work queue: `queued` → `running` → `done` / `failed`, retry via `run_after`                 | `JobRepository`                                       |
+| Table                             | Holds                                                                                                                     | Port                                                  |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `segments`                        | Source text pieces with a JSON `locator` (page, time or offset)                                                           | `SegmentRepository` (`search` = FTS5 BM25)            |
+| `chunks_fts`                      | FTS5 virtual table (`text`, `segment_id`, `content_id`), porter tokenizer                                                 | written only by `SegmentRepository.replaceForContent` |
+| `chapters`                        | AI sections: title, summary, locator                                                                                      | `ChapterRepository`                                   |
+| `chats`, `chat_messages`          | Conversations per content, messages with parsed `citations`                                                               | `ChatRepository`                                      |
+| `study_sets`                      | "My Sets": summary (markdown `body`), quiz, flashcards, exam. Exactly one of `content_id` / `space_id`                    | `StudySetRepository`                                  |
+| `notes`                           | One markdown document per content                                                                                         | `NoteRepository`                                      |
+| `quiz_questions`, `quiz_attempts` | Typed questions (`answer` JSON per type), attempts with score 0..1                                                        | `QuizRepository`                                      |
+| `flashcards`, `reviews`           | Cards with FSRS fields (`due`, `stability`, ...) and the review log                                                       | `FlashcardRepository`                                 |
+| `jobs`                            | Background work queue: `queued` → `running` → `done` / `failed`, retry via `run_after`                                    | `JobRepository`                                       |
+| `exam_sessions`                   | One timed sitting of an exam set: `started_at`, `deadline_at`, `submitted_at`, `score` (migration `0003_exams`, ADR-0018) | `ExamSessionRepository`                               |
+
+`quiz_questions.content_id` (migration `0003`) links an exam question to its source content and is set to null if that content is deleted. Text segment locators carry a 1-based `paragraph`, filled by the segment repository (ADR-0019).
 
 **Foreign keys** are enforced: `migrateDb` runs `PRAGMA foreign_keys = ON`, so deleting a content removes its children.
 

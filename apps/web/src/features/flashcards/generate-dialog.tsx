@@ -1,10 +1,9 @@
 "use client";
 
 import type { ContentId } from "@thoth/core";
-import { Button, Select } from "@thoth/ui";
+import { Button, CancelButton, Dialog, Select } from "@thoth/ui";
 import { useEffect, useState } from "react";
 import { listTopicsAction, type TopicOption } from "@/features/quiz/actions";
-import { CancelButton, Dialog } from "@/features/quiz/dialog";
 import { LANGUAGES, TopicFields } from "@/features/quiz/topic-fields";
 import { generateFlashcardsAction } from "./actions";
 

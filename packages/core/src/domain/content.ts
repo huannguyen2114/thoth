@@ -39,6 +39,11 @@ export const locatorSchema = z.discriminatedUnion("type", [
     type: z.literal("offset"),
     start: z.number().int().min(0),
     end: z.number().int().min(0),
+    /**
+     * 1-based paragraph number, the `n` in a `[§n]` citation. The segment repository fills it
+     * from the segment's position, so every stored text locator can be cited. See ADR-0019.
+     */
+    paragraph: z.number().int().min(1).optional(),
   }),
 ]);
 export type Locator = z.infer<typeof locatorSchema>;

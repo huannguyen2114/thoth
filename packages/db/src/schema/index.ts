@@ -43,7 +43,7 @@ export const settings = sqliteTable("settings", {
 type LocatorJson =
   | { type: "page"; page: number }
   | { type: "time"; startSec: number; endSec: number }
-  | { type: "offset"; start: number; end: number };
+  | { type: "offset"; start: number; end: number; paragraph?: number | undefined };
 
 /** Source text pieces. Mirrored into the FTS5 table `chunks_fts` (see migration 0001). */
 export const segments = sqliteTable(
@@ -152,6 +152,8 @@ export const quizQuestions = sqliteTable(
     explanation: text("explanation").notNull(),
     topic: text("topic").notNull(),
     locator: text("locator", { mode: "json" }).$type<LocatorJson | null>(),
+    /** Source content of an exam question (ADR-0018); null for per-content quizzes. */
+    contentId: text("content_id").references(() => contents.id, { onDelete: "set null" }),
   },
   (t) => [index("quiz_questions_set_idx").on(t.setId, t.idx)],
 );
@@ -225,4 +227,20 @@ export const jobs = sqliteTable(
     ...timestamps,
   },
   (t) => [index("jobs_runnable_idx").on(t.status, t.runAfter)],
+);
+
+/** One timed sitting of an exam study set (ADR-0018). */
+export const examSessions = sqliteTable(
+  "exam_sessions",
+  {
+    id: text("id").primaryKey(),
+    setId: text("set_id")
+      .notNull()
+      .references(() => studySets.id, { onDelete: "cascade" }),
+    startedAt: integer("started_at", { mode: "timestamp_ms" }).notNull(),
+    deadlineAt: integer("deadline_at", { mode: "timestamp_ms" }).notNull(),
+    submittedAt: integer("submitted_at", { mode: "timestamp_ms" }),
+    score: real("score"),
+  },
+  (t) => [index("exam_sessions_set_idx").on(t.setId, t.startedAt)],
 );

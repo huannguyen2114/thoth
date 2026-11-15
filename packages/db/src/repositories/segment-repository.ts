@@ -12,10 +12,18 @@ import type { Db } from "../client";
 import { segments } from "../schema";
 
 type Row = typeof segments.$inferSelect;
+/**
+ * Text segments are paragraphs: fill the 1-based paragraph number from the position when the
+ * stored locator has none, so every text locator can be cited as `[§n]` (ADR-0019).
+ */
 const toDomain = (r: Row): Segment => ({
   ...r,
   id: r.id as SegmentId,
   contentId: r.contentId as ContentId,
+  locator:
+    r.locator.type === "offset" && r.locator.paragraph === undefined
+      ? { ...r.locator, paragraph: r.idx + 1 }
+      : r.locator,
 });
 
 /** Turns free text into a safe FTS5 query: quoted terms joined by OR. */

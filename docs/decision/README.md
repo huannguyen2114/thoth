@@ -67,5 +67,7 @@ What becomes easier, what becomes harder, and the follow-ups.
 | [0015](0015-chat-source-context.md)                         | Chat context: whole source under 150k tokens, else FTS top-k                         | Accepted                   |
 | [0016](0016-learn-tools-background-generation.md)           | Learn tools generate in the background with `after()`; panels poll                   | Accepted                   |
 | [0017](0017-quiz-grading-and-fsrs-scheduling.md)            | Quiz grading rules; FSRS via `ts-fsrs` in core (amends 0004)                         | Accepted                   |
+| [0018](0018-exams-and-progress.md)                          | Space exams with timed sessions, server-only answer keys, progress computed on read  | Accepted                   |
+| [0019](0019-one-based-paragraph-citations.md)               | Paragraph citations are 1-based everywhere and stored on text locators               | Accepted                   |
 
 Add a new row when you add an ADR. When you supersede one, change its status here as well.

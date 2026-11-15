@@ -2,6 +2,7 @@ export { createDb, type Db, migrateDb } from "./client";
 export { DrizzleChapterRepository } from "./repositories/chapter-repository";
 export { DrizzleChatRepository } from "./repositories/chat-repository";
 export { DrizzleContentRepository } from "./repositories/content-repository";
+export { DrizzleExamSessionRepository } from "./repositories/exam-session-repository";
 export { DrizzleFlashcardRepository } from "./repositories/flashcard-repository";
 export { DrizzleJobRepository } from "./repositories/job-repository";
 export { DrizzleNoteRepository } from "./repositories/note-repository";

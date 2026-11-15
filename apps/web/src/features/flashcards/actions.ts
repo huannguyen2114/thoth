@@ -19,7 +19,7 @@ import {
   startFlashcardGeneration,
 } from "@thoth/core";
 import { after } from "next/server";
-import { type ActionResult, toActionResult } from "@/features/quiz/action-result";
+import { type ActionResult, toActionResult } from "@/lib/action-result";
 import { getContainer } from "@/server/container";
 
 /** Thin adapters: container -> core use case -> plain result. No business rules here. */

@@ -1,6 +1,6 @@
 # Thoth roadmap
 
-> **Status (2026-11-15):** Phases 0–6 done and verified live on Sonnet 5.5 (2–6 built in parallel lanes, see `parallel-development.md`). Next: Phase 7 (exams + progress), then Phase 8 (polish + phone).
+> **Status (2026-11-15):** Phases 0–7 done and verified live on Sonnet 5.5 (2–6 built in parallel lanes, see `parallel-development.md`). Next: Phase 8 (polish + phone).
 > Where this plan and an ADR disagree, **the ADR wins** (`docs/decision/`). The architecture below is the original sketch. The current design is `docs/technical_design/`.
 
 ## Context
@@ -204,7 +204,7 @@ Each phase ends with something that runs. After each phase I check it in the bro
 - Reviews work offline through the PWA cache, and the results sync when you are back online.
 - **Done when:** cards come due on the right days.
 
-### Phase 7: Exams + progress (about 2 days)
+### Phase 7: Exams + progress (about 2 days) — DONE 2026-11-15
 
 - "New Exam" inside a Space:
   - pick contents, duration, question count, and types;

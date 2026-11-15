@@ -1,4 +1,4 @@
-import type { QuizAttemptId, QuizQuestionId, StudySetId } from "../shared/id";
+import type { ContentId, QuizAttemptId, QuizQuestionId, StudySetId } from "../shared/id";
 import type { Locator } from "./content";
 
 export const quizQuestionTypes = [
@@ -40,8 +40,12 @@ export interface QuizQuestion {
   /** Chapter title the question belongs to (quiz sets are per topic). */
   topic: string;
   locator: Locator | null;
+  /** Source content. Set for exam questions (ADR-0018); null for per-content quizzes. */
+  contentId: ContentId | null;
 }
-export type NewQuizQuestion = Omit<QuizQuestion, "id" | "setId">;
+export type NewQuizQuestion = Omit<QuizQuestion, "id" | "setId" | "contentId"> & {
+  contentId?: ContentId | null;
+};
 
 export interface QuizAttempt {
   id: QuizAttemptId;

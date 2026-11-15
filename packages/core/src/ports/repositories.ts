@@ -10,6 +10,7 @@ import type {
   Segment,
   SegmentHit,
 } from "../domain/content";
+import type { ExamSession } from "../domain/exam";
 import type { Flashcard, FsrsState, NewFlashcard, Review, ReviewRating } from "../domain/flashcard";
 import type { Job, JobKind } from "../domain/job";
 import type { LlmSettings } from "../domain/llm-settings";
@@ -20,6 +21,7 @@ import type { NewStudySet, StudySet, StudySetKind } from "../domain/study-set";
 import type {
   ChatId,
   ContentId,
+  ExamSessionId,
   FlashcardId,
   JobId,
   QuizQuestionId,
@@ -45,6 +47,8 @@ export interface ContentRepository {
   listBySpace(spaceId: SpaceId): Promise<Content[]>;
   setStatus(id: ContentId, status: ContentStatus, error?: string | null): Promise<void>;
   setTitle(id: ContentId, title: string): Promise<void>;
+  /** Moves a content into a space, or out of any space with null (ADR-0018). */
+  setSpace(id: ContentId, spaceId: SpaceId | null): Promise<void>;
 }
 
 export interface SegmentRepository {
@@ -109,6 +113,14 @@ export interface FlashcardRepository {
   listDue(now: Date, limit: number): Promise<Flashcard[]>;
   /** Saves the new schedule and appends a review row in one transaction. */
   recordReview(id: FlashcardId, rating: ReviewRating, next: FsrsState, at: Date): Promise<Review>;
+}
+
+export interface ExamSessionRepository {
+  start(setId: StudySetId, startedAt: Date, deadlineAt: Date): Promise<ExamSession>;
+  get(id: ExamSessionId): Promise<ExamSession | null>;
+  /** Newest first. */
+  listBySet(setId: StudySetId): Promise<ExamSession[]>;
+  submit(id: ExamSessionId, submittedAt: Date, score: number): Promise<void>;
 }
 
 export interface JobRepository {

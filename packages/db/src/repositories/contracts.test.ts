@@ -210,3 +210,80 @@ describe("MVP contract repositories", () => {
     expect(await new DrizzleChapterRepository(db).listByContent(c.id)).toEqual([]);
   });
 });
+
+describe("Phase 7 contracts", () => {
+  it("contents.setSpace moves a content in and out of a space", async () => {
+    const { DrizzleSpaceRepository } = await import("./space-repository");
+    const space = await new DrizzleSpaceRepository(db).create({ name: "Bio", description: null });
+    const repo = new DrizzleContentRepository(db);
+    const c = await newContent(db);
+    await repo.setSpace(c.id, space.id);
+    expect((await repo.listBySpace(space.id)).map((x) => x.id)).toEqual([c.id]);
+    await repo.setSpace(c.id, null);
+    expect(await repo.listBySpace(space.id)).toEqual([]);
+  });
+
+  it("exam sessions: start, list newest first, submit; question keeps its content id", async () => {
+    const { DrizzleSpaceRepository } = await import("./space-repository");
+    const { DrizzleExamSessionRepository } = await import("./exam-session-repository");
+    const space = await new DrizzleSpaceRepository(db).create({ name: "Bio", description: null });
+    const c = await newContent(db);
+    const set = await new DrizzleStudySetRepository(db).create({
+      kind: "exam",
+      contentId: null,
+      spaceId: space.id,
+      title: "Exam 1",
+      options: {},
+    });
+    const [q] = await new DrizzleQuizRepository(db).addQuestions(set.id, [
+      {
+        idx: 0,
+        type: "true_false",
+        difficulty: "easy",
+        prompt: "ATP stores energy.",
+        choices: null,
+        answer: { type: "true_false", value: true },
+        explanation: "It does.",
+        topic: "Cells",
+        locator: null,
+        contentId: c.id,
+      },
+    ]);
+    expect(q?.contentId).toBe(c.id);
+
+    const repo = new DrizzleExamSessionRepository(db);
+    const t0 = new Date("2026-11-15T10:00:00Z");
+    const first = await repo.start(set.id, t0, new Date("2026-11-15T10:30:00Z"));
+    const second = await repo.start(
+      set.id,
+      new Date("2026-11-15T11:00:00Z"),
+      new Date("2026-11-15T11:30:00Z"),
+    );
+    expect((await repo.listBySet(set.id)).map((s) => s.id)).toEqual([second.id, first.id]);
+    await repo.submit(first.id, new Date("2026-11-15T10:20:00Z"), 0.75);
+    expect(await repo.get(first.id)).toMatchObject({
+      score: 0.75,
+      submittedAt: new Date("2026-11-15T10:20:00Z"),
+    });
+
+    // Deleting the content keeps the exam question and clears its content id.
+    const { contents } = await import("../schema");
+    const { eq } = await import("drizzle-orm");
+    await db.delete(contents).where(eq(contents.id, c.id));
+    expect((await new DrizzleQuizRepository(db).listQuestions(set.id))[0]?.contentId).toBeNull();
+  });
+});
+
+describe("paragraph numbers (ADR-0019)", () => {
+  it("fills a 1-based paragraph on text locators that have none", async () => {
+    const c = await newContent(db);
+    const repo = new DrizzleSegmentRepository(db);
+    await repo.replaceForContent(c.id, [
+      { idx: 0, text: "First.", locator: { type: "offset", start: 0, end: 6 } },
+      { idx: 1, text: "Second.", locator: { type: "offset", start: 8, end: 15, paragraph: 7 } },
+    ]);
+    const [a, b] = await repo.listByContent(c.id);
+    expect(a?.locator).toEqual({ type: "offset", start: 0, end: 6, paragraph: 1 });
+    expect(b?.locator).toMatchObject({ paragraph: 7 });
+  });
+});
