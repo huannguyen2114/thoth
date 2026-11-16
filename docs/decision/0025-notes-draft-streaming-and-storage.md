@@ -1,6 +1,6 @@
-# ADR-0025 (draft, Lane 2): Notes drafts stream through a polled in-memory run; editor storage details
+# ADR-0025: Notes drafts stream through a polled in-memory run; editor storage details
 
-- Status: Draft (Phase 8, Lane 2). The orchestrator numbers and accepts it.
+- Status: Accepted
 - Date: 2026-11-16
 - Refines: ADR-0022
 

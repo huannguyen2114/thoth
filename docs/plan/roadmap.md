@@ -1,6 +1,6 @@
 # Thoth roadmap
 
-> **Status (2026-11-15):** Phases 0–7 done and verified live on Sonnet 5.5 (2–6 built in parallel lanes, see `parallel-development.md`). Next: Phase 8 (polish + phone).
+> **Status (2026-11-16):** Phases 0–8 done and verified live on Sonnet 5.5 (2–6 and 8 built in parallel lanes, see `parallel-development.md`). The MVP roadmap is complete; later phases (9–12) are optional.
 > Where this plan and an ADR disagree, **the ADR wins** (`docs/decision/`). The architecture below is the original sketch. The current design is `docs/technical_design/`.
 
 ## Context
@@ -214,7 +214,7 @@ Each phase ends with something that runs. After each phase I check it in the bro
 - A progress dashboard: weak topics from quiz, exam, and flashcard data. A "Practice weak spots" button generates a targeted quiz.
 - **Done when:** a Space exam runs end to end and the dashboard updates.
 
-### Phase 8: Polish + phone (about 1–2 days)
+### Phase 8: Polish + phone (about 1–2 days) — DONE 2026-11-16 (plus dockable workspace, live-preview notes, habit tracker, Cmd+K)
 
 - Global search (FTS), History, Share/export (markdown or Anki CSV), dark mode, a mobile layout (the Learn panel becomes a bottom sheet), and LAN or Tailscale access with a passcode.
 

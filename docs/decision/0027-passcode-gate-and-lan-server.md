@@ -1,6 +1,6 @@
-# ADR-NNNN (draft): Passcode gate for non-local access, with a peer-stamping LAN server
+# ADR-0027: Passcode gate for non-local access, with a peer-stamping LAN server
 
-- Status: Proposed (draft from Phase 8 Lane 4; the orchestrator assigns the number)
+- Status: Accepted
 - Date: 2026-11-16
 
 ## Context
@@ -22,3 +22,7 @@ Phase 8 lets the owner open Thoth from a phone over the LAN or Tailscale. Thoth 
 - Changing the passcode signs out every device. There is no per-device revocation (single user).
 - Plain http on Wi-Fi exposes the passcode to people on that network; Tailscale avoids that.
 - A custom server stops Next from adding its own socket-based forwarding header, which is why the gate stamps its own.
+
+## Amendment at merge (orchestrator, 2026-11-16)
+
+The integration test found that plain `next dev` / `next start`, which listened on every interface by default, let a LAN device that sent `X-Forwarded-For: 127.0.0.1` and `Host: localhost` past the gate. **`dev` and `start` now bind to 127.0.0.1** (`apps/web/package.json`), so the untrusted mode serves only this computer. **`pnpm start:lan` is the only way to serve other devices**; it stamps the real socket address and was re-tested: forged headers from the LAN get 401.

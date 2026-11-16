@@ -1,6 +1,6 @@
 # 12. Notes editor
 
-Status: Current (Phase 8, Lane 2). Decisions: ADR-0022, draft ADR-0025 (`docs/decision/0025-draft-p8-lane2.md`).
+Status: Current (Phase 8, Lane 2). Decisions: ADR-0022, draft ADR-0025 (`docs/decision/0025-notes-draft-streaming-and-storage.md`).
 
 ## What it does
 
@@ -16,45 +16,45 @@ Storage does not change: the note is still Markdown in `notes.markdown` (one not
 
 ## Files
 
-| File                                         | Role                                                                                                    |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `apps/web/src/features/notes/tool.tsx`       | `notesTool` and its Panel: header, status, toolbar, editor, the draft dialog                            |
-| `features/notes/editor/extensions.ts`        | The single list of Tiptap extensions. Anything offered here must round-trip through Markdown            |
-| `features/notes/editor/citation.ts`          | The `citation` inline node: Markdown tokenizer, input rule, paste rule, the chip node view and `onCite` |
-| `features/notes/editor/callout.ts`           | Decorates a quote that starts with `**Note:**` (or Tip, Important, Warning) as a Hearth callout         |
-| `features/notes/editor/slash.ts`             | The `/` plugin (`findSlash`, Escape to dismiss) and the menu items                                      |
-| `features/notes/editor/slash-menu.tsx`       | The menu: Hearth `menu` styles, a portal at the caret, arrow keys, Enter or Tab                         |
-| `features/notes/editor/toolbar.tsx`          | Formatting buttons. They wrap, and they hide below a 20rem panel                                        |
-| `features/notes/editor/prose.ts`             | Hearth styles for the editable content, as Tailwind variants on the editor root                         |
-| `features/notes/editor/markdown.ts`          | `parseNote` (Markdown to editor JSON) and `serializeNote` (editor to Markdown)                          |
-| `features/notes/use-autosave.ts`             | Debounced save through `saveNoteAction`                                                                 |
-| `features/notes/use-draft.ts`                | Starts a draft, polls it, shows it live, stop, one undo step                                            |
-| `features/notes/actions.ts`                  | Thin Server Actions: load, save, start, read and cancel a draft                                         |
-| `features/notes/draft-runs.ts`               | The process-wide `NotesDraftRuns` instance (server only, kept on `globalThis`)                          |
-| `packages/core/src/usecases/notes/notes.ts`  | `getNote`, `saveNote`, `draftNotes`, `streamNotesDraft`                                                 |
-| `packages/core/src/usecases/notes/draft-runs.ts` | `NotesDraftRuns`: the in-memory registry of running drafts                                          |
+| File                                             | Role                                                                                                    |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `apps/web/src/features/notes/tool.tsx`           | `notesTool` and its Panel: header, status, toolbar, editor, the draft dialog                            |
+| `features/notes/editor/extensions.ts`            | The single list of Tiptap extensions. Anything offered here must round-trip through Markdown            |
+| `features/notes/editor/citation.ts`              | The `citation` inline node: Markdown tokenizer, input rule, paste rule, the chip node view and `onCite` |
+| `features/notes/editor/callout.ts`               | Decorates a quote that starts with `**Note:**` (or Tip, Important, Warning) as a Hearth callout         |
+| `features/notes/editor/slash.ts`                 | The `/` plugin (`findSlash`, Escape to dismiss) and the menu items                                      |
+| `features/notes/editor/slash-menu.tsx`           | The menu: Hearth `menu` styles, a portal at the caret, arrow keys, Enter or Tab                         |
+| `features/notes/editor/toolbar.tsx`              | Formatting buttons. They wrap, and they hide below a 20rem panel                                        |
+| `features/notes/editor/prose.ts`                 | Hearth styles for the editable content, as Tailwind variants on the editor root                         |
+| `features/notes/editor/markdown.ts`              | `parseNote` (Markdown to editor JSON) and `serializeNote` (editor to Markdown)                          |
+| `features/notes/use-autosave.ts`                 | Debounced save through `saveNoteAction`                                                                 |
+| `features/notes/use-draft.ts`                    | Starts a draft, polls it, shows it live, stop, one undo step                                            |
+| `features/notes/actions.ts`                      | Thin Server Actions: load, save, start, read and cancel a draft                                         |
+| `features/notes/draft-runs.ts`                   | The process-wide `NotesDraftRuns` instance (server only, kept on `globalThis`)                          |
+| `packages/core/src/usecases/notes/notes.ts`      | `getNote`, `saveNote`, `draftNotes`, `streamNotesDraft`                                                 |
+| `packages/core/src/usecases/notes/draft-runs.ts` | `NotesDraftRuns`: the in-memory registry of running drafts                                              |
 
 The packages are `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/pm`, `@tiptap/markdown` and `@tiptap/extension-placeholder`, all pinned at 3.32.2.
 
 ## Blocks and how they are stored
 
-| Block                    | Shortcut or slash item         | Markdown                         |
-| ------------------------ | ------------------------------ | -------------------------------- |
-| Heading 1, 2, 3          | `#`, `##`, `###` and a space   | `# Title`                        |
-| Bulleted list (nestable) | `-` and a space                | `- point`                        |
-| Numbered list            | `1.` and a space               | `1. step`                        |
-| Quote                    | `>` and a space                | `> text`                         |
-| Callout                  | slash menu "Callout"           | `> **Note:** text`               |
-| Code block               | three backticks and a space    | a fenced block, with a language  |
-| Divider                  | `---`                          | `---`                            |
-| Bold, italic, strike     | `**b**`, `*i*`, `~~s~~`, ⌘B, ⌘I | the same                         |
-| Inline code              | `` `x` ``, ⌘E                  | the same                         |
-| Link                     | paste a URL                    | `[text](url)`                    |
-| Citation chip            | type or paste `[p.3]`          | `[p.3]`, `[03:21]`, `[1:02:03]`, `[§2]` |
+| Block                    | Shortcut or slash item          | Markdown                                |
+| ------------------------ | ------------------------------- | --------------------------------------- |
+| Heading 1, 2, 3          | `#`, `##`, `###` and a space    | `# Title`                               |
+| Bulleted list (nestable) | `-` and a space                 | `- point`                               |
+| Numbered list            | `1.` and a space                | `1. step`                               |
+| Quote                    | `>` and a space                 | `> text`                                |
+| Callout                  | slash menu "Callout"            | `> **Note:** text`                      |
+| Code block               | three backticks and a space     | a fenced block, with a language         |
+| Divider                  | `---`                           | `---`                                   |
+| Bold, italic, strike     | `**b**`, `*i*`, `~~s~~`, ⌘B, ⌘I | the same                                |
+| Inline code              | `` `x` ``, ⌘E                   | the same                                |
+| Link                     | paste a URL                     | `[text](url)`                           |
+| Citation chip            | type or paste `[p.3]`           | `[p.3]`, `[03:21]`, `[1:02:03]`, `[§2]` |
 
 Not offered, because Markdown cannot hold it: underline, colour and alignment. StarterKit's underline is turned off.
 
-**The callout is a plain quote.** Markdown has no callout block, so we keep a quote that starts with a bold label and only *decorate* it while editing (`bg-info-tint`, `text-info`). The note stays portable, and other Markdown renderers show a quote.
+**The callout is a plain quote.** Markdown has no callout block, so we keep a quote that starts with a bold label and only _decorate_ it while editing (`bg-info-tint`, `text-info`). The note stays portable, and other Markdown renderers show a quote.
 
 **Round-trip rule.** `features/notes/editor/markdown.test.ts` proves that Markdown in equals Markdown out for every block above, for each citation form, and for a whole note that holds them all. `slash.test.ts` proves each slash item produces the Markdown in the table. Known normalisations, each stable after one save:
 

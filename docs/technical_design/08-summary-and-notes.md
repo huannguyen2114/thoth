@@ -25,15 +25,15 @@ flowchart LR
   P[Panel] -->|poll every 1.5 s while generating| LA[listSummariesAction] --> R
 ```
 
-| Function                                 | File         | Notes                                                                                                                     |
-| ---------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| `startSummary(deps, contentId, options)` | `summary.ts` | Returns `Result<{ set, run }>`. The set exists (status `generating`) before the model is called                           |
-| `generateSummary`                        | `summary.ts` | `startSummary` + `run()`; used by tests and scripts                                                                       |
-| `listSummaries`                          | `summary.ts` | Newest first. A set `generating` for more than 15 minutes is marked `failed` ("interrupted", e.g. after a server restart) |
-| `deleteSummary`                          | `summary.ts` | Only a `summary` set of that content                                                                                      |
-| `getSourceBounds`                        | `summary.ts` | `{ locatorType, durationSec, pageCount }` so the dialog shows time or page inputs                                         |
-| `selectSegments(segments, ranges)`       | `ranges.ts`  | See below                                                                                                                 |
-| `getNote`, `saveNote`, `draftNotes`, `streamNotesDraft` | `notes/notes.ts` | The drafts return Markdown and do **not** save it; the editor decides to replace or append. See doc 12 |
+| Function                                                | File             | Notes                                                                                                                     |
+| ------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `startSummary(deps, contentId, options)`                | `summary.ts`     | Returns `Result<{ set, run }>`. The set exists (status `generating`) before the model is called                           |
+| `generateSummary`                                       | `summary.ts`     | `startSummary` + `run()`; used by tests and scripts                                                                       |
+| `listSummaries`                                         | `summary.ts`     | Newest first. A set `generating` for more than 15 minutes is marked `failed` ("interrupted", e.g. after a server restart) |
+| `deleteSummary`                                         | `summary.ts`     | Only a `summary` set of that content                                                                                      |
+| `getSourceBounds`                                       | `summary.ts`     | `{ locatorType, durationSec, pageCount }` so the dialog shows time or page inputs                                         |
+| `selectSegments(segments, ranges)`                      | `ranges.ts`      | See below                                                                                                                 |
+| `getNote`, `saveNote`, `draftNotes`, `streamNotesDraft` | `notes/notes.ts` | The drafts return Markdown and do **not** save it; the editor decides to replace or append. See doc 12                    |
 
 ### Options
 

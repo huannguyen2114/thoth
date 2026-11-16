@@ -1,6 +1,6 @@
-# ADR-0024 (draft, Lane 3): Habit days, search composition and Anki export format
+# ADR-0026: Habit days, search composition and Anki export format
 
-- Status: Proposed (draft by Phase 8 Lane 3; the orchestrator assigns the final number)
+- Status: Accepted
 - Date: 2026-11-16
 
 ## Context

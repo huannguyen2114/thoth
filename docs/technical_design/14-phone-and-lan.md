@@ -1,6 +1,6 @@
 # 14. Phone, LAN and the passcode gate
 
-Status: Current (Phase 8, Lane 4). Decision: draft ADR `docs/decision/NNNN-draft-p8-lane4.md` (ADR-0002 still holds: single user, local first).
+Status: Current (Phase 8, Lane 4). Decision: draft ADR `docs/decision/0027-passcode-gate-and-lan-server.md` (ADR-0002 still holds: single user, local first).
 
 Thoth runs on the owner's Mac. To use it from a phone, the Mac listens on the network, and **every request that does not come from the Mac itself must carry a signed session cookie**. With no passcode configured, other devices get a "set a passcode" page and **no data**.
 

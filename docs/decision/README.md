@@ -73,5 +73,9 @@ What becomes easier, what becomes harder, and the follow-ups.
 | [0021](0021-dockable-content-workspace.md)                  | Dockable content workspace with dockview                                             | Accepted                   |
 | [0022](0022-notes-live-preview-editor.md)                   | Notes use a live-preview Tiptap editor, stored as Markdown                           | Accepted                   |
 | [0023](0023-activity-log-for-habit-tracker.md)              | Activity log for the habit tracker                                                   | Accepted                   |
+| [0024](0024-dockable-workspace-implementation.md)           | How the dockable workspace is built (dockview details)                               | Accepted                   |
+| [0025](0025-notes-draft-streaming-and-storage.md)           | Notes drafts stream through a polled in-memory run; editor storage details           | Accepted                   |
+| [0026](0026-habit-days-search-and-anki-export.md)           | Habit days, search composition and Anki export format                                | Accepted                   |
+| [0027](0027-passcode-gate-and-lan-server.md)                | Passcode gate for non-local access, with a peer-stamping LAN server                  | Accepted                   |
 
 Add a new row when you add an ADR. When you supersede one, change its status here as well.

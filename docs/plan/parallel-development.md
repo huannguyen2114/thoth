@@ -114,7 +114,7 @@ A lane whose branch conflicts outside its owned folders is sent back to its sess
 
 # Phase 8 lanes (2026-11-16)
 
-Status: **Active.** Step 0 is pushed: the app frame, sidebar, palette and shortcut registry, theme, the activity log (ADR-0023) with `NoteRepository.list` and `ActivityRepository.listRecent`, ADRs 0020–0023 and doc 11. The same rules as above apply (quality gates, ADR drafts named `NNNN-draft-<lane>.md`, commit to your branch only, no push or merge).
+Status: **Done** (2026-11-16): merged with ADRs 0024–0027. Step 0 was: the app frame, sidebar, palette and shortcut registry, theme, the activity log (ADR-0023) with `NoteRepository.list` and `ActivityRepository.listRecent`, ADRs 0020–0023 and doc 11. The same rules as above apply (quality gates, ADR drafts named `NNNN-draft-<lane>.md`, commit to your branch only, no push or merge).
 
 **Everyone reads `docs/technical_design/11-app-shell-and-feel.md` first.** The native feel is part of every lane's "done".
 

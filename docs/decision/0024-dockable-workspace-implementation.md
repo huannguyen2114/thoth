@@ -1,6 +1,6 @@
-# ADR-0024 (draft, Phase 8 Lane 1): How the dockable workspace is built
+# ADR-0024: How the dockable workspace is built
 
-- Status: Draft (for the orchestrator to accept, renumber or merge)
+- Status: Accepted
 - Date: 2026-11-16
 - Amends: ADR-0021 (dockable content workspace)
 

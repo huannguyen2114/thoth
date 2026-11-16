@@ -1,13 +1,15 @@
 /**
  * Who is calling? Decides whether a request is "local" (the owner at the Mac) or remote.
- * Pure functions, no Next imports, so they are unit-tested (ADR in docs/decision/*-draft-p8-lane4.md).
+ * Pure functions, no Next imports, so they are unit-tested (ADR in docs/decision/0027-passcode-gate-and-lan-server.md).
  *
  * Two modes:
  * - **trusted**: the request came through `apps/web/scripts/lan-server.mjs`, which overwrites
  *   `x-thoth-peer` and `x-thoth-proxied` from the real socket on every request. A client cannot forge them.
- * - **untrusted** (plain `next dev` / `next start`): the only signal is `x-forwarded-for`, which Next fills
- *   from the socket only when the client did not send one. A remote client can forge it, so this mode
- *   is best effort. Use `pnpm start:lan` whenever the port is reachable from another device.
+ * - **untrusted** (plain `next dev` / `next start`): the only signal is `x-forwarded-for`, which a
+ *   remote client could forge. That is safe only because `dev` and `start` bind to 127.0.0.1
+ *   (apps/web/package.json), so no other device can reach them at all. The integration test found a
+ *   forged-loopback bypass when they bound to every interface. Never add `-H 0.0.0.0` to them:
+ *   use `pnpm start:lan`, the only way to serve other devices.
  */
 
 export interface HeaderReader {

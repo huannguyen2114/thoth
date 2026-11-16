@@ -1,6 +1,6 @@
 # 13. Habits, history, search and export
 
-Status: Current (Phase 8, Lane 3). Decisions: ADR-0023 (activity log) and the Lane 3 draft ADR `0024-draft-p8-lane3.md`.
+Status: Current (Phase 8, Lane 3). Decisions: ADR-0023 (activity log) and the Lane 3 draft ADR `ADR-0026.md`.
 
 Four small features that read what the owner already did and wrote. All rules live in `@thoth/core`; the web layer only fetches and draws.
 
