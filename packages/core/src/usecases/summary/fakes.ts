@@ -134,6 +134,9 @@ export class FakeNotes implements NoteRepository {
     this.saved = { contentId, markdown, updatedAt: new Date() };
     return this.saved;
   }
+  async list() {
+    return this.saved ? [this.saved] : [];
+  }
 }
 
 /** Streams the given chunks, then "done" (or an error event). Records every request. */

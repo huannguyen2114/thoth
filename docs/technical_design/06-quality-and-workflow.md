@@ -58,3 +58,7 @@ THOTH_LIVE=api,subscription THOTH_LIVE_MODEL=claude-haiku-5-5 pnpm --filter @tho
 ```
 
 The default model is `claude-sonnet-5-5`. Run these after changing an adapter. CI never runs them.
+
+## Rule: record study activity (ADR-0023)
+
+Every new study action calls `recordActivity(deps.activity, kind, ref)` after it succeeds, so the habit tracker counts it. `activity` is an optional dependency, so tests that do not pass it record nothing. Add a new `ActivityKind` (and a migration that updates the enum) for a new kind of action.

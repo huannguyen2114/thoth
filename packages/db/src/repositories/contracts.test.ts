@@ -307,3 +307,20 @@ describe("activity log (ADR-0023)", () => {
     ]);
   });
 });
+
+describe("Phase 8 contract additions", () => {
+  it("notes.list returns non-empty notes, newest first; activity.listRecent is newest first", async () => {
+    const notes = new DrizzleNoteRepository(db);
+    const a = await newContent(db, "A");
+    const b = await newContent(db, "B");
+    await notes.save(a.id, "# A notes");
+    await notes.save(b.id, "   ");
+    expect((await notes.list()).map((n) => n.contentId)).toEqual([a.id]);
+
+    const { DrizzleActivityRepository } = await import("./activity-repository");
+    const act = new DrizzleActivityRepository(db);
+    await act.record("quiz_answer", "q1", new Date("2026-11-15T01:00:00Z"));
+    await act.record("card_review", "c1", new Date("2026-11-15T02:00:00Z"));
+    expect((await act.listRecent(1)).map((e) => e.kind)).toEqual(["card_review"]);
+  });
+});

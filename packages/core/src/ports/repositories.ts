@@ -1,4 +1,4 @@
-import type { ActivityDay, ActivityKind } from "../domain/activity";
+import type { ActivityDay, ActivityEvent, ActivityKind } from "../domain/activity";
 import type { Chat, ChatMessage } from "../domain/chat";
 import type { CitationRef } from "../domain/citation";
 import type {
@@ -94,6 +94,8 @@ export interface StudySetRepository {
 export interface NoteRepository {
   get(contentId: ContentId): Promise<Note | null>;
   save(contentId: ContentId, markdown: string): Promise<Note>;
+  /** Every non-empty note, most recently edited first (search, export). */
+  list(): Promise<Note[]>;
 }
 
 export interface QuizRepository {
@@ -155,4 +157,6 @@ export interface ActivityRepository {
    * omitted. `tzOffsetMin` is the client's `Date#getTimezoneOffset()` (minutes behind UTC).
    */
   countByDay(from: Date, to: Date, tzOffsetMin: number): Promise<ActivityDay[]>;
+  /** Newest first, for the History timeline. */
+  listRecent(limit: number): Promise<ActivityEvent[]>;
 }

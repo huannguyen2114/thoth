@@ -1,5 +1,5 @@
 import type { ContentId, Note, NoteRepository } from "@thoth/core";
-import { eq, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import type { Db } from "../client";
 import { notes } from "../schema";
 
@@ -27,5 +27,10 @@ export class DrizzleNoteRepository implements NoteRepository {
       .returning();
     if (!row) throw new Error("Upsert into notes returned no row.");
     return toDomain(row);
+  }
+
+  async list() {
+    const rows = await this.db.select().from(notes).orderBy(desc(notes.updatedAt));
+    return rows.filter((r) => r.markdown.trim().length > 0).map(toDomain);
   }
 }

@@ -17,6 +17,8 @@ Thoth is a single-user, local-first study PWA. It is a personal alternative to Y
    - summary and notes: `08`
    - quiz and flashcards: `09`
    - exams, spaces and progress: `10`
+   - app shell and native feel (read before any UI work): `11`
+   - app shell and native feel (read before any UI work): `11`
 5. `docs/plan/roadmap.md`: what phase we are in and what comes next.
 
 Only then search the code. Most "where is X" questions are answered by `01-architecture.md`.

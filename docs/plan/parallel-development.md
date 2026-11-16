@@ -109,3 +109,20 @@ The order is **A, then B, then C, then D**. The orchestrator handles each branch
 5. Merge with `--no-ff`, then push.
 
 A lane whose branch conflicts outside its owned folders is sent back to its session to fix.
+
+---
+
+# Phase 8 lanes (2026-11-16)
+
+Status: **Active.** Step 0 is pushed: the app frame, sidebar, palette and shortcut registry, theme, the activity log (ADR-0023) with `NoteRepository.list` and `ActivityRepository.listRecent`, ADRs 0020–0023 and doc 11. The same rules as above apply (quality gates, ADR drafts named `NNNN-draft-<lane>.md`, commit to your branch only, no push or merge).
+
+**Everyone reads `docs/technical_design/11-app-shell-and-feel.md` first.** The native feel is part of every lane's "done".
+
+| Lane                                          | Model  | Owns (create and edit freely)                                                                                                                                                                                     | Shared files: one-line edits only                                                                                                                                                   |
+| --------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1: Dockable workspace** (ADR-0021)          | Opus   | `apps/web/src/app/content/**`, `apps/web/src/features/{workspace,content-viewer,chat}/**`, `features/learn-panel/**` except `types.ts`; doc `07`                                                                  | `apps/web/package.json` (dockview)                                                                                                                                                  |
+| **2: Notes editor** (ADR-0022)                | Opus   | `apps/web/src/features/notes/**`, `packages/core/src/usecases/notes/**`; new doc `12-notes-editor.md`                                                                                                             | `apps/web/package.json` (Tiptap)                                                                                                                                                    |
+| **3: Habit tracker, History, Search, Export** | Sonnet | `packages/core/src/usecases/{insights,search,export}/**`; `apps/web/src/features/{habits,history,search,export}/**`; `app/history/**`; `app/api/{search,export}/**`; new doc `13-habits-history-search-export.md` | one section each in `app/page.tsx` (home heatmap) and `app/progress/page.tsx`; one `<SearchProvider>` mount in `app/_components/app-shell.tsx`; one History `Item` in `sidebar.tsx` |
+| **4: Phone, LAN and passcode**                | Sonnet | `apps/web/src/proxy.ts`, `app/unlock/**`, `features/access/**`, `public/sw.js`, `app/manifest.ts`; new doc `14-phone-and-lan.md`                                                                                  | root `package.json` (one `start:lan` script), `.env.example`, phone-only rules at the end of `app/shell.css` (in a block marked `/* Lane 4 */`)                                     |
+
+The merge order is 1, 2, 3, 4. The Notes panel in the workspace is the existing `notesTool` from the Learn registry, so Lanes 1 and 2 meet only through `LearnToolProps` (`contentId`, `onCite`).

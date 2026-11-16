@@ -1,5 +1,11 @@
-import { type ActivityDay, type ActivityKind, type ActivityRepository, newId } from "@thoth/core";
-import { and, eq, gte, sql } from "drizzle-orm";
+import {
+  type ActivityDay,
+  type ActivityEvent,
+  type ActivityKind,
+  type ActivityRepository,
+  newId,
+} from "@thoth/core";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 import type { Db } from "../client";
 import { activityEvents } from "../schema";
 
@@ -36,5 +42,14 @@ export class DrizzleActivityRepository implements ActivityRepository {
       GROUP BY day
       ORDER BY day`);
     return rows.map((r) => ({ day: r.day, count: Number(r.count) }));
+  }
+
+  async listRecent(limit: number): Promise<ActivityEvent[]> {
+    const rows = await this.db
+      .select()
+      .from(activityEvents)
+      .orderBy(desc(activityEvents.at))
+      .limit(limit);
+    return rows;
   }
 }
