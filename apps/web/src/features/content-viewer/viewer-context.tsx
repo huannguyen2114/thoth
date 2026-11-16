@@ -43,10 +43,16 @@ export function ViewerProvider({
   onJump,
 }: {
   children: ReactNode;
-  /** Called on every jump, e.g. to switch the mobile layout to the source view. */
+  /**
+   * Called on every jump, before it is applied: the workspace reveals the Source panel here,
+   * reopening it if it was closed.
+   */
   onJump?: () => void;
 }) {
   const handle = useRef<ViewerHandle | null>(null);
+  // A jump asked for while no viewer is mounted (the Source panel was closed): applied as
+  // soon as the reopened viewer registers. Only the latest one is kept.
+  const pending = useRef<CitationRef | null>(null);
   const onJumpRef = useRef(onJump);
   useEffect(() => {
     onJumpRef.current = onJump;
@@ -54,18 +60,26 @@ export function ViewerProvider({
   const [position, setPosition] = useState<ViewerPosition>(null);
 
   const jump = useCallback((ref: CitationRef) => {
-    const h = handle.current;
-    if (!h) return;
     onJumpRef.current?.();
-    if (ref.type === "time") h.seek?.(ref.sec);
-    else if (ref.type === "page") h.showPage?.(ref.page);
-    else h.showParagraph?.(ref.index);
+    const h = handle.current;
+    if (h) apply(h, ref);
+    else pending.current = ref;
   }, []);
 
   const actions = useMemo<ViewerActions>(
     () => ({
       register: (h) => {
         handle.current = h;
+        if (!h || !pending.current) return;
+        // Applied on the next tick, and only if this viewer is still the registered one: a
+        // viewer can mount and unmount at once (React Strict Mode, a panel moved between
+        // groups), and a jump handed to the one that left would be lost.
+        window.setTimeout(() => {
+          const ref = pending.current;
+          if (handle.current !== h || !ref) return;
+          pending.current = null;
+          apply(h, ref);
+        }, 0);
       },
       jump,
       jumpToToken: (token) => {
@@ -82,6 +96,31 @@ export function ViewerProvider({
       <PositionContext value={position}>{children}</PositionContext>
     </ActionsContext>
   );
+}
+
+function apply(h: ViewerHandle, ref: CitationRef) {
+  if (ref.type === "time") h.seek?.(ref.sec);
+  else if (ref.type === "page") h.showPage?.(ref.page);
+  else h.showParagraph?.(ref.index);
+}
+
+/**
+ * Scrolls `el` to the top of its nearest scrolling box only. `scrollIntoView` would also
+ * scroll every clipped ancestor, which shifts the dock panels around it.
+ */
+export function revealInScroller(el: HTMLElement) {
+  let box = el.parentElement;
+  while (box) {
+    const { overflowY } = getComputedStyle(box);
+    if ((overflowY === "auto" || overflowY === "scroll") && box.scrollHeight > box.clientHeight) {
+      break;
+    }
+    box = box.parentElement;
+  }
+  if (!box) return;
+  const top = el.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  box.scrollTo({ top: Math.max(0, top - 16), behavior: reduce ? "auto" : "smooth" });
 }
 
 export function useViewer(): ViewerActions {

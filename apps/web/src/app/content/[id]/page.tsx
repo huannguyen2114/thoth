@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { AppShell } from "@/app/_components/app-shell";
-import { ContentWorkspace } from "@/features/content-viewer/content-workspace";
+import { ContentWorkspace } from "@/features/workspace/content-workspace";
 import { getContainer } from "@/server/container";
 
 /**

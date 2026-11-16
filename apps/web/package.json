@@ -19,6 +19,7 @@
     "@thoth/llm": "workspace:*",
     "@thoth/ui": "workspace:*",
     "cmdk": "1.1.1",
+    "dockview": "8.8.3",
     "next": "16.4.6",
     "pdfjs-dist": "6.5.438",
     "react": "19.3.0",
