@@ -301,3 +301,47 @@
     color: var(--ink);
   }
 }
+
+/* Lane 4: phone */
+@layer base {
+  /* Let the page paint under the notch and home bar; padding below keeps content clear of them. */
+  .app-frame {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  /* iOS zooms into any input under 16px on focus. */
+  @media (max-width: 767px) {
+    input,
+    select,
+    textarea,
+    .field__input {
+      font-size: 16px;
+    }
+    .app-topbar {
+      height: calc(52px + env(safe-area-inset-top));
+      padding-top: env(safe-area-inset-top);
+    }
+    .app-sidebar,
+    :root[data-sidebar="collapsed"] .app-sidebar {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+    }
+    .app-sidebar a,
+    .app-sidebar button,
+    .app-sidebar [role="button"] {
+      min-height: 44px;
+    }
+    .app-main {
+      padding-bottom: env(safe-area-inset-bottom);
+      overflow-x: hidden;
+      max-width: 100vw;
+    }
+    .app-main :is(pre, table, img, video) {
+      max-width: 100%;
+    }
+    .app-main pre {
+      overflow-x: auto;
+    }
+  }
+}
