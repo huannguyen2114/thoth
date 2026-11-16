@@ -2,6 +2,7 @@ import { listSpaces } from "@thoth/core";
 import { cx } from "@thoth/ui";
 import { connection } from "next/server";
 import { type ReactNode, Suspense } from "react";
+import { SearchProvider } from "@/features/search/search-provider";
 import { getContainer } from "@/server/container";
 import { CommandPalette } from "./command-palette";
 import { Sidebar } from "./sidebar";
@@ -36,6 +37,7 @@ export function AppShell({ children, bleed = false }: { children: ReactNode; ble
       >
         <ShellData />
       </Suspense>
+      <SearchProvider />
       <main id="main" className={cx("app-main", !bleed && "app-main--padded")}>
         {children}
       </main>

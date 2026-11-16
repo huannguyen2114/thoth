@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { Habits } from "@/features/habits/heatmap";
 import { ProgressView } from "@/features/progress/progress-view";
 import { AppShell } from "../_components/app-shell";
 
@@ -13,6 +14,12 @@ export default function ProgressPage() {
           <h1 className="type-display-lg text-ink">Progress</h1>
           <p className="text-ink-muted">Your quiz and exam results by topic, weakest first.</p>
         </header>
+        <section className="flex flex-col gap-4" aria-labelledby="habits-heading">
+          <h2 id="habits-heading" className="type-heading-2 text-ink">
+            Study habits
+          </h2>
+          <Habits />
+        </section>
         <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-surface-300" />}>
           <ProgressView />
         </Suspense>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
+import { HistoryIcon } from "@/features/history/history-icon";
 import { formatShortcut, useRegistry } from "./commands";
 import {
   CardsIcon,
@@ -151,6 +152,7 @@ export function Sidebar({ spaces }: { spaces: SidebarSpace[] }) {
         <nav aria-label="Main" className="flex flex-col gap-0.5">
           <Item href="/" exact icon={<PlusIcon />} label="Add content" />
           <Item href="/review" icon={<CardsIcon />} label="Review" />
+          <Item href="/history" icon={<HistoryIcon />} label="History" />
           <Item href="/progress" icon={<ChartIcon />} label="Progress" />
         </nav>
 
