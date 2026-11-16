@@ -1,111 +1,110 @@
 "use client";
 
 import { Button, cx, Dialog } from "@thoth/ui";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { EditorContent, useEditor } from "@tiptap/react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { LearnTool, LearnToolProps } from "@/features/learn-panel/types";
-import { Callout } from "@/features/summary/callout";
-import { Markdown } from "@/features/summary/markdown";
-import { draftNotesAction, loadNoteAction, saveNoteAction } from "./actions";
-
-const AUTOSAVE_MS = 800;
-
-type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
+import { loadNoteAction } from "./actions";
+import { Callout } from "./callout";
+import { notesExtensions } from "./editor/extensions";
+import { EMPTY_DOC, parseNote } from "./editor/markdown";
+import { PROSE } from "./editor/prose";
+import { SlashMenu, useSlashMenu } from "./editor/slash-menu";
+import { Toolbar } from "./editor/toolbar";
+import { type SaveState, useAutosave } from "./use-autosave";
+import { type DraftMode, useDraft } from "./use-draft";
 
 const saveLabel: Record<SaveState, string> = {
   idle: "",
-  dirty: "Unsaved changes",
   saving: "Saving…",
   saved: "Saved",
-  error: "Could not save",
+  error: "Not saved",
 };
 
+/**
+ * The Notes panel (ADR-0022, doc 12): one live-preview editor, stored as Markdown.
+ * It fills whatever box it is given: the toolbar wraps, and the text scrolls on its own.
+ */
 function NotesPanel({ contentId, onCite }: LearnToolProps) {
-  const [text, setText] = useState<string | null>(null);
-  const [save, setSave] = useState<SaveState>("idle");
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [drafting, setDrafting] = useState(false);
-  const [draftError, setDraftError] = useState<string | null>(null);
-  const [askDraft, setAskDraft] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [askDraft, setAskDraft] = useState(false);
+  const cite = useRef(onCite);
+  cite.current = onCite;
+  const slash = useSlashMenu();
+  const onEdit = useRef<() => void>(() => {});
+  const onBlur = useRef<() => void>(() => {});
 
-  // The latest unsaved text, so a blur or unmount can flush it.
-  const pending = useRef<string | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const extensions = useMemo(
+    () => notesExtensions({ onCite: (token) => cite.current?.(token), slash: slash.options }),
+    [slash.options],
+  );
 
+  const editor = useEditor({
+    extensions,
+    content: EMPTY_DOC,
+    editable: false,
+    immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        class: PROSE,
+        "aria-label": "Notes",
+        "aria-multiline": "true",
+        role: "textbox",
+        spellcheck: "true",
+      },
+    },
+    onUpdate: () => onEdit.current(),
+    onBlur: () => onBlur.current(),
+  });
+  slash.bind(editor);
+
+  const autosave = useAutosave(contentId, editor);
+  onBlur.current = () => void autosave.flush();
+
+  const draft = useDraft({
+    contentId,
+    editor,
+    // Follow the end of the draft in whichever box scrolls (our panel, or the page).
+    onProgress: () => editor?.view.dom.lastElementChild?.scrollIntoView({ block: "nearest" }),
+  });
+
+  onEdit.current = () => {
+    autosave.schedule();
+    if (!draft.busy && (draft.stopped || draft.error)) draft.dismiss();
+  };
+
+  // Load the saved Markdown once the editor exists. Loading is not an edit: no save, no undo.
+  const { markSaved } = autosave;
   useEffect(() => {
+    if (!editor) return;
     let cancelled = false;
+    setLoaded(false);
     loadNoteAction(contentId)
-      .then((n) => !cancelled && setText(n.markdown))
+      .then(({ markdown }) => {
+        if (cancelled || editor.isDestroyed) return;
+        const doc = editor.schema.nodeFromJSON(parseNote(editor, markdown));
+        const tr = editor.state.tr.replaceWith(0, editor.state.doc.content.size, doc.content);
+        editor.view.dispatch(tr.setMeta("addToHistory", false).setMeta("preventUpdate", true));
+        markSaved(markdown);
+        editor.setEditable(true, false);
+        setLoaded(true);
+      })
       .catch(() => !cancelled && setLoadFailed(true));
     return () => {
       cancelled = true;
     };
-  }, [contentId]);
+  }, [editor, contentId, markSaved]);
 
-  const flush = useCallback(async () => {
-    clearTimeout(timer.current);
-    const value = pending.current;
-    if (value === null) return;
-    pending.current = null;
-    setSave("saving");
-    try {
-      const r = await saveNoteAction(contentId, value);
-      if (r.ok) {
-        setSaveError(null);
-        // Typing during the request leaves newer text pending; keep showing "unsaved" then.
-        setSave(pending.current === null ? "saved" : "dirty");
-      } else {
-        pending.current ??= value;
-        setSaveError(r.error);
-        setSave("error");
-      }
-    } catch {
-      pending.current ??= value;
-      setSaveError("Could not reach the server. Your text is still here.");
-      setSave("error");
-    }
-  }, [contentId]);
+  function requestDraft() {
+    if (editor && !editor.isEmpty) setAskDraft(true);
+    else void runDraft("replace");
+  }
 
-  const change = useCallback(
-    (value: string) => {
-      setText(value);
-      pending.current = value;
-      setSave("dirty");
-      clearTimeout(timer.current);
-      timer.current = setTimeout(() => void flush(), AUTOSAVE_MS);
-    },
-    [flush],
-  );
-
-  // Save what is still pending when the panel closes.
-  useEffect(
-    () => () => {
-      clearTimeout(timer.current);
-      const value = pending.current;
-      if (value !== null) void saveNoteAction(contentId, value);
-    },
-    [contentId],
-  );
-
-  async function draft(mode: "replace" | "append") {
+  async function runDraft(mode: DraftMode) {
     setAskDraft(false);
-    setDrafting(true);
-    setDraftError(null);
-    try {
-      const r = await draftNotesAction(contentId, "English");
-      if (!r.ok) return setDraftError(r.error);
-      const current = pending.current ?? text ?? "";
-      change(
-        mode === "append" && current.trim()
-          ? `${current.trimEnd()}\n\n${r.markdown}\n`
-          : `${r.markdown}\n`,
-      );
-      void flush();
-    } catch {
-      setDraftError("Could not reach the server. Try again.");
-    } finally {
-      setDrafting(false);
-    }
+    await autosave.flush();
+    await draft.start(mode);
   }
 
   if (loadFailed) {
@@ -115,102 +114,137 @@ function NotesPanel({ contentId, onCite }: LearnToolProps) {
       </Callout>
     );
   }
-  if (text === null) {
-    return <div className="h-40 animate-pulse rounded-lg bg-surface-300" aria-hidden="true" />;
-  }
 
-  const hasText = text.trim() !== "";
+  const status =
+    draft.phase === "starting"
+      ? "Claude is reading the source…"
+      : draft.phase === "writing"
+        ? "Claude is writing…"
+        : draft.phase === "stopping"
+          ? "Stopping…"
+          : saveLabel[autosave.state];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="type-heading-3 text-ink">Notes</h3>
-        <div className="flex items-center gap-3">
+    <div className="@container flex h-full min-h-0 flex-col gap-3">
+      <div className="mx-auto flex w-full max-w-2xl shrink-0 flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h3 className="type-heading-3 text-ink select-none">Notes</h3>
           <p
             role="status"
-            className={cx("type-caption", save === "error" ? "text-danger" : "text-ink-muted")}
+            className={cx(
+              "type-caption select-none",
+              autosave.state === "error" && !draft.busy ? "text-danger" : "text-ink-muted",
+            )}
           >
-            {saveLabel[save]}
+            {status}
           </p>
-          <Button
-            variant="secondary"
-            disabled={drafting}
-            onClick={() => (hasText ? setAskDraft(true) : void draft("replace"))}
-          >
-            {drafting ? "Drafting" : "Draft notes with Claude"}
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            {draft.busy ? (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={draft.stop}
+                disabled={draft.phase === "stopping"}
+              >
+                Stop
+              </Button>
+            ) : (
+              <Button size="sm" variant="secondary" onClick={requestDraft} disabled={!loaded}>
+                Draft notes with Claude
+              </Button>
+            )}
+          </div>
+        </div>
+        {editor && loaded && <Toolbar editor={editor} disabled={draft.busy} />}
+      </div>
+
+      {draft.error && (
+        <Callout
+          variant="danger"
+          title="Claude could not draft notes"
+          className="mx-auto w-full max-w-2xl shrink-0"
+        >
+          {draft.error}
+        </Callout>
+      )}
+      {draft.stopped && !draft.busy && (
+        <Callout variant="info" title="Draft stopped" className="mx-auto w-full max-w-2xl shrink-0">
+          What Claude wrote so far is in your notes. Press {undoKey()} to remove it.
+        </Callout>
+      )}
+      {autosave.state === "error" && autosave.error && (
+        <Callout
+          variant="danger"
+          title="Your notes are not saved yet"
+          className="mx-auto w-full max-w-2xl shrink-0"
+        >
+          {autosave.error}
+        </Callout>
+      )}
+
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: a mouse shortcut to the end of the text; keyboard users are already in the editor */}
+      <div
+        className="min-h-0 flex-1 overflow-y-auto"
+        // Clicking the empty space below the text puts the caret at the end, like a page.
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget && editor?.isEditable) {
+            e.preventDefault();
+            editor.commands.focus("end");
+          }
+        }}
+      >
+        {!loaded && (
+          <div className="flex flex-col gap-3" aria-hidden="true">
+            <div className="h-8 w-1/2 animate-pulse rounded-md bg-surface-300" />
+            <div className="h-4 w-full animate-pulse rounded-md bg-surface-300" />
+            <div className="h-4 w-5/6 animate-pulse rounded-md bg-surface-300" />
+          </div>
+        )}
+        <div className={cx("mx-auto max-w-2xl", !loaded && "hidden")} aria-busy={draft.busy}>
+          <EditorContent editor={editor} />
         </div>
       </div>
 
-      {drafting && (
-        <p role="status" className="type-caption text-ink-muted">
-          Claude is reading the source and drafting notes. This takes up to a minute.
-        </p>
-      )}
-      {draftError && (
-        <Callout variant="danger" title="Claude could not draft notes">
-          {draftError}
-        </Callout>
-      )}
-      {save === "error" && saveError && (
-        <Callout variant="danger" title="Your notes are not saved yet">
-          {saveError}
-        </Callout>
-      )}
-
-      <div className="@container">
-        <div className="grid gap-4 @2xl:grid-cols-2">
-          <div className="field max-w-none">
-            <label htmlFor={`notes-${contentId}`} className="field__label">
-              Write (Markdown)
-            </label>
-            <textarea
-              id={`notes-${contentId}`}
-              className="field__input h-auto min-h-80 resize-y py-3 font-mono"
-              placeholder="Write notes here. Use # for headings, - for bullets, and [p.3] or [01:46] to link to the source."
-              value={text}
-              onChange={(e) => change(e.target.value)}
-              onBlur={() => void flush()}
-              disabled={drafting}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <h4 className="field__label">Preview</h4>
-            <div className="min-h-80 rounded-lg border border-border-subtle bg-surface-200 p-4">
-              {hasText ? (
-                <Markdown source={text} onCite={onCite} />
-              ) : (
-                <p className="text-ink-muted">Your notes appear here as you type.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <SlashMenu
+        editor={editor}
+        open={slash.open}
+        items={slash.items}
+        index={slash.index}
+        setIndex={slash.setIndex}
+      />
 
       {askDraft && (
         <Dialog
           onClose={() => setAskDraft(false)}
-          title="Replace your notes?"
+          title="Add Claude's draft?"
           actions={
             <>
               <Button variant="ghost" onClick={() => setAskDraft(false)}>
                 Cancel
               </Button>
-              <Button onClick={() => void draft("append")}>Add below</Button>
-              <Button variant="danger" onClick={() => void draft("replace")}>
+              <Button variant="secondary" onClick={() => void runDraft("replace")}>
                 Replace notes
+              </Button>
+              <Button variant="primary" onClick={() => void runDraft("append")}>
+                Add below
               </Button>
             </>
           }
         >
           <p className="modal__body">
-            You already have notes here. Claude can add its draft below them, or replace them with
-            the draft. Replacing cannot be undone.
+            You already have notes here. Claude can write its draft below them, or replace them. You
+            can undo either with {undoKey()}.
           </p>
         </Dialog>
       )}
     </div>
   );
+}
+
+function undoKey(): string {
+  return typeof navigator !== "undefined" && /Mac|iP(hone|ad)/.test(navigator.platform)
+    ? "⌘Z"
+    : "Ctrl+Z";
 }
 
 export const notesTool: LearnTool = {

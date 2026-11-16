@@ -54,15 +54,14 @@ export async function saveNote(
   return ok(note);
 }
 
-/**
- * Asks Claude for structured study notes. Returns the markdown and does NOT save it:
- * the editor decides whether to replace or append, then autosave stores it.
- */
-export async function draftNotes(
+type DraftPlan = { system: string; context: string };
+
+/** Shared checks for both draft flavours: content ready, has text, fits in one request. */
+async function planDraft(
   deps: NotesDeps,
   contentId: ContentId,
-  options: { language?: string } = {},
-): Promise<Result<string>> {
+  language: string | undefined,
+): Promise<Result<DraftPlan>> {
   const content = await deps.contents.get(contentId);
   if (!content) return err(appError("not_found", "This content no longer exists."));
   if (content.status !== "ready") {
@@ -76,12 +75,24 @@ export async function draftNotes(
   if (context.length > MAX_SOURCE_CHARS) {
     return err(appError("validation", "This source is too long to draft notes from at once."));
   }
+  return ok({ system: buildNotesSystem(language?.trim() || "English"), context });
+}
 
+/**
+ * Asks Claude for structured study notes. Returns the markdown and does NOT save it:
+ * the editor decides whether to replace or append, then autosave stores it.
+ */
+export async function draftNotes(
+  deps: NotesDeps,
+  contentId: ContentId,
+  options: { language?: string } = {},
+): Promise<Result<string>> {
+  const plan = await planDraft(deps, contentId, options.language);
+  if (!plan.ok) return plan;
   const llm = await deps.llm();
   const reply = await llm.generateText({
     task: "summary",
-    system: buildNotesSystem(options.language?.trim() || "English"),
-    context,
+    ...plan.value,
     messages: [{ role: "user", content: notesUserMessage }],
   });
   if (!reply.ok) return reply;
@@ -89,4 +100,52 @@ export async function draftNotes(
   if (text === "")
     return err(appError("llm_bad_output", "Claude returned empty notes. Try again."));
   return ok(text);
+}
+
+/** What a streamed notes draft yields. It ends with exactly one `done` or `error`. */
+export type NotesDraftEvent =
+  | { type: "text"; delta: string }
+  | { type: "done" }
+  | { type: "error"; message: string };
+
+/**
+ * Streaming variant of `draftNotes` (ADR-0022): validates first, so an expected failure is a
+ * `Result` before any token arrives, then yields the Markdown as Claude writes it.
+ * Like `draftNotes` it saves nothing. Abort `signal` to stop Claude.
+ */
+export async function streamNotesDraft(
+  deps: NotesDeps,
+  contentId: ContentId,
+  options: { language?: string; signal?: AbortSignal } = {},
+): Promise<Result<AsyncIterable<NotesDraftEvent>>> {
+  const plan = await planDraft(deps, contentId, options.language);
+  if (!plan.ok) return plan;
+  const llm = await deps.llm();
+  const request = {
+    task: "summary" as const,
+    ...plan.value,
+    messages: [{ role: "user" as const, content: notesUserMessage }],
+    ...(options.signal ? { signal: options.signal } : {}),
+  };
+  async function* events(): AsyncIterable<NotesDraftEvent> {
+    let wrote = false;
+    for await (const e of llm.streamText(request)) {
+      if (e.type === "text") {
+        if (e.delta === "") continue;
+        wrote ||= e.delta.trim() !== "";
+        yield { type: "text", delta: e.delta };
+      } else if (e.type === "error") {
+        yield { type: "error", message: e.message };
+        return;
+      } else {
+        yield wrote
+          ? { type: "done" }
+          : { type: "error", message: "Claude returned empty notes. Try again." };
+        return;
+      }
+    }
+    // The provider ended without a final event (for example after an abort).
+    yield wrote ? { type: "done" } : { type: "error", message: "Claude stopped before writing." };
+  }
+  return ok(events());
 }
