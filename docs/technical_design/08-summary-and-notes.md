@@ -1,13 +1,15 @@
 # 08. Summary and notes
 
-Status: Current (Phase 4, Lane C). Decision: ADR-0016.
+Status: Current (Phase 4, Lane C; notes editor rebuilt in Phase 8, Lane 2). Decisions: ADR-0016, ADR-0022.
+
+The notes editor has its own doc: [12-notes-editor.md](12-notes-editor.md). This doc keeps the summary and the shared prompt rules.
 
 ## What it does
 
 | Tool        | Entry point                 | What the owner gets                                                                                                                       |
 | ----------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | **Summary** | `features/summary/tool.tsx` | A Generate dialog (template, range, language, custom prompt), a list of this content's summaries, the open summary as Markdown with chips |
-| **Notes**   | `features/notes/tool.tsx`   | One Markdown document per content, a live preview, debounced autosave, and "Draft notes with Claude"                                      |
+| **Notes**   | `features/notes/tool.tsx`   | One Markdown document per content in a live-preview editor (doc 12), debounced autosave, and "Draft notes with Claude" streamed live      |
 
 Both plug into the Learn panel through the `LearnTool` contract (`features/learn-panel/types.ts`). They are client components that load data through their own Server Actions.
 
@@ -31,7 +33,7 @@ flowchart LR
 | `deleteSummary`                          | `summary.ts` | Only a `summary` set of that content                                                                                      |
 | `getSourceBounds`                        | `summary.ts` | `{ locatorType, durationSec, pageCount }` so the dialog shows time or page inputs                                         |
 | `selectSegments(segments, ranges)`       | `ranges.ts`  | See below                                                                                                                 |
-| `getNote`, `saveNote`, `draftNotes`      | `notes.ts`   | `draftNotes` returns Markdown and does **not** save it; the editor decides to replace or append                           |
+| `getNote`, `saveNote`, `draftNotes`, `streamNotesDraft` | `notes/notes.ts` | The drafts return Markdown and do **not** save it; the editor decides to replace or append. See doc 12 |
 
 ### Options
 
@@ -71,25 +73,25 @@ The title is `"<Template> summary"` plus the ranges, e.g. `Short summary · 01:4
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `summary/actions.ts`          | Thin Server Actions. `startSummaryAction` calls `after(run)` so the action returns at once                                                                                                             |
 | `summary/generate-dialog.tsx` | The Hearth modal. The form is mounted only while open, so every open starts fresh. Time inputs accept `01:46` or `1:02:03`                                                                             |
-| `summary/dialog.tsx`          | Hearth modal on a native `<dialog>` (focus trap, Escape, focus return). Also used by the delete confirm and Notes                                                                                      |
+| `summary/dialog.tsx`          | Hearth modal on a native `<dialog>` (focus trap, Escape, focus return). Used by the delete confirm                                                                                                     |
 | `summary/markdown.tsx`        | `react-markdown` + `remark-gfm` in Hearth styles. `linkCitations` rewrites tokens to `#cite:` links; the `a` renderer shows them as chips that call `onCite("[p.3]")`. Default URL sanitising stays on |
 | `summary/callout.tsx`         | Hearth Callout (danger, info)                                                                                                                                                                          |
-| `notes/tool.tsx`              | Editor, preview, autosave (800 ms debounce, flush on blur and on unmount), draft flow                                                                                                                  |
+| `notes/**`                    | The live-preview Tiptap editor, autosave and the streamed draft. Described in doc 12                                                                                                                   |
 
-`notes` imports `dialog`, `markdown` and `callout` from `summary`. The orchestrator may promote them to a shared module.
+`notes` no longer imports from `summary`: it uses `Dialog` from `@thoth/ui` and its own copy of `callout.tsx`. Chips in notes are editor nodes, not `linkCitations` links.
 
 ### Why polling, not SSE
 
 The Learn panel contract gives us Server Actions, and a Server Action cannot stream to the client. `app/api/**` belongs to Lane B. So generation runs in `after()` and writes the growing text into `study_sets.body` about once a second; the panel polls while any set is `generating` and re-renders the Markdown, which looks like streaming. It also survives closing the tab. Trade-off: up to 1.5 s of latency, and a server restart during generation leaves a set that is marked `failed` by `listSummaries` after 15 minutes.
 
-### Notes autosave
+### Notes autosave and drafts
 
-Typing marks the editor "Unsaved changes" and starts an 800 ms timer. Blur saves at once. Unmounting the panel saves the pending text. A failed save keeps the text and shows a callout; the next edit retries. "Draft notes with Claude" asks first (Cancel, Add below, Replace notes) when there is text, then generates, applies, and saves.
+Moved to [12-notes-editor.md](12-notes-editor.md): 800 ms debounced autosave through `saveNote` (records `note_edit`), and a Claude draft that streams into the editor through polled Server Actions, with Stop and one undo step.
 
 ## Tests
 
 - `summary/summary.test.ts` (18): range filtering for time and page, prompt tokens and templates, status transitions, failure paths, partial saves, list and delete.
-- `notes/notes.test.ts` (4): empty note, save limits, draft, failures.
+- `notes/notes.test.ts` (4) and `notes/draft-runs.test.ts` (8): notes use cases and the streamed draft. Editor tests are listed in doc 12.
 - Fakes live in `summary/fakes.ts` (test-only, not exported from the package).
 - No live call in CI. Live smoke runs go through the dev harness `/dev/tools/<contentId>`.
 
@@ -97,5 +99,4 @@ Typing marks the editor "Unsaved changes" and starts an 800 ms timer. Blur saves
 
 - Very long sources are refused, not chunked.
 - Notes are one document; no versions, no merge if two tabs edit.
-- The notes Claude draft is not streamed (one `generateText` call).
 - Citation chips depend on Lane B's `onCite` to move the viewer. In the harness it only records the token.
