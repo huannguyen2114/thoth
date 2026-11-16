@@ -1,6 +1,6 @@
-// Thoth service worker. Phase 0: installable app + offline fallback page.
+// Thoth service worker. v2 (Phase 8): never caches /unlock or /api. Phase 0: installable app + offline fallback page.
 // Offline flashcard review is added in Phase 6 (see docs/decision/0007).
-const VERSION = "v1";
+const VERSION = "v2";
 const STATIC_CACHE = `thoth-static-${VERSION}`;
 const OFFLINE_URL = "/offline";
 
@@ -26,6 +26,16 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  // Never touch the passcode gate or data: no cache, no offline fallback, straight to the network.
+  // (A cached /unlock or API response could outlive the session cookie that protected it.)
+  if (
+    url.pathname === "/unlock" ||
+    url.pathname.startsWith("/unlock/") ||
+    url.pathname.startsWith("/api/")
+  ) {
+    return;
+  }
+
   // Hashed build assets never change: cache first.
   if (url.pathname.startsWith("/_next/static/")) {
     event.respondWith(
@@ -33,8 +43,10 @@ self.addEventListener("fetch", (event) => {
         (hit) =>
           hit ||
           fetch(request).then((res) => {
-            const copy = res.clone();
-            caches.open(STATIC_CACHE).then((c) => c.put(request, copy));
+            if (res.ok) {
+              const copy = res.clone();
+              caches.open(STATIC_CACHE).then((c) => c.put(request, copy));
+            }
             return res;
           }),
       ),
