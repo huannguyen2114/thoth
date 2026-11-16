@@ -1,0 +1,244 @@
+/*
+ * Content workspace (ADR-0021): the Hearth theme for dockview and the workspace chrome.
+ * Tokens only (ADR-0009). Every --dv-* colour dockview reads is set here, so none of its
+ * default theme colours shows. Light and dark follow from the tokens themselves.
+ */
+
+.dockview-theme-hearth {
+  /* Surfaces and text */
+  --dv-group-view-background-color: var(--surface-100);
+  --dv-tabs-and-actions-container-background-color: var(--surface-100);
+  --dv-activegroup-visiblepanel-tab-background-color: transparent;
+  --dv-activegroup-hiddenpanel-tab-background-color: transparent;
+  --dv-inactivegroup-visiblepanel-tab-background-color: transparent;
+  --dv-inactivegroup-hiddenpanel-tab-background-color: transparent;
+  --dv-activegroup-visiblepanel-tab-color: var(--ink);
+  --dv-activegroup-hiddenpanel-tab-color: var(--ink-muted);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--ink);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--ink-muted);
+  --dv-tab-divider-color: transparent;
+  --dv-icon-hover-background-color: var(--surface-300);
+  --dv-scrollbar-background-color: var(--border-control);
+  --dv-tabs-container-scrollbar-color: var(--border-control);
+  --dv-paneview-header-border-color: var(--border-subtle);
+  --dv-paneview-active-outline-color: var(--focus-ring);
+
+  /* Quiet separators: a hairline, accent only while a divider is being dragged */
+  --dv-separator-border: var(--border-subtle);
+  --dv-sash-color: transparent;
+  --dv-active-sash-color: var(--accent);
+  --dv-active-sash-transition-duration: 150ms;
+  --dv-active-sash-transition-delay: 300ms;
+  --dv-sash-border-radius: 0px;
+
+  /* Drag and drop */
+  --dv-drag-over-background-color: var(--accent-tint);
+  --dv-drag-over-border-color: var(--accent);
+  --dv-drag-over-border: 1px solid var(--accent);
+  --dv-edge-dock-indicator-color: var(--accent);
+  --dv-dnd-compass-color: var(--accent);
+  --dv-dnd-compass-cell-color: var(--accent-tint);
+  --dv-dnd-compass-edge-cell-color: var(--accent-tint);
+  --dv-dnd-compass-active-cell-color: var(--accent-muted);
+  --dv-smart-guides-color: var(--accent);
+  --dv-smart-guides-preview-color: var(--accent-tint);
+
+  /* Floating surfaces (overflow dropdown) */
+  --dv-floating-box-shadow: var(--shadow-lg);
+  --dv-floating-border: 1px solid var(--border-subtle);
+  --dv-floating-group-border: none;
+  --dv-floating-group-dragging-opacity: 0.5;
+  --dv-floating-titlebar-height: 22px;
+  --dv-floating-titlebar-background-color: var(--surface-200);
+  --dv-floating-titlebar-border-bottom: var(--dv-floating-border);
+  --dv-overlay-z-index: 20;
+
+  /* Shape and type */
+  --dv-tabs-and-actions-container-font-size: 14px;
+  --dv-tabs-and-actions-container-height: 40px;
+  --dv-tab-font-size: inherit;
+  --dv-tab-margin: 0;
+  --dv-tab-margin-block: 0;
+  --dv-tab-margin-inline: 0;
+  --dv-tab-border-radius: 0px;
+  --dv-tab-close-icon-size: inherit;
+  --dv-border-radius: 0px;
+  --dv-dropdown-border-radius: var(--radius-lg);
+  --dv-spacing-padding: 0px;
+  --dv-transition-duration: 150ms;
+
+  /* Tab groups (unused today, mapped so no library colour can appear) */
+  --dv-tab-group-color-grey: var(--ink-muted);
+  --dv-tab-group-color-blue: var(--info);
+  --dv-tab-group-color-red: var(--danger);
+  --dv-tab-group-color-yellow: var(--warning);
+  --dv-tab-group-color-green: var(--success);
+  --dv-tab-group-color-pink: var(--accent);
+  --dv-tab-group-color-purple: var(--accent-pressed);
+  --dv-tab-group-color-cyan: var(--info);
+  --dv-tab-group-color-orange: var(--accent-hover);
+  --dv-tab-group-chip-padding: var(--space-1) var(--space-2);
+  --dv-tab-group-chip-border-radius: var(--radius-sm);
+  --dv-tab-group-chip-font-size: 12px;
+  --dv-tab-group-line-height: 2px;
+  --dv-tab-group-line-opacity: 1;
+
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+/* ---------- Tabs, like Hearth Tabs: label type, a hairline, an accent underline ---------- */
+.dockview-theme-hearth .dv-tabs-and-actions-container {
+  border-bottom: 1px solid var(--border-subtle);
+  user-select: none;
+}
+.dockview-theme-hearth .dv-tab {
+  position: relative;
+  padding: 0 var(--space-1) 0 var(--space-3);
+  font: 500 14px / 20px var(--font-sans);
+  cursor: default;
+  user-select: none;
+  transition: color 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+.dockview-theme-hearth .dv-tab:hover {
+  color: var(--ink);
+}
+.dockview-theme-hearth .dv-tab.dv-active-tab::before {
+  content: "";
+  position: absolute;
+  inset: auto var(--space-2) -1px var(--space-2);
+  height: 2px;
+  background: var(--border-control);
+  pointer-events: none;
+}
+/* The tab of the group being worked in carries the accent underline. */
+.dockview-theme-hearth .dv-groupview.dv-active-group .dv-tab.dv-active-tab::before {
+  background: var(--accent);
+}
+.dockview-theme-hearth .dv-tab .dv-default-tab-action {
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+}
+.dockview-theme-hearth .dv-tab .dv-default-tab-action:hover {
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+}
+.dockview-theme-hearth .dv-tab:focus-visible::after,
+.dockview-theme-hearth .dv-tab:has(:focus-visible)::after {
+  /* biome-ignore lint/complexity/noImportantStyles: overrides dockview's own !important focus outline. */
+  outline: 2px solid var(--focus-ring) !important;
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
+.dockview-theme-hearth .dv-tab.dv-tab-dragging {
+  background: var(--surface-200);
+  color: var(--ink);
+}
+.dockview-theme-hearth .dv-tabs-overflow-dropdown-default {
+  color: var(--ink-muted);
+}
+.dockview-theme-hearth .dv-drop-target-anchor {
+  border-radius: var(--radius-md);
+}
+
+/* ---------- Panels and group actions ---------- */
+.ws-dock {
+  height: 100%;
+  min-height: 0;
+}
+.ws-panel {
+  height: 100%;
+  overflow: hidden;
+  background: var(--surface-100);
+  color: var(--ink);
+}
+.ws-group-actions {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding-right: var(--space-1);
+}
+.ws-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--ink-muted);
+  cursor: default;
+  transition:
+    background-color 150ms cubic-bezier(0.2, 0, 0, 1),
+    color 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+.ws-icon-btn:hover {
+  background: var(--surface-300);
+  color: var(--ink);
+}
+.ws-icon-btn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+.ws-watermark {
+  height: 100%;
+}
+
+/* ---------- The video keeps 16:9 and fits whichever side of its panel is shorter ---------- */
+.ws-video-stage {
+  container-type: size;
+  display: grid;
+  place-items: start center;
+}
+.ws-video-fit {
+  width: min(100cqw, calc(100cqh * 16 / 9));
+}
+
+/* ---------- Phone: one panel at a time and a bottom tab bar (ADR-0021) ---------- */
+.ws-phone-tabs {
+  display: flex;
+  flex-shrink: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-100);
+  padding-bottom: env(safe-area-inset-bottom);
+  user-select: none;
+}
+.ws-phone-tab {
+  display: flex;
+  flex: 1 0 auto;
+  min-width: 64px;
+  min-height: 52px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  background: none;
+  color: var(--ink-muted);
+  font: 500 12px / 16px var(--font-sans);
+  cursor: default;
+  transition: color 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+.ws-phone-tab[aria-selected="true"] {
+  color: var(--accent-text);
+}
+.ws-phone-tab:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dockview-theme-hearth {
+    --dv-transition-duration: 0ms;
+    --dv-active-sash-transition-duration: 0ms;
+  }
+  .dockview-theme-hearth .dv-tab,
+  .ws-icon-btn,
+  .ws-phone-tab {
+    transition: none;
+  }
+}

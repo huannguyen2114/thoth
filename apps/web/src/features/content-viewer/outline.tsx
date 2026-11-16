@@ -1,65 +1,59 @@
 "use client";
 
-import type { Chapter, ContentKind, Segment } from "@thoth/core";
+import type { Chapter, Segment } from "@thoth/core";
 import { cx } from "@thoth/ui";
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { activeIndex, locatorLabel, locatorRef } from "./locator";
-import { Tabs, tabPanelProps } from "./tabs";
 import { useViewer, useViewerPosition } from "./viewer-context";
 
-type OutlineTab = "chapters" | "transcript";
-
 /**
- * Under the viewer: the Chapters tab (click to jump) and the Transcript tab, which follows
- * the video or the page in view while Auto scroll is on. YouLearn's "Chapters | Transcripts".
+ * The Chapters and Transcript (or Text) panels. Click a row to jump the source; while
+ * Follow is on, the list keeps the row for the current moment or page in view.
  */
-export function SourceOutline({
-  kind,
-  chapters,
-  segments,
-}: {
-  kind: ContentKind;
-  chapters: Chapter[];
-  segments: Segment[];
-}) {
-  const [tab, setTab] = useState<OutlineTab>(chapters.length > 0 ? "chapters" : "transcript");
-  const [autoScroll, setAutoScroll] = useState(true);
-  const textLabel = kind === "youtube" ? "Transcript" : "Text";
-
+export function ChaptersView({ chapters }: { chapters: Chapter[] }) {
+  const [follow, setFollow] = useState(true);
   return (
-    <section aria-label="Source outline" className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border-subtle px-1">
-        <Tabs
-          label="Source outline"
-          idPrefix="outline"
-          items={[
-            { id: "chapters", label: "Chapters" },
-            { id: "transcript", label: textLabel },
-          ]}
-          selected={tab}
-          onSelect={setTab}
-          className="flex-1 border-b-0"
-        />
-        <label className="toggle type-label shrink-0 text-ink-muted">
+    <OutlineFrame label="Chapters" follow={follow} onFollow={setFollow}>
+      <ChapterList chapters={chapters} autoScroll={follow} />
+    </OutlineFrame>
+  );
+}
+
+export function TranscriptView({ segments, label }: { segments: Segment[]; label: string }) {
+  const [follow, setFollow] = useState(true);
+  return (
+    <OutlineFrame label={label} follow={follow} onFollow={setFollow}>
+      <TranscriptList segments={segments} autoScroll={follow} />
+    </OutlineFrame>
+  );
+}
+
+function OutlineFrame({
+  label,
+  follow,
+  onFollow,
+  children,
+}: {
+  label: string;
+  follow: boolean;
+  onFollow: (on: boolean) => void;
+  children: ReactNode;
+}) {
+  return (
+    <section aria-label={label} className="flex h-full min-h-0 flex-col">
+      <div className="flex shrink-0 items-center justify-end border-b border-border-subtle px-3 py-1.5">
+        <label className="toggle type-caption text-ink-muted">
           <input
             type="checkbox"
             role="switch"
-            aria-checked={autoScroll}
-            checked={autoScroll}
-            onChange={(e) => setAutoScroll(e.target.checked)}
+            aria-checked={follow}
+            checked={follow}
+            onChange={(e) => onFollow(e.target.checked)}
           />
           Auto scroll
         </label>
       </div>
-      <div {...tabPanelProps("outline", "chapters", tab === "chapters")} className="min-h-0 flex-1">
-        <ChapterList chapters={chapters} autoScroll={autoScroll} />
-      </div>
-      <div
-        {...tabPanelProps("outline", "transcript", tab === "transcript")}
-        className="min-h-0 flex-1"
-      >
-        <TranscriptList segments={segments} autoScroll={autoScroll} />
-      </div>
+      <div className="min-h-0 flex-1 px-2">{children}</div>
     </section>
   );
 }

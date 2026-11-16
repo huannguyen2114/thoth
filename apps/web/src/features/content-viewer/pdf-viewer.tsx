@@ -3,7 +3,7 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { pageAnchor } from "./text-viewer";
-import { flash, useViewer } from "./viewer-context";
+import { flash, revealInScroller, useViewer } from "./viewer-context";
 
 type LoadState =
   | { status: "loading" }
@@ -53,17 +53,34 @@ export function PdfViewer({ url }: { url: string }) {
     };
   }, [url]);
 
+  // A page asked for while the file is still loading is shown once the pages exist.
+  const pendingPage = useRef<number | null>(null);
+  const ready = state.status === "ready";
+
   useEffect(() => {
     register({
       showPage: (page) => {
         const el = document.getElementById(pageAnchor(page));
-        if (!el) return;
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (!el) {
+          pendingPage.current = page;
+          return;
+        }
+        revealInScroller(el);
         flash(el, "ring");
       },
     });
     return () => register(null);
   }, [register]);
+
+  useEffect(() => {
+    const page = pendingPage.current;
+    if (!ready || page === null) return;
+    pendingPage.current = null;
+    const el = document.getElementById(pageAnchor(page));
+    if (!el) return;
+    revealInScroller(el);
+    flash(el, "ring");
+  }, [ready]);
 
   if (state.status === "loading") {
     return <div className="aspect-3/4 w-full animate-pulse rounded-lg bg-surface-300" />;

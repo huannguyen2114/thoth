@@ -25,18 +25,29 @@ export function ChatView({ chat }: { chat: ChatController }) {
   }, [last]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="flex shrink-0 items-center gap-2 border-b border-border-subtle px-4 py-2">
-        <p className="type-label min-w-0 flex-1 truncate text-ink" title={chat.chat?.title}>
+    <div className="@container flex h-full min-h-0 flex-col">
+      {/* In a narrow panel the title gives way so the three actions stay on one line. */}
+      <div className="flex shrink-0 items-center justify-end gap-1 border-b border-border-subtle py-1.5 pr-2 pl-4 whitespace-nowrap">
+        <p
+          className="type-label mr-auto hidden min-w-0 flex-1 truncate text-ink @sm:block"
+          title={chat.chat?.title}
+        >
           {chat.chat?.title ?? "New chat"}
         </p>
         <HistoryMenu chat={chat} open={historyOpen} setOpen={setHistoryOpen} />
-        <Button size="sm" variant="ghost" onClick={chat.newChat} disabled={!chat.chat}>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="shrink-0"
+          onClick={chat.newChat}
+          disabled={!chat.chat}
+        >
           New chat
         </Button>
         <Button
           size="sm"
           variant="ghost"
+          className="shrink-0"
           onClick={() => setInstructionsOpen(true)}
           aria-label={chat.instructions ? "Chat instructions (set)" : "Chat instructions"}
         >
@@ -148,7 +159,7 @@ function HistoryMenu({
   }, [open, setOpen, chat.refreshChats]);
 
   return (
-    <div ref={root} className="relative">
+    <div ref={root} className="relative shrink-0">
       <Button
         size="sm"
         variant="ghost"

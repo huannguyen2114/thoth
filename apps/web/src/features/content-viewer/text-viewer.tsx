@@ -2,7 +2,7 @@
 
 import type { Segment } from "@thoth/core";
 import { useEffect, useRef } from "react";
-import { flash, useViewer } from "./viewer-context";
+import { flash, revealInScroller, useViewer } from "./viewer-context";
 
 /** DOM ids the viewer jumps to. Paragraph numbers are 1-based, like `[§n]` in prompts. */
 export const pageAnchor = (page: number) => `source-page-${page}`;
@@ -26,7 +26,7 @@ export function TextViewer({
     const show = (id: string) => {
       const el = document.getElementById(id);
       if (!el) return;
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      revealInScroller(el);
       flash(el);
     };
     register({

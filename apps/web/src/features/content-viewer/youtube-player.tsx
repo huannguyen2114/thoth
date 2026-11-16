@@ -1,5 +1,6 @@
 "use client";
 
+import { cx } from "@thoth/ui";
 import { useEffect, useRef, useState } from "react";
 import { useViewer } from "./viewer-context";
 
@@ -58,7 +59,15 @@ const POLL_MS = 500;
  * YouTube video through the IFrame Player API. Registers `seek` with the viewer and reports
  * the playback time every half second so the transcript can follow along.
  */
-export function YouTubePlayer({ videoId, title }: { videoId: string; title: string }) {
+export function YouTubePlayer({
+  videoId,
+  title,
+  className,
+}: {
+  videoId: string;
+  title: string;
+  className?: string | undefined;
+}) {
   const host = useRef<HTMLDivElement>(null);
   const { register, setPosition } = useViewer();
   const [failed, setFailed] = useState(false);
@@ -123,7 +132,12 @@ export function YouTubePlayer({ videoId, title }: { videoId: string; title: stri
   }, [videoId, register, setPosition]);
 
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-surface-300">
+    <div
+      className={cx(
+        "relative aspect-video w-full overflow-hidden rounded-lg bg-surface-300",
+        className,
+      )}
+    >
       <div ref={host} className="absolute inset-0" title={title} />
       {failed && (
         <div className="absolute inset-0 grid place-items-center p-4 text-center">
