@@ -215,12 +215,12 @@ sequenceDiagram
 flowchart LR
   Q[question + previous question] --> E{"estimateTokens(all segments)<br/>chars / 4 <= 150k?"}
   E -->|yes| F[full: every segment, source order]
-  E -->|no| S["segments.search(top 30)"]
+  E -->|no| S["retrieveSegments(top 30)<br/>FTS5 + vectors, RRF (doc 16)"]
   S -->|hits| K[hits, re-sorted to source order]
   S -->|no hits| SP[30 segments spread evenly]
 ```
 
-The previous question joins the search query so a short follow-up ("and the second one?") still finds its passages. The UI shows a caption when an answer used search mode.
+The previous question joins the search query so a short follow-up ("and the second one?") still finds its passages. Search mode uses hybrid retrieval (ADR-0029, `16-embeddings-and-retrieval.md`): keyword hits and the nearest passages by meaning are fused, so a question worded differently from the source still finds its page. Without vectors (model not downloaded yet, content not indexed yet) it is FTS alone, and `ChatContext.retrieval` says why. The UI shows a caption when an answer used search mode.
 
 ### Rendering answers (`markdown-lite.ts`, `rich-text.tsx`)
 

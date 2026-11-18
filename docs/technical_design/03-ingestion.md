@@ -86,6 +86,7 @@ stateDiagram-v2
 
 - **Runner.** `startJobRunner()` runs one loop per server process, started from `instrumentation.ts` in the Node.js runtime only (not during `next build`). It runs one job at a time. When the queue is empty it sleeps 2 s, or until `wakeJobRunner()` is called after a new job is queued.
 - **Retries** (`processNextJob` in core): at most 3 attempts, waiting 15 s and then 60 s. Retryable failures are network errors, HTTP 429 and 5xx, YouTube rate limits, `llm_unavailable` and `llm_bad_output`. Permanent failures are: no captions, private video, a 4xx page, a PDF with no text, and `llm_refused`. A thrown bug is recorded on the job and treated as retryable, so a content never stays stuck.
+- **Search index.** When a content becomes `ready`, `runIngestJob` enqueues an `embed` job. It is only a signal: the runner completes it and wakes the background indexer (`server/jobs/indexer.ts`), which embeds missing segments in batches beside the runner, so ingestion never waits for the model. See `16-embeddings-and-retrieval.md`.
 - **Try again** on a failed content calls `retryContent`, which re-queues it. Pasted text is re-used from its saved segments, because the original job payload is gone.
 - **Dev note.** The runner keeps the code it loaded at startup. After editing parser or use-case code, restart `pnpm dev`; hot reload does not reach the running loop.
 

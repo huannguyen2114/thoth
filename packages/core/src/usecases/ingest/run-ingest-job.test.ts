@@ -46,6 +46,12 @@ describe("processNextJob (happy path)", () => {
       }),
     ]);
     expect(d.jobs.rows[0]?.status).toBe("done");
+    // Ready content queues an embed signal (ADR-0029), which wakes the indexer.
+    expect(d.jobs.rows[1]).toMatchObject({ kind: "embed", payload: { contentId: content.id } });
+    let woken = 0;
+    expect(await processNextJob({ ...d.ingest, onEmbedJob: () => woken++ }, at(0))).toBe("done");
+    expect(woken).toBe(1);
+    expect(d.jobs.rows[1]?.status).toBe("done");
     expect(await processNextJob(d.ingest, at(0))).toBe("idle");
   });
 

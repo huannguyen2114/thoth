@@ -52,7 +52,7 @@ An event whose target was deleted still shows, without a link.
 
 1. **Titles:** every query word must appear in the title (case-insensitive); a title that starts with the word or contains it as a whole word scores higher.
 2. **Notes:** every query word must appear in the note; the hit carries a snippet around the first match.
-3. **Source text:** `SegmentRepository.search` (FTS5 BM25) across all contents, limit 2 × the result limit. FTS matches **whole words** with OR semantics; it does not match word prefixes.
+3. **Source text:** hybrid `retrieveSegments` (ADR-0029, `16-embeddings-and-retrieval.md`) across all contents, limit 2 × the result limit: FTS5 BM25 hits plus vector hits within cosine distance `SEMANTIC_MAX_DISTANCE` (0.205), fused by reciprocal rank. So "power plant of the cell" finds "Mitochondria are the cell's power plants", and a Vietnamese query finds an English source. FTS matches **whole words** with OR semantics; it does not match word prefixes. Without vectors it is FTS alone.
 4. **Merge** (`mergeHits`): titles, then notes, then source hits; within a kind by score. Scores are not comparable across kinds, so kind decides the order.
 
 A source hit links to `/content/{id}?at=[p.3]` (also `[03:21]`, `[§4]`), the same citation tokens the viewer already opens. The palette (`features/search/search-provider.tsx`) debounces at 150 ms and aborts the previous request through the `AbortSignal`.

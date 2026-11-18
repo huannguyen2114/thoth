@@ -1,5 +1,6 @@
 import type { Chapter, Segment } from "../../domain/content";
 import { MAX_SOURCE_CHARS, segmentsForChapter } from "../quiz/source";
+import { type RetrievalDeps, retrieveSegments } from "../retrieval/retrieve";
 
 /**
  * Picks segments spread evenly across a content's chapters, so a long source is not
@@ -69,4 +70,43 @@ export function chapterAt(
   return sorted.find((c) =>
     segmentsForChapter(c, sorted, [segment]).some((s) => s.id === segment.id),
   );
+}
+
+/** Most passages a query-led sample asks retrieval for, per content. */
+const QUERY_SAMPLE_K = 80;
+
+/**
+ * Query-led sampling (ADR-0029): when the owner names a focus ("enzymes and fermentation"),
+ * the passages that best match it by hybrid retrieval, best first until `maxChars`, then put
+ * back in source order. Without a focus, or when nothing matches, it is `sampleAcrossChapters`.
+ */
+export async function sampleForQuery(
+  deps: RetrievalDeps,
+  input: {
+    chapters: readonly Chapter[];
+    segments: readonly Segment[];
+    query?: string | null;
+    maxChars?: number;
+  },
+): Promise<Segment[]> {
+  const maxChars = input.maxChars ?? MAX_SOURCE_CHARS;
+  const query = input.query?.trim() ?? "";
+  const first = input.segments[0];
+  if (query === "" || !first) return sampleAcrossChapters(input.chapters, input.segments, maxChars);
+
+  const { hits } = await retrieveSegments(deps, {
+    contentIds: [first.contentId],
+    query,
+    k: QUERY_SAMPLE_K,
+    known: input.segments,
+  });
+  const picked: Segment[] = [];
+  let used = 0;
+  for (const { segment } of hits) {
+    if (used + segment.text.length > maxChars) continue;
+    picked.push(segment);
+    used += segment.text.length;
+  }
+  if (picked.length === 0) return sampleAcrossChapters(input.chapters, input.segments, maxChars);
+  return picked.sort((a, b) => a.idx - b.idx);
 }

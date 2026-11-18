@@ -1,6 +1,7 @@
 import "server-only";
 import { type IngestDeps, processNextJob } from "@thoth/core";
 import { getContainer } from "../container";
+import { startIndexer, wakeIndexer } from "./indexer";
 
 /**
  * In-process job runner (ADR-0002: single user, no Redis).
@@ -28,6 +29,8 @@ export function startJobRunner(): void {
   if (state.started) return;
   state.started = true;
   void loop();
+  // The search index backfills existing contents, then follows `embed` jobs (ADR-0029).
+  startIndexer();
 }
 
 /** Ends the current idle wait so a newly queued job starts right away. */
@@ -46,10 +49,10 @@ async function loop(): Promise<never> {
   for (;;) {
     try {
       const c = await getContainer();
-      const deps: IngestDeps = { ...c, parser: c.ingest, llm: c.llm };
+      const deps: IngestDeps = { ...c, parser: c.ingest, llm: c.llm, onEmbedJob: wakeIndexer };
       const result = await processNextJob(deps);
       if (result !== "idle") {
-        console.info(`[jobs] ingest job ${result}`);
+        console.info(`[jobs] job ${result}`);
         continue;
       }
       await sleep(POLL_MS);

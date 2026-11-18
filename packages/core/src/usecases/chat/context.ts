@@ -1,11 +1,12 @@
 import { citationToken, paragraphOf } from "../../domain/citation";
 import type { Content, Segment } from "../../domain/content";
-import type { SegmentRepository } from "../../ports/repositories";
 import type { ContentId } from "../../shared/id";
+import { type RetrievalDeps, type RetrievalResult, retrieveSegments } from "../retrieval/retrieve";
 
 /**
  * Source context for a chat turn. Small sources go in whole; large ones go in as the
- * FTS5 top-k excerpts for the question. See docs/technical_design/07-content-page-and-chat.md.
+ * top-k excerpts for the question, by hybrid FTS5 + vector retrieval (ADR-0029).
+ * See docs/technical_design/07-content-page-and-chat.md and 16-embeddings-and-retrieval.md.
  */
 export interface ChatContextOptions {
   /** Above this estimated size the context switches to search. Default 150k tokens. */
@@ -29,6 +30,8 @@ export interface ChatContext {
   segments: Segment[];
   /** Total segments in the source, for the UI caption. */
   totalSegments: number;
+  /** Search mode only: how the excerpts were found ("hybrid", or "fts" and why). */
+  retrieval?: Pick<RetrievalResult, "mode" | "fallback" | "note">;
 }
 
 /** Rough token estimate: about 4 characters per token for English prose. */
@@ -55,7 +58,7 @@ export function wrapSource(content: Pick<Content, "title" | "kind">, body: strin
 }
 
 export async function buildChatContext(
-  deps: { segments: SegmentRepository },
+  deps: RetrievalDeps,
   content: Pick<Content, "id" | "title" | "kind">,
   question: string,
   options: ChatContextOptions = defaultChatContextOptions,
@@ -71,30 +74,40 @@ export async function buildChatContext(
     };
   }
 
-  const picked = await pickRelevant(deps.segments, content.id, all, question, options.topK);
+  const { picked, retrieval } = await pickRelevant(deps, content.id, all, question, options.topK);
   const note = `Only ${picked.length} of ${all.length} passages are included: the ones that best match the question.`;
   return {
     mode: "search",
     text: wrapSource(content, formatSegments(picked), note),
     segments: picked,
     totalSegments: all.length,
+    retrieval,
   };
 }
 
 /**
- * Top-k FTS hits for the question. A question with no matching words (for example
- * "summarise this") falls back to passages spread evenly across the source.
+ * Top-k hybrid hits for the question (keywords alone when there are no vectors yet). When
+ * nothing matches (for example "summarise this" with keywords only) it falls back to passages
+ * spread evenly across the source.
  */
 async function pickRelevant(
-  segments: SegmentRepository,
+  deps: RetrievalDeps,
   contentId: ContentId,
   all: Segment[],
   question: string,
   topK: number,
-): Promise<Segment[]> {
-  const hits = await segments.search([contentId], question, topK);
-  const chosen = hits.length > 0 ? hits.map((h) => h.segment) : spreadEvenly(all, topK);
-  return [...chosen].sort((a, b) => a.idx - b.idx);
+): Promise<{ picked: Segment[]; retrieval: NonNullable<ChatContext["retrieval"]> }> {
+  const r = await retrieveSegments(deps, {
+    contentIds: [contentId],
+    query: question,
+    k: topK,
+    known: all,
+  });
+  const chosen = r.hits.length > 0 ? r.hits.map((h) => h.segment) : spreadEvenly(all, topK);
+  return {
+    picked: [...chosen].sort((a, b) => a.idx - b.idx),
+    retrieval: { mode: r.mode, fallback: r.fallback, note: r.note },
+  };
 }
 
 export function spreadEvenly<T>(items: T[], k: number): T[] {

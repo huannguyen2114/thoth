@@ -4,6 +4,7 @@ import type {
   NoteRepository,
   SegmentRepository,
 } from "../../ports/repositories";
+import { type RetrievalDeps, retrieveSegments } from "../retrieval/retrieve";
 
 export type SearchHitKind = "title" | "note" | "source";
 
@@ -22,11 +23,19 @@ export interface SearchHit {
   score: number;
 }
 
-export interface SearchDeps {
+/** `vectors` and `embeddings` are optional: without them source hits are keyword matches only. */
+export interface SearchDeps extends RetrievalDeps {
   contents: ContentRepository;
   notes: NoteRepository;
   segments: SegmentRepository;
 }
+
+/**
+ * Cosine distance above which a vector hit is not shown in Cmd+K. Vector search always
+ * returns something; without a cut-off a typo would list random passages. Measured on
+ * multilingual-e5-small, see docs/technical_design/16-embeddings-and-retrieval.md.
+ */
+export const SEMANTIC_MAX_DISTANCE = 0.205;
 
 const CONTENT_SCAN_LIMIT = 500;
 
@@ -92,7 +101,10 @@ export function mergeHits(hits: SearchHit[], limit: number): SearchHit[] {
     .slice(0, limit);
 }
 
-/** Global search over content titles, notes and source text (FTS5). Empty query returns []. */
+/**
+ * Global search over content titles, notes and source text (FTS5, plus vectors when the index
+ * is built). Empty query returns [].
+ */
 export async function searchEverything(
   deps: SearchDeps,
   input: { query: string; limit?: number },
@@ -140,11 +152,14 @@ export async function searchEverything(
     });
   }
 
-  const sourceHits = await deps.segments.search(
-    contents.map((c) => c.id),
-    input.query,
-    limit * 2,
-  );
+  // Hybrid (ADR-0029): keyword hits plus close paraphrases, fused by rank.
+  const { hits: sourceHits } = await retrieveSegments(deps, {
+    contentIds: contents.map((c) => c.id),
+    query: input.query,
+    k: limit * 2,
+    maxDistance: SEMANTIC_MAX_DISTANCE,
+    embedTimeoutMs: 3_000,
+  });
   for (const h of sourceHits) {
     const title = titles.get(h.segment.contentId);
     if (title === undefined) continue;
@@ -157,7 +172,7 @@ export async function searchEverything(
       snippet: snippetAround(h.segment.text, terms),
       at: token || null,
       href: `/content/${h.segment.contentId}${token ? `?at=${encodeURIComponent(token)}` : ""}`,
-      score: -h.rank,
+      score: h.score,
     });
   }
 
