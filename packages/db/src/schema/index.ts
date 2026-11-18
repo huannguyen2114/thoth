@@ -1,3 +1,4 @@
+import { activityKinds, jobKinds } from "@thoth/core";
 import { sql } from "drizzle-orm";
 import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
@@ -216,7 +217,7 @@ export const jobs = sqliteTable(
   "jobs",
   {
     id: text("id").primaryKey(),
-    kind: text("kind", { enum: ["ingest"] }).notNull(),
+    kind: text("kind", { enum: jobKinds }).notNull(),
     payload: text("payload", { mode: "json" }).$type<Record<string, unknown>>().notNull(),
     status: text("status", { enum: ["queued", "running", "done", "failed"] })
       .notNull()
@@ -250,22 +251,64 @@ export const activityEvents = sqliteTable(
   "activity_events",
   {
     id: text("id").primaryKey(),
-    kind: text("kind", {
-      enum: [
-        "quiz_answer",
-        "card_review",
-        "chat_question",
-        "note_edit",
-        "content_added",
-        "exam_submitted",
-        "summary_generated",
-      ],
-    }).notNull(),
+    kind: text("kind", { enum: activityKinds }).notNull(),
     at: integer("at", { mode: "timestamp_ms" }).notNull(),
     ref: text("ref"),
   },
   (t) => [
     index("activity_events_at_idx").on(t.at),
     index("activity_events_ref_idx").on(t.kind, t.ref),
+  ],
+);
+
+/* ---------- Study planner (ADR-0030) ---------- */
+export const studyPlans = sqliteTable("study_plans", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  goalDate: text("goal_date").notNull(),
+  minutesPerDay: integer("minutes_per_day").notNull(),
+  studyDays: text("study_days", { mode: "json" }).$type<number[]>().notNull(),
+  spaceId: text("space_id").references(() => spaces.id, { onDelete: "set null" }),
+  contentIds: text("content_ids", { mode: "json" }).$type<string[]>().notNull(),
+  ...timestamps,
+});
+
+export const planItems = sqliteTable(
+  "plan_items",
+  {
+    id: text("id").primaryKey(),
+    planId: text("plan_id")
+      .notNull()
+      .references(() => studyPlans.id, { onDelete: "cascade" }),
+    day: text("day").notNull(),
+    idx: integer("idx").notNull(),
+    kind: text("kind", { enum: ["learn", "quiz", "review", "exam", "rest"] }).notNull(),
+    title: text("title").notNull(),
+    minutes: integer("minutes").notNull(),
+    contentId: text("content_id").references(() => contents.id, { onDelete: "set null" }),
+    topic: text("topic"),
+    doneAt: integer("done_at", { mode: "timestamp_ms" }),
+  },
+  (t) => [
+    index("plan_items_plan_idx").on(t.planId, t.day, t.idx),
+    index("plan_items_day_idx").on(t.day),
+  ],
+);
+
+/* ---------- Whiteboards (ADR-0031) ---------- */
+export const whiteboards = sqliteTable(
+  "whiteboards",
+  {
+    id: text("id").primaryKey(),
+    contentId: text("content_id").references(() => contents.id, { onDelete: "cascade" }),
+    spaceId: text("space_id").references(() => spaces.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    elements: text("elements", { mode: "json" }).$type<unknown[]>().notNull(),
+    version: integer("version").notNull().default(1),
+    ...timestamps,
+  },
+  (t) => [
+    index("whiteboards_content_idx").on(t.contentId),
+    index("whiteboards_space_idx").on(t.spaceId),
   ],
 );

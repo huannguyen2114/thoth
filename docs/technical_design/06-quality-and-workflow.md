@@ -62,3 +62,7 @@ The default model is `claude-sonnet-5-5`. Run these after changing an adapter. C
 ## Rule: record study activity (ADR-0023)
 
 Every new study action calls `recordActivity(deps.activity, kind, ref)` after it succeeds, so the habit tracker counts it. `activity` is an optional dependency, so tests that do not pass it record nothing. Add a new `ActivityKind` (and a migration that updates the enum) for a new kind of action.
+
+## Rule: every feature has an end-to-end journey (ADR-0028)
+
+A new feature adds or extends a Playwright journey in `apps/web/e2e/`, which runs against `THOTH_LLM=scripted`. If the feature adds a new LLM task or output schema, also teach `ScriptedLlmProvider` to answer it.

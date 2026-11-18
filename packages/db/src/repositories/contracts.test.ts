@@ -324,3 +324,117 @@ describe("Phase 8 contract additions", () => {
     expect((await act.listRecent(1)).map((e) => e.kind)).toEqual(["card_review"]);
   });
 });
+
+describe("Phase 9 contracts: planner, whiteboards, vectors", () => {
+  it("plans: replaceOpenItems keeps finished items; items by day", async () => {
+    const { DrizzlePlanRepository } = await import("./plan-repository");
+    const repo = new DrizzlePlanRepository(db);
+    const c = await newContent(db);
+    const plan = await repo.create({
+      title: "Bio exam",
+      goalDate: "2026-12-10",
+      minutesPerDay: 45,
+      studyDays: [1, 2, 3, 4, 5],
+      spaceId: null,
+      contentIds: [c.id],
+    });
+    const items = await repo.replaceOpenItems(plan.id, [
+      {
+        day: "2026-11-19",
+        idx: 0,
+        kind: "learn",
+        title: "Read ATP",
+        minutes: 20,
+        contentId: c.id,
+        topic: "ATP",
+      },
+      {
+        day: "2026-11-19",
+        idx: 1,
+        kind: "review",
+        title: "Review cards",
+        minutes: 10,
+        contentId: null,
+        topic: null,
+      },
+    ]);
+    const first = items[0];
+    if (!first) throw new Error("no item");
+    await repo.setDone(first.id, new Date("2026-11-19T10:00:00Z"));
+    await repo.replaceOpenItems(plan.id, [
+      {
+        day: "2026-11-20",
+        idx: 0,
+        kind: "quiz",
+        title: "Quiz ATP",
+        minutes: 15,
+        contentId: c.id,
+        topic: "ATP",
+      },
+    ]);
+    const all = await repo.listItems(plan.id);
+    expect(all.map((i) => i.title)).toEqual(["Read ATP", "Quiz ATP"]);
+    expect((await repo.listItemsForDay("2026-11-20")).map((i) => i.kind)).toEqual(["quiz"]);
+  });
+
+  it("whiteboards: save is compare-and-swap on version", async () => {
+    const { DrizzleWhiteboardRepository } = await import("./whiteboard-repository");
+    const repo = new DrizzleWhiteboardRepository(db);
+    const c = await newContent(db);
+    const board = await repo.create({
+      contentId: c.id,
+      spaceId: null,
+      title: "Cells",
+      elements: [],
+    });
+    const el = {
+      id: "e1",
+      type: "text" as const,
+      x: 0,
+      y: 0,
+      text: "ATP",
+      size: "body" as const,
+      color: "ink" as const,
+      by: "claude" as const,
+    };
+    const saved = await repo.save(board.id, [el], 1);
+    expect(saved?.version).toBe(2);
+    expect(await repo.save(board.id, [], 1)).toBeNull(); // stale version refused
+    expect((await repo.get(board.id))?.elements).toHaveLength(1);
+  });
+
+  it("vectors: nearest segments within the chosen contents, and missing segments", async () => {
+    const { DrizzleVectorRepository } = await import("./vector-repository");
+    const vectors = new DrizzleVectorRepository(db);
+    const segs = new DrizzleSegmentRepository(db);
+    const a = await newContent(db, "A");
+    const b = await newContent(db, "B");
+    await segs.replaceForContent(a.id, [
+      { idx: 0, text: "energy", locator: { type: "page", page: 1 } },
+      { idx: 1, text: "genes", locator: { type: "page", page: 2 } },
+    ]);
+    await segs.replaceForContent(b.id, [
+      { idx: 0, text: "energy too", locator: { type: "page", page: 1 } },
+    ]);
+    const [a0, a1] = await segs.listByContent(a.id);
+    const [b0] = await segs.listByContent(b.id);
+    if (!a0 || !a1 || !b0) throw new Error("segments");
+    const v = (x: number, y: number) => {
+      const out = new Array(384).fill(0);
+      out[0] = x;
+      out[1] = y;
+      return out;
+    };
+    expect((await vectors.missingSegments("m", 10)).length).toBe(3);
+    await vectors.upsert("m", [
+      { segmentId: a0.id, contentId: a.id, vector: v(1, 0) },
+      { segmentId: a1.id, contentId: a.id, vector: v(0, 1) },
+      { segmentId: b0.id, contentId: b.id, vector: v(1, 0.05) },
+    ]);
+    const hits = await vectors.search([a.id], v(1, 0.1), 2);
+    expect(hits.map((h) => h.segmentId)).toEqual([a0.id, a1.id]);
+    expect(hits[0]?.distance).toBeLessThan(hits[1]?.distance ?? 0);
+    expect(await vectors.missingSegments("m", 10)).toEqual([]);
+    expect((await vectors.missingSegments("other-model", 10)).length).toBe(3);
+  });
+});

@@ -65,6 +65,12 @@ export const FlashcardsIcon = () => (
     <path d="M5 2.5h7a1.5 1.5 0 0 1 1.5 1.5v7.5" />
   </Icon>
 );
+export const WhiteboardIcon = () => (
+  <Icon>
+    <rect x="2" y="2.5" width="12" height="9" rx="1.5" />
+    <path d="M5 8.5l2-2 2 1.5 2.5-3M8 11.5V14M6 14h4" />
+  </Icon>
+);
 export const LayoutIcon = () => (
   <Icon>
     <rect x="2" y="2.5" width="12" height="11" rx="1.5" />

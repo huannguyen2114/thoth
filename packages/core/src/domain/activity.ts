@@ -7,6 +7,8 @@ export const activityKinds = [
   "content_added",
   "exam_submitted",
   "summary_generated",
+  "plan_item_done",
+  "whiteboard_edit",
 ] as const;
 export type ActivityKind = (typeof activityKinds)[number];
 

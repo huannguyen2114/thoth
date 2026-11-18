@@ -5,6 +5,7 @@ import { ClaudeSubscriptionProvider } from "./claude-subscription";
 export { AnthropicApiProvider } from "./anthropic-api";
 export { ClaudeSubscriptionProvider } from "./claude-subscription";
 export { FakeLlmProvider } from "./fake-provider";
+export { ScriptedLlmProvider } from "./scripted-provider";
 
 export interface ProviderEnv {
   anthropicApiKey?: string | undefined;

@@ -126,3 +126,27 @@ Status: **Done** (2026-11-16): merged with ADRs 0024–0027. Step 0 was: the app
 | **4: Phone, LAN and passcode**                | Sonnet | `apps/web/src/proxy.ts`, `app/unlock/**`, `features/access/**`, `public/sw.js`, `app/manifest.ts`; new doc `14-phone-and-lan.md`                                                                                  | root `package.json` (one `start:lan` script), `.env.example`, phone-only rules at the end of `app/shell.css` (in a block marked `/* Lane 4 */`)                                     |
 
 The merge order is 1, 2, 3, 4. The Notes panel in the workspace is the existing `notesTool` from the Learn registry, so Lanes 1 and 2 meet only through `LearnToolProps` (`contentId`, `onCite`).
+
+---
+
+# Phase 9 lanes (2026-11-18)
+
+Status: **Active.** Step 0 is pushed:
+
+- ADRs 0028–0031.
+- Core contracts: `EmbeddingProvider` and `VectorRepository` (`ports/embeddings.ts`); plan domain and `PlanRepository`; the whiteboard element and operation model and `WhiteboardRepository`; the `embed` job kind; activity kinds `plan_item_done` and `whiteboard_edit`.
+- DB: migrations `0006` (plans, plan items, whiteboards) and `0007` (`segment_vectors` with a libSQL vector index), with the repositories tested.
+- Web: container slots `plans`, `whiteboards` and `vectors`, plus an optional `embeddings`; `THOTH_LLM=scripted` uses `ScriptedLlmProvider` (a stub); a Whiteboard Learn tool stub that is already a dock panel.
+
+Same rules as before. Read `docs/technical_design/11-app-shell-and-feel.md` first.
+
+| Lane                                            | Model  | Owns                                                                                                                                                                      | Shared files: one-line edits only                                                                                                                                                                                                                               |
+| ----------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1: Browser tests + CI** (ADR-0028)            | Sonnet | `apps/web/e2e/**`, `apps/web/playwright.config.ts`, `packages/llm/src/scripted-provider.ts` (+ tests), `.github/workflows/ci.yml` (new `e2e` job); doc `15-e2e-tests.md`  | `apps/web/package.json` (Playwright dev dependency, `test:e2e` script); root `package.json` (one script)                                                                                                                                                        |
+| **2: Embeddings + hybrid retrieval** (ADR-0029) | Opus   | new `packages/embeddings/**`; `packages/core/src/usecases/retrieval/**`; `apps/web/src/server/jobs/**` (the embed job and backfill); doc `16-embeddings-and-retrieval.md` | `container.ts` (the `embeddings` slot); `next.config.ts` (`serverExternalPackages`); one call into retrieval from `usecases/chat/context.ts`, `usecases/exams/sampling.ts` and `usecases/search/**` each; `usecases/ingest/run-ingest-job.ts` (enqueue `embed`) |
+| **3: Study planner** (ADR-0030)                 | Sonnet | `packages/core/src/usecases/planner/**`; `apps/web/src/features/planner/**`; `apps/web/src/app/planner/**`; doc `17-study-planner.md`                                     | one section in `app/page.tsx` (Today); one `Item` in `sidebar.tsx`                                                                                                                                                                                              |
+| **4: Whiteboard + mind maps** (ADR-0031)        | Opus   | `packages/core/src/usecases/whiteboard/**`; `apps/web/src/features/whiteboard/**`; doc `18-whiteboard.md`                                                                 | none                                                                                                                                                                                                                                                            |
+
+Lane 1 tests the other lanes' features after merge. Until then it covers everything already on `main`, and adds skipped (`test.fixme`) journeys for the planner and the whiteboard, which the orchestrator enables at merge.
+
+The merge order is 2, 4, 3, 1: tests last, so they run against everything.

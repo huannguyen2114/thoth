@@ -6,6 +6,8 @@ import { z } from "zod";
 const schema = z.object({
   THOTH_DATA_DIR: z.string().default(resolve(process.cwd(), "../../data")),
   ANTHROPIC_API_KEY: z.string().optional(),
+  /** "scripted" = deterministic replies for end-to-end tests (ADR-0028). Never set it in daily use. */
+  THOTH_LLM: z.enum(["scripted"]).optional(),
 });
 
 export const env = schema.parse(process.env);

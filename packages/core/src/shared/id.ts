@@ -15,6 +15,9 @@ export type FlashcardId = Brand<string, "FlashcardId">;
 export type ReviewId = Brand<string, "ReviewId">;
 export type JobId = Brand<string, "JobId">;
 export type ExamSessionId = Brand<string, "ExamSessionId">;
+export type PlanId = Brand<string, "PlanId">;
+export type PlanItemId = Brand<string, "PlanItemId">;
+export type WhiteboardId = Brand<string, "WhiteboardId">;
 
 /** Random UUID. Swap for UUIDv7 if ordering by ID is ever needed. */
 export const newId = <T extends string>(): T => crypto.randomUUID() as T;

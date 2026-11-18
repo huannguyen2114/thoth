@@ -45,6 +45,8 @@ export const ACTIVITY_LABELS: Record<ActivityKind, string> = {
   content_added: "Added content",
   exam_submitted: "Submitted an exam",
   summary_generated: "Generated a summary",
+  plan_item_done: "Finished a planned task",
+  whiteboard_edit: "Worked on a whiteboard",
 };
 
 export interface HistoryDeps {
@@ -125,6 +127,11 @@ export async function getHistory(
           const chat = await deps.chats.get(e.ref as ChatId);
           return chat ? contentTarget(chat.contentId) : NONE;
         });
+      case "plan_item_done":
+        return { subject: "Study plan", href: "/planner" };
+      case "whiteboard_edit":
+        // ref is the content or space the board belongs to (ADR-0031).
+        return contentTarget(e.ref as ContentId);
     }
   };
 

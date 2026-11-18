@@ -43,6 +43,7 @@ export const PRESETS: readonly Preset[] = [
       { id: "notes", at: { ref: "summary", direction: "within" }, inactive: true },
       { id: "quiz", at: { ref: "summary", direction: "within" }, inactive: true },
       { id: "flashcards", at: { ref: "summary", direction: "within" }, inactive: true },
+      { id: "whiteboard", at: { ref: "summary", direction: "within" }, inactive: true },
     ],
   },
   {

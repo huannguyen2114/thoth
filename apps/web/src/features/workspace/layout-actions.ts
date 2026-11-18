@@ -132,7 +132,7 @@ export function retitle(api: DockApi, kind: ContentKind) {
 /** Where a closed panel comes back: next to the panels it belongs with. */
 function reopenPosition(api: DockApi, id: WorkspacePanelId): Placement {
   const open = (x: WorkspacePanelId) => Boolean(api.getPanel(x));
-  const learn: WorkspacePanelId[] = ["notes", "quiz", "summary", "flashcards"];
+  const learn: WorkspacePanelId[] = ["notes", "quiz", "summary", "flashcards", "whiteboard"];
   const outline: WorkspacePanelId[] = ["chapters", "transcript"];
   const ref = (ids: WorkspacePanelId[]) => ids.find((x) => x !== id && open(x));
 

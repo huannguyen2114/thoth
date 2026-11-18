@@ -1,6 +1,6 @@
 # ADR-0006: SQLite through libSQL and Drizzle ORM
 
-- Status: Accepted
+- Status: Accepted; vector search added by ADR-0029
 - Date: 2026-11-15
 
 ## Context

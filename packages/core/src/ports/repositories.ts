@@ -16,18 +16,23 @@ import type { Flashcard, FsrsState, NewFlashcard, Review, ReviewRating } from ".
 import type { Job, JobKind } from "../domain/job";
 import type { LlmSettings } from "../domain/llm-settings";
 import type { Note } from "../domain/note";
+import type { NewPlanItem, NewStudyPlan, PlanItem, StudyPlan } from "../domain/plan";
 import type { NewQuizAttempt, NewQuizQuestion, QuizAttempt, QuizQuestion } from "../domain/quiz";
 import type { NewSpace, Space } from "../domain/space";
 import type { NewStudySet, StudySet, StudySetKind } from "../domain/study-set";
+import type { BoardElement, Whiteboard } from "../domain/whiteboard";
 import type {
   ChatId,
   ContentId,
   ExamSessionId,
   FlashcardId,
   JobId,
+  PlanId,
+  PlanItemId,
   QuizQuestionId,
   SpaceId,
   StudySetId,
+  WhiteboardId,
 } from "../shared/id";
 
 /**
@@ -159,4 +164,47 @@ export interface ActivityRepository {
   countByDay(from: Date, to: Date, tzOffsetMin: number): Promise<ActivityDay[]>;
   /** Newest first, for the History timeline. */
   listRecent(limit: number): Promise<ActivityEvent[]>;
+}
+
+/** Study planner (ADR-0030). */
+export interface PlanRepository {
+  create(plan: NewStudyPlan): Promise<StudyPlan>;
+  get(id: PlanId): Promise<StudyPlan | null>;
+  list(): Promise<StudyPlan[]>;
+  update(id: PlanId, patch: Partial<NewStudyPlan>): Promise<void>;
+  delete(id: PlanId): Promise<void>;
+  /** Deletes the plan's items that are not done, then inserts `items` (re-planning keeps finished work). */
+  replaceOpenItems(planId: PlanId, items: NewPlanItem[]): Promise<PlanItem[]>;
+  listItems(planId: PlanId): Promise<PlanItem[]>;
+  /** Items of every plan on one local day, in plan then idx order. */
+  listItemsForDay(day: string): Promise<PlanItem[]>;
+  setDone(itemId: PlanItemId, doneAt: Date | null): Promise<void>;
+  updateItem(
+    itemId: PlanItemId,
+    patch: Partial<Pick<PlanItem, "title" | "minutes" | "day">>,
+  ): Promise<void>;
+}
+
+/** Whiteboards (ADR-0031). */
+export interface WhiteboardRepository {
+  create(input: {
+    contentId: ContentId | null;
+    spaceId: SpaceId | null;
+    title: string;
+    elements: BoardElement[];
+  }): Promise<Whiteboard>;
+  get(id: WhiteboardId): Promise<Whiteboard | null>;
+  listByContent(contentId: ContentId): Promise<Whiteboard[]>;
+  listBySpace(spaceId: SpaceId): Promise<Whiteboard[]>;
+  /**
+   * Saves the whole element list if `expectedVersion` is current and returns the new board.
+   * Returns null when someone saved in between (the caller reloads and re-applies).
+   */
+  save(
+    id: WhiteboardId,
+    elements: BoardElement[],
+    expectedVersion: number,
+  ): Promise<Whiteboard | null>;
+  rename(id: WhiteboardId, title: string): Promise<void>;
+  delete(id: WhiteboardId): Promise<void>;
 }

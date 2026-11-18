@@ -55,7 +55,7 @@ What becomes easier, what becomes harder, and the follow-ups.
 | [0003](0003-pnpm-turborepo-monorepo.md)                     | pnpm + Turborepo monorepo with source-only internal packages                         | Accepted                   |
 | [0004](0004-hexagonal-architecture.md)                      | Hexagonal architecture: core, ports, adapters, one composition root                  | Accepted (amended by 0017) |
 | [0005](0005-result-type-for-expected-errors.md)             | `Result` type for expected failures; exceptions only for bugs                        | Accepted                   |
-| [0006](0006-sqlite-libsql-drizzle.md)                       | SQLite through libSQL and Drizzle ORM                                                | Accepted                   |
+| [0006](0006-sqlite-libsql-drizzle.md)                       | SQLite through libSQL and Drizzle ORM                                                | Accepted (amended by 0029) |
 | [0007](0007-pwa-manifest-and-handwritten-service-worker.md) | Built-in manifest + a hand-written service worker                                    | Accepted                   |
 | [0008](0008-llm-provider-port-api-key-and-subscription.md)  | One LLM port with two adapters: API key and Claude subscription                      | Accepted (amended by 0013) |
 | [0009](0009-hearth-design-system-vendored-tokens.md)        | Hearth design system, vendored, with generated CSS tokens                            | Accepted                   |
@@ -64,7 +64,7 @@ What becomes easier, what becomes harder, and the follow-ups.
 | [0012](0012-feature-folders-in-web-app.md)                  | Feature folders in the web app                                                       | Accepted                   |
 | [0013](0013-llm-adapter-defaults-and-isolation.md)          | LLM adapter defaults, structured output, subscription isolation                      | Accepted                   |
 | [0014](0014-ingestion-pipeline-and-job-runner.md)           | Ingestion: `@thoth/ingest` adapter, in-process job runner, segment-anchored chapters | Accepted                   |
-| [0015](0015-chat-source-context.md)                         | Chat context: whole source under 150k tokens, else FTS top-k                         | Accepted                   |
+| [0015](0015-chat-source-context.md)                         | Chat context: whole source under 150k tokens, else FTS top-k                         | Accepted (amended by 0029) |
 | [0016](0016-learn-tools-background-generation.md)           | Learn tools generate in the background with `after()`; panels poll                   | Accepted                   |
 | [0017](0017-quiz-grading-and-fsrs-scheduling.md)            | Quiz grading rules; FSRS via `ts-fsrs` in core (amends 0004)                         | Accepted                   |
 | [0018](0018-exams-and-progress.md)                          | Space exams with timed sessions, server-only answer keys, progress computed on read  | Accepted                   |
@@ -77,5 +77,9 @@ What becomes easier, what becomes harder, and the follow-ups.
 | [0025](0025-notes-draft-streaming-and-storage.md)           | Notes drafts stream through a polled in-memory run; editor storage details           | Accepted                   |
 | [0026](0026-habit-days-search-and-anki-export.md)           | Habit days, search composition and Anki export format                                | Accepted                   |
 | [0027](0027-passcode-gate-and-lan-server.md)                | Passcode gate for non-local access, with a peer-stamping LAN server                  | Accepted                   |
+| [0028](0028-browser-tests-with-scripted-llm.md)             | End-to-end browser tests with Playwright and a scripted LLM, run in CI               | Accepted                   |
+| [0029](0029-local-embeddings-and-hybrid-retrieval.md)       | Local embeddings in libSQL vectors, hybrid retrieval with FTS5                       | Accepted                   |
+| [0030](0030-study-planner.md)                               | A deterministic study planner that adapts to progress                                | Accepted                   |
+| [0031](0031-whiteboard-canvas.md)                           | One whiteboard canvas for visual explanations and mind maps, linked to the source    | Accepted                   |
 
 Add a new row when you add an ADR. When you supersede one, change its status here as well.

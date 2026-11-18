@@ -5,18 +5,22 @@ import {
   type ChapterRepository,
   type ChatRepository,
   type ContentRepository,
+  type EmbeddingProvider,
   type ExamSessionRepository,
   type FlashcardRepository,
   getLlmSettings,
   type JobRepository,
   type LlmProvider,
   type NoteRepository,
+  type PlanRepository,
   type QuizRepository,
   type SegmentRepository,
   type SettingsRepository,
   type SourceParser,
   type SpaceRepository,
   type StudySetRepository,
+  type VectorRepository,
+  type WhiteboardRepository,
 } from "@thoth/core";
 import {
   createDb,
@@ -28,15 +32,18 @@ import {
   DrizzleFlashcardRepository,
   DrizzleJobRepository,
   DrizzleNoteRepository,
+  DrizzlePlanRepository,
   DrizzleQuizRepository,
   DrizzleSegmentRepository,
   DrizzleSettingsRepository,
   DrizzleSpaceRepository,
   DrizzleStudySetRepository,
+  DrizzleVectorRepository,
+  DrizzleWhiteboardRepository,
   migrateDb,
 } from "@thoth/db";
 import { SourceIngestor } from "@thoth/ingest";
-import { createLlmProvider } from "@thoth/llm";
+import { createLlmProvider, ScriptedLlmProvider } from "@thoth/llm";
 import { env } from "./env";
 
 /**
@@ -57,6 +64,11 @@ export interface Container {
   flashcards: FlashcardRepository;
   jobs: JobRepository;
   activity: ActivityRepository;
+  plans: PlanRepository;
+  whiteboards: WhiteboardRepository;
+  vectors: VectorRepository;
+  /** Local embeddings (ADR-0029). Phase 9 Lane 2 fills this slot. */
+  embeddings?: EmbeddingProvider;
   settings: SettingsRepository;
   /** Source parsers (PDF, YouTube, web page, text) used by ingest jobs. */
   ingest: SourceParser;
@@ -66,6 +78,7 @@ export interface Container {
 }
 
 let ready: Promise<Container> | undefined;
+const scripted = new ScriptedLlmProvider();
 
 async function build(): Promise<Container> {
   const db = createDb(`file:${resolve(env.THOTH_DATA_DIR, "thoth.db")}`);
@@ -86,10 +99,15 @@ async function build(): Promise<Container> {
     activity: new DrizzleActivityRepository(db),
     settings,
     ingest: new SourceIngestor(),
+    plans: new DrizzlePlanRepository(db),
+    whiteboards: new DrizzleWhiteboardRepository(db),
+    vectors: new DrizzleVectorRepository(db),
     llm: async () =>
-      createLlmProvider(await getLlmSettings({ settings }), {
-        anthropicApiKey: env.ANTHROPIC_API_KEY,
-      }),
+      env.THOTH_LLM === "scripted"
+        ? scripted
+        : createLlmProvider(await getLlmSettings({ settings }), {
+            anthropicApiKey: env.ANTHROPIC_API_KEY,
+          }),
     hasAnthropicApiKey: Boolean(env.ANTHROPIC_API_KEY),
   };
 }

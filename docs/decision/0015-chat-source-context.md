@@ -1,6 +1,6 @@
 # ADR-0015: Chat source context: whole source under 150k tokens, else FTS top-k
 
-- Status: Accepted
+- Status: Accepted; large-source retrieval amended by ADR-0029
 - Date: 2026-11-15
 
 ## Context

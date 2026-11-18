@@ -11,6 +11,7 @@ import {
   SourceIcon,
   SummaryIcon,
   TranscriptIcon,
+  WhiteboardIcon,
 } from "./icons";
 import type { WorkspacePanelId } from "./panel-ids";
 import {
@@ -45,6 +46,7 @@ const toolIcon: Record<LearnToolId, ComponentType> = {
   notes: NotesIcon,
   quiz: QuizIcon,
   flashcards: FlashcardsIcon,
+  whiteboard: WhiteboardIcon,
 };
 
 /**

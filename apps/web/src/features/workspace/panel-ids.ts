@@ -14,6 +14,7 @@ export const WORKSPACE_PANEL_IDS = [
   "notes",
   "quiz",
   "flashcards",
+  "whiteboard",
 ] as const;
 
 export type WorkspacePanelId = (typeof WORKSPACE_PANEL_IDS)[number];
@@ -43,5 +44,7 @@ export function panelTitle(id: WorkspacePanelId, kind: ContentKind): string {
       return "Quiz";
     case "flashcards":
       return "Flashcards";
+    case "whiteboard":
+      return "Whiteboard";
   }
 }

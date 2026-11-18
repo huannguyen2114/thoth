@@ -7,10 +7,13 @@ export { DrizzleExamSessionRepository } from "./repositories/exam-session-reposi
 export { DrizzleFlashcardRepository } from "./repositories/flashcard-repository";
 export { DrizzleJobRepository } from "./repositories/job-repository";
 export { DrizzleNoteRepository } from "./repositories/note-repository";
+export { DrizzlePlanRepository } from "./repositories/plan-repository";
 export { DrizzleQuizRepository } from "./repositories/quiz-repository";
 export { DrizzleSegmentRepository } from "./repositories/segment-repository";
 export { DrizzleSettingsRepository } from "./repositories/settings-repository";
 export { DrizzleSpaceRepository } from "./repositories/space-repository";
 export { DrizzleStudySetRepository } from "./repositories/study-set-repository";
+export { DrizzleVectorRepository } from "./repositories/vector-repository";
+export { DrizzleWhiteboardRepository } from "./repositories/whiteboard-repository";
 export * as schema from "./schema";
 export { SAMPLE_LECTURE_ID, SAMPLE_PDF_ID, seedSampleContent } from "./seed";

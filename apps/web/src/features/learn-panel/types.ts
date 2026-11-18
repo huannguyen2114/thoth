@@ -5,7 +5,7 @@ import type { ComponentType } from "react";
  * Contract between the Learn panel (Lane B) and each learning tool (Lanes C, D).
  * Frozen for parallel work: change only via the orchestrator (docs/plan/parallel-development.md).
  */
-export type LearnToolId = "summary" | "notes" | "quiz" | "flashcards";
+export type LearnToolId = "summary" | "notes" | "quiz" | "flashcards" | "whiteboard";
 
 export interface LearnToolProps {
   contentId: ContentId;

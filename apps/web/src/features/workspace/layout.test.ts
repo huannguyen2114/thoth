@@ -77,7 +77,7 @@ describe("layout fallback", () => {
     ["no grid", wrap({ panels: { source: panel("source") } })],
     ["a grid without a root", wrap({ ...dock(), grid: { width: 1 } })],
     ["no panels", wrap({ ...dock(), panels: {} })],
-    ["an unknown panel", wrap(dock(["source", "whiteboard"]))],
+    ["an unknown panel", wrap(dock(["source", "not-a-panel"]))],
     [
       "a panel whose component differs from its id",
       wrap({ ...dock(), panels: { source: { id: "source", contentComponent: "chat" } } }),
