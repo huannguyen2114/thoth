@@ -32,3 +32,4 @@ export * from "./usecases/search";
 export * from "./usecases/spaces";
 export * from "./usecases/study-sets";
 export * from "./usecases/summary";
+export * from "./usecases/whiteboard";
