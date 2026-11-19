@@ -1,0 +1,428 @@
+/*
+ * Whiteboard canvas (ADR-0031, doc 18). Tokens only (ADR-0009): each board colour is a Hearth
+ * tint, and its edge is the matching status colour. Purple has no token of its own, so it is
+ * mixed from two tokens. Light and dark follow from the tokens themselves.
+ */
+
+.wb {
+  --wb-yellow: var(--warning-tint);
+  --wb-yellow-edge: color-mix(in oklab, var(--warning) 45%, transparent);
+  --wb-peach: var(--accent-tint);
+  --wb-peach-edge: color-mix(in oklab, var(--accent) 45%, transparent);
+  --wb-pink: var(--danger-tint);
+  --wb-pink-edge: color-mix(in oklab, var(--danger) 40%, transparent);
+  --wb-green: var(--success-tint);
+  --wb-green-edge: color-mix(in oklab, var(--success) 45%, transparent);
+  --wb-blue: var(--info-tint);
+  --wb-blue-edge: color-mix(in oklab, var(--info) 45%, transparent);
+  --wb-purple: color-mix(in oklab, var(--info-tint) 50%, var(--danger-tint));
+  --wb-purple-edge: color-mix(
+    in oklab,
+    color-mix(in oklab, var(--info) 50%, var(--danger)) 45%,
+    transparent
+  );
+  --wb-white: var(--surface-200);
+  --wb-white-edge: var(--border-control);
+
+  --wb-ink-ink: var(--ink);
+  --wb-ink-terracotta: var(--accent-text);
+  --wb-ink-blue: var(--info);
+  --wb-ink-green: var(--success);
+  --wb-ink-purple: color-mix(in oklab, var(--info) 50%, var(--danger));
+
+  --wb-ease: cubic-bezier(0.2, 0, 0, 1);
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-color: var(--surface-100);
+  /* A quiet dot grid that pans and zooms with the board. */
+  background-image: radial-gradient(circle, var(--border-subtle) 1px, transparent 1.2px);
+  touch-action: none;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.wb:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--focus-ring);
+}
+.wb[data-tool="hand"],
+.wb[data-panning="true"] {
+  cursor: grab;
+}
+.wb[data-dragging="pan"] {
+  cursor: grabbing;
+}
+.wb[data-tool="arrow"] {
+  cursor: crosshair;
+}
+
+.wb-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.wb-layer[data-glide="true"] {
+  transition: transform 300ms var(--wb-ease);
+}
+
+.wb-el {
+  position: absolute;
+  box-sizing: border-box;
+}
+.wb-el[data-locked="true"] {
+  cursor: default;
+}
+
+.wb-fill-yellow {
+  --wb-fill: var(--wb-yellow);
+  --wb-edge: var(--wb-yellow-edge);
+}
+.wb-fill-peach {
+  --wb-fill: var(--wb-peach);
+  --wb-edge: var(--wb-peach-edge);
+}
+.wb-fill-pink {
+  --wb-fill: var(--wb-pink);
+  --wb-edge: var(--wb-pink-edge);
+}
+.wb-fill-green {
+  --wb-fill: var(--wb-green);
+  --wb-edge: var(--wb-green-edge);
+}
+.wb-fill-blue {
+  --wb-fill: var(--wb-blue);
+  --wb-edge: var(--wb-blue-edge);
+}
+.wb-fill-purple {
+  --wb-fill: var(--wb-purple);
+  --wb-edge: var(--wb-purple-edge);
+}
+.wb-fill-white {
+  --wb-fill: var(--wb-white);
+  --wb-edge: var(--wb-white-edge);
+}
+
+.wb-section {
+  border: 1.5px dashed var(--wb-edge);
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklab, var(--wb-fill) 45%, transparent);
+}
+.wb-sticky {
+  background: var(--wb-fill);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.wb-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  overflow: hidden;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+.wb-text--centre {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px 16px;
+}
+.wb-text--sticky {
+  align-items: flex-start;
+  padding: 16px;
+}
+.wb-size-small {
+  font-size: 13px;
+  line-height: 18px;
+}
+.wb-size-body {
+  font-size: 15px;
+  line-height: 22px;
+}
+.wb-size-large {
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 500;
+}
+.wb-size-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+.wb-size-huge {
+  font-family: var(--font-serif);
+  font-size: 40px;
+  line-height: 46px;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+.wb-section__title {
+  position: absolute;
+  left: 16px;
+  top: 12px;
+  right: 16px;
+  color: var(--ink-muted);
+  font: 500 14px / 20px var(--font-sans);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.wb-table {
+  border-collapse: collapse;
+  background: var(--surface-200);
+  border-radius: var(--radius-md);
+  outline: 1px solid var(--border-control);
+  overflow: hidden;
+  font: 400 14px / 20px var(--font-sans);
+  color: var(--ink);
+  table-layout: fixed;
+}
+.wb-table td,
+.wb-table th {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border-subtle);
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.wb-table th {
+  background: var(--surface-300);
+  font-weight: 500;
+}
+
+.wb-editor {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  margin: 0;
+  border: 0;
+  resize: none;
+  overflow: hidden;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.wb-editor.wb-text--centre {
+  text-align: center;
+  padding-top: var(--wb-pad-top, 12px);
+}
+
+/* Selection, handles and the marquee */
+.wb-selected {
+  position: absolute;
+  inset: -4px;
+  border: 1.5px solid var(--accent);
+  border-radius: calc(var(--radius-sm) + 4px);
+  pointer-events: none;
+}
+.wb-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  background: var(--surface-200);
+  border: 1.5px solid var(--accent);
+  border-radius: 3px;
+  touch-action: none;
+}
+.wb-connect {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  border: 2px solid var(--surface-200);
+  opacity: 0;
+  transition:
+    opacity 150ms var(--wb-ease),
+    transform 150ms var(--wb-ease);
+  cursor: crosshair;
+  touch-action: none;
+}
+.wb-el:hover > .wb-connect,
+.wb-el[data-handles="true"] > .wb-connect,
+.wb[data-tool="arrow"] .wb-connect {
+  opacity: 1;
+}
+.wb-connect:hover {
+  transform: scale(1.25);
+}
+.wb-marquee {
+  position: absolute;
+  border: 1px solid var(--accent);
+  background: color-mix(in oklab, var(--accent-tint) 50%, transparent);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.wb-drop-target > .wb-selected {
+  border-style: dashed;
+}
+
+.wb-badge {
+  position: absolute;
+  top: -10px;
+  right: -8px;
+  z-index: 3;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 150ms var(--wb-ease);
+}
+.wb-badge:hover {
+  transform: translateY(-1px);
+}
+
+.wb-arrow-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-100);
+  color: var(--ink-muted);
+  font: 400 13px / 18px var(--font-sans);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Claude's new elements arrive softly, one after another. */
+@keyframes wb-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.wb-enter {
+  animation: wb-enter 300ms var(--wb-ease) both;
+}
+@keyframes wb-draw {
+  from {
+    stroke-dashoffset: var(--wb-len, 400);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.wb-enter-path {
+  stroke-dasharray: var(--wb-len, 400);
+  animation: wb-draw 400ms var(--wb-ease) both;
+}
+
+/* Floating chrome on the canvas */
+.wb-float {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--surface-200);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+.wb-tool {
+  display: inline-grid;
+  place-items: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  font: 500 13px / 18px var(--font-sans);
+  cursor: default;
+  transition:
+    background-color 150ms var(--wb-ease),
+    color 150ms var(--wb-ease);
+}
+.wb-tool:hover {
+  background: var(--surface-300);
+  color: var(--ink);
+}
+.wb-tool[aria-pressed="true"] {
+  background: var(--accent-tint);
+  color: var(--accent-text);
+}
+.wb-tool:disabled {
+  opacity: 0.45;
+  background: transparent;
+}
+.wb-tool:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.wb-sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 var(--space-1);
+  background: var(--border-subtle);
+}
+.wb-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-pill);
+  background: var(--wb-fill);
+  border: 1.5px solid var(--wb-edge);
+}
+
+.wb-composer {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.wb-skeleton {
+  position: absolute;
+  border-radius: var(--radius-md);
+  background: var(--surface-300);
+}
+
+@media (pointer: coarse) {
+  .wb-tool {
+    min-width: 44px;
+    height: 44px;
+  }
+  .wb-connect {
+    opacity: 1;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-enter,
+  .wb-enter-path {
+    animation: none;
+  }
+  .wb-layer[data-glide="true"],
+  .wb-connect,
+  .wb-badge,
+  .wb-tool {
+    transition: none;
+  }
+}
+
+.wb-float--tools {
+  max-width: calc(100% - 24px);
+}
