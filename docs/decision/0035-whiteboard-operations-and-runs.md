@@ -1,6 +1,6 @@
-# ADR-NNNN (draft, Phase 9 Lane 4): Whiteboard operations, guards and background runs
+# ADR-0035: Whiteboard operations, guards and background runs
 
-- Status: Proposed (the orchestrator numbers and accepts it at merge)
+- Status: Accepted
 - Date: 2026-11-19
 - Builds on: ADR-0016, ADR-0021, ADR-0031
 

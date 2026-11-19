@@ -1,6 +1,6 @@
 # 17. Study planner
 
-Status: Current (Phase 9, Lane 3). Decisions: ADR-0030 and the Lane 3 draft ADR `NNNN-draft-p9-lane3.md`.
+Status: Current (Phase 9). Decisions: ADR-0030, ADR-0034.
 
 The planner turns "my exam is on 9 December" into dated tasks: learn each chapter, quiz it, review due flashcards, sit a mock exam, rest. The schedule is a **pure function** (`buildPlan`), so it is explainable, unit-tested with fixed dates and costs no tokens.
 

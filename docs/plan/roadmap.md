@@ -218,11 +218,18 @@ Each phase ends with something that runs. After each phase I check it in the bro
 
 - Global search (FTS), History, Share/export (markdown or Anki CSV), dark mode, a mobile layout (the Learn panel becomes a bottom sheet), and LAN or Tailscale access with a passcode.
 
+### Phase 9: Browser tests, embeddings, planner, whiteboard — DONE 2026-11-19
+
+- Playwright journeys for every feature, run in CI against a scripted LLM (ADRs 0028, 0032; doc 15).
+- Local multilingual embeddings and hybrid FTS + vector retrieval for chat, exams and Cmd+K (ADRs 0029, 0033; doc 16).
+- A deterministic study planner with /planner and a Today card (ADRs 0030, 0034; doc 17).
+- A whiteboard canvas Claude draws on, with tidy-tree mind maps and source links on every element (ADRs 0031, 0035; doc 18).
+
 ### Later phases (after the MVP)
 
 - **9:** Podcast. A two-host script from the LLM, then TTS (OpenAI TTS, ElevenLabs, or local Kokoro), then merged audio with ffmpeg. Then Voice tutor mode and Dictate (Web Speech API or whisper).
 - **10:** Audio and video uploads, plus live Record. Transcription with whisper.cpp.
-- **11:** Lesson Plan, an ordered sequence of generated tools for each topic. Then Whiteboard, an Excalidraw canvas the AI can draw on. Then mind maps.
+- **11:** Lesson Plan, an ordered sequence of generated tools for each topic. (The whiteboard and mind maps shipped in Phase 9.)
 - **12:** Web search in chat, and a Chrome extension "Send to Thoth".
 
 ---

@@ -1,6 +1,6 @@
 # 15. End-to-end browser tests
 
-Status: Current (Phase 9, Lane 1). Decision: ADR-0028.
+Status: Current (Phase 9). Decisions: ADR-0028, ADR-0032.
 
 Playwright drives a real Chromium against the real app, with the language model replaced by a scripted one. It catches what unit tests cannot: a Learn tool inside the dock, a citation that has to move the viewer, a layout saved across a reload.
 

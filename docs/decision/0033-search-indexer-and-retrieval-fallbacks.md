@@ -1,6 +1,6 @@
-# ADR-NNNN: Background search indexer, Cmd+K distance cut-off and keyword fallbacks
+# ADR-0033: Background search indexer, Cmd+K distance cut-off and keyword fallbacks
 
-- Status: Draft (Phase 9, Lane 2; the orchestrator numbers it at merge)
+- Status: Accepted
 - Date: 2026-11-18
 - Builds on: ADR-0029 (local embeddings, hybrid retrieval), ADR-0014 (job runner)
 

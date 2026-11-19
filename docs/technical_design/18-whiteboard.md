@@ -1,6 +1,6 @@
 # 18. Whiteboard and mind maps
 
-Status: Current (Phase 9, Lane 4). Decisions: ADR-0031, draft `docs/decision/NNNN-draft-p9-lane4.md`.
+Status: Current (Phase 9). Decisions: ADR-0031, ADR-0035.
 
 The Whiteboard is a Learn tool, so it is a dock panel beside the source (ADR-0021). Claude lays out an explanation on a canvas, you edit it, and you ask Claude to extend it. Mind maps are drawn on the same canvas. Any element can link to a page, time or paragraph of the source.
 

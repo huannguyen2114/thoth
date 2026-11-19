@@ -1,6 +1,6 @@
 # 16. Embeddings and hybrid retrieval
 
-Status: Current (Phase 9, Lane 2). Decisions: ADR-0029 (local embeddings, libSQL vectors, hybrid retrieval) and draft `docs/decision/NNNN-draft-p9-lane2.md` (the orchestrator numbers it) (background indexer, cut-off, fallbacks).
+Status: Current (Phase 9). Decisions: ADR-0029 (local embeddings, libSQL vectors, hybrid retrieval) and ADR-0033 (background indexer, Cmd+K cut-off, keyword fallbacks).
 
 Keyword search (FTS5) misses questions worded differently from the source. Thoth now also embeds every segment with a small local model and searches by meaning. Both lists are merged by **reciprocal rank fusion (RRF)**. Nothing leaves the Mac, and nothing waits for the model: a content is `ready` before its vectors exist, and every caller falls back to keywords.
 

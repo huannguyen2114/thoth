@@ -21,6 +21,10 @@ Thoth is a single-user, local-first study PWA. It is a personal alternative to Y
    - notes editor: `12`
    - habits, history, search and export: `13`
    - phone, LAN and passcode: `14`
+   - browser tests (Playwright, scripted LLM): `15`
+   - embeddings and retrieval: `16`
+   - study planner: `17`
+   - whiteboard and mind maps: `18`
 5. `docs/plan/roadmap.md`: what phase we are in and what comes next.
 
 Only then search the code. Most "where is X" questions are answered by `01-architecture.md`.
@@ -48,6 +52,7 @@ Only then search the code. Most "where is X" questions are answered by `01-archi
 - `pnpm dev`: start the web app. It listens on 127.0.0.1 only.
 - `pnpm start:lan`: the only way to serve other devices (a phone over Wi-Fi or Tailscale). Set `THOTH_PASSCODE` first (ADR-0027). Never bind `dev` or `start` to `0.0.0.0`.
 - `pnpm check`: lint, typecheck and test. Run it before saying work is done.
+- `pnpm test:e2e`: the Playwright browser journeys against a scripted LLM (doc 15). Run it after UI changes; CI runs it too.
 - `pnpm format`: Biome auto-fix.
 - `pnpm build`: production build.
 - `pnpm --filter @thoth/db db:generate`: create a migration after a schema change.

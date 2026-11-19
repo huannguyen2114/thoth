@@ -131,7 +131,7 @@ The merge order is 1, 2, 3, 4. The Notes panel in the workspace is the existing 
 
 # Phase 9 lanes (2026-11-18)
 
-Status: **Active.** Step 0 is pushed:
+Status: **Done** (2026-11-19): merged in the order 2, 4, 3, 1, with ADRs 0032–0035. Step 0 was:
 
 - ADRs 0028–0031.
 - Core contracts: `EmbeddingProvider` and `VectorRepository` (`ports/embeddings.ts`); plan domain and `PlanRepository`; the whiteboard element and operation model and `WhiteboardRepository`; the `embed` job kind; activity kinds `plan_item_done` and `whiteboard_edit`.

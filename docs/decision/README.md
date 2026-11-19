@@ -81,5 +81,9 @@ What becomes easier, what becomes harder, and the follow-ups.
 | [0029](0029-local-embeddings-and-hybrid-retrieval.md)       | Local embeddings in libSQL vectors, hybrid retrieval with FTS5                       | Accepted                   |
 | [0030](0030-study-planner.md)                               | A deterministic study planner that adapts to progress                                | Accepted                   |
 | [0031](0031-whiteboard-canvas.md)                           | One whiteboard canvas for visual explanations and mind maps, linked to the source    | Accepted                   |
+| [0032](0032-e2e-suite-shape.md)                             | How the end-to-end suite is shaped                                                   | Accepted                   |
+| [0033](0033-search-indexer-and-retrieval-fallbacks.md)      | Background search indexer, Cmd+K distance cut-off and keyword fallbacks              | Accepted                   |
+| [0034](0034-planner-pacing-exam-and-rest-days.md)           | Planner pacing, the exam day and the rest day                                        | Accepted                   |
+| [0035](0035-whiteboard-operations-and-runs.md)              | Whiteboard operations, guards and background runs                                    | Accepted                   |
 
 Add a new row when you add an ADR. When you supersede one, change its status here as well.

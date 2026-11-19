@@ -1,6 +1,6 @@
-# ADR-0032 (draft, Phase 9 Lane 1): How the end-to-end suite is shaped
+# ADR-0032: How the end-to-end suite is shaped
 
-- Status: Draft (the orchestrator numbers and accepts it)
+- Status: Accepted
 - Date: 2026-11-18
 - Extends: ADR-0028
 

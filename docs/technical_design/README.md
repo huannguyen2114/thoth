@@ -18,5 +18,9 @@ This folder describes **how Thoth works today**, plus clearly marked **planned**
 | [12-notes-editor.md](12-notes-editor.md)                                 | The live-preview Tiptap notes editor, citation chips, streamed Claude drafts               | Current |
 | [13-habits-history-search-export.md](13-habits-history-search-export.md) | Study heatmap and streaks, History, global search in the palette, Markdown and Anki export | Current |
 | [14-phone-and-lan.md](14-phone-and-lan.md)                               | Passcode gate, `pnpm start:lan`, Tailscale, phone and PWA polish                           | Current |
+| [15-e2e-tests.md](15-e2e-tests.md)                                       | Playwright journeys, the scripted LLM, the CI e2e job                                      | Current |
+| [16-embeddings-and-retrieval.md](16-embeddings-and-retrieval.md)         | Local embeddings, the background indexer, hybrid FTS + vector retrieval                    | Current |
+| [17-study-planner.md](17-study-planner.md)                               | The deterministic study planner, /planner, the Today card                                  | Current |
+| [18-whiteboard.md](18-whiteboard.md)                                     | The whiteboard canvas, Claude operations, tidy-tree mind maps, source links                | Current |
 
 Related: the reasons behind each choice are in [`../decision/`](../decision/README.md), and the phase plan is in [`../plan/roadmap.md`](../plan/roadmap.md).

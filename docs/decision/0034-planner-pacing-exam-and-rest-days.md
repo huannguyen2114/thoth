@@ -1,6 +1,6 @@
-# ADR-NNNN (draft): Planner pacing, the exam day and the rest day
+# ADR-0034: Planner pacing, the exam day and the rest day
 
-- Status: Proposed (Phase 9, Lane 3; the orchestrator assigns the number)
+- Status: Accepted
 - Date: 2026-11-18
 
 ## Context
