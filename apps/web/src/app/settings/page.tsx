@@ -2,6 +2,7 @@ import { getLlmSettings } from "@thoth/core";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { SearchIndexStatus } from "@/features/search-index/search-index-status";
 import { ConnectionCheck } from "@/features/settings/connection-check";
 import { LlmSettingsForm } from "@/features/settings/llm-settings-form";
 import { getContainer } from "@/server/container";
@@ -21,6 +22,7 @@ export default function SettingsPage() {
           <SettingsForm />
         </Suspense>
         <ConnectionCheck />
+        <SearchIndexStatus />
       </div>
     </AppShell>
   );
