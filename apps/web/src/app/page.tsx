@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { Habits } from "@/features/habits/heatmap";
 import { AddContentComposer } from "@/features/library/add-content-composer";
 import { RecentsList, RecentsListSkeleton } from "@/features/library/recents-list";
+import { TodayCard } from "@/features/planner/today-card";
 import { CreateSpaceForm } from "@/features/spaces/create-space-form";
 import { SpacesList, SpacesListSkeleton } from "@/features/spaces/spaces-list";
 import { AppShell } from "./_components/app-shell";
@@ -14,6 +15,8 @@ export default function HomePage() {
           <h1 className="type-display-lg text-ink">What should we learn?</h1>
           <AddContentComposer />
         </section>
+
+        <TodayCard />
 
         <section className="flex flex-col gap-3" aria-label="Study activity">
           <Habits compact />

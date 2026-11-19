@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
 import { HistoryIcon } from "@/features/history/history-icon";
+import { PlannerCommands } from "@/features/planner/planner-commands";
+import { PlannerIcon } from "@/features/planner/planner-icon";
 import { formatShortcut, useRegistry } from "./commands";
 import {
   CardsIcon,
@@ -116,6 +118,7 @@ export function Sidebar({ spaces }: { spaces: SidebarSpace[] }) {
       )}
 
       <aside className="app-sidebar" aria-label="Sidebar">
+        <PlannerCommands />
         <div className="app-sidebar__head">
           <Link
             href="/"
@@ -152,6 +155,7 @@ export function Sidebar({ spaces }: { spaces: SidebarSpace[] }) {
         <nav aria-label="Main" className="flex flex-col gap-0.5">
           <Item href="/" exact icon={<PlusIcon />} label="Add content" />
           <Item href="/review" icon={<CardsIcon />} label="Review" />
+          <Item href="/planner" icon={<PlannerIcon />} label="Planner" />
           <Item href="/history" icon={<HistoryIcon />} label="History" />
           <Item href="/progress" icon={<ChartIcon />} label="Progress" />
         </nav>
