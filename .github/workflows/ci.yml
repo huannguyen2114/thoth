@@ -23,3 +23,44 @@ jobs:
       - name: ADR append-only (ADR-0001)
         if: github.event_name == 'pull_request'
         run: tools/check-adr-append-only.sh "origin/${{ github.base_ref }}"
+
+  # End-to-end browser tests (ADR-0028, docs/technical_design/15-e2e-tests.md).
+  # Runs the production build against the scripted LLM: no API key and no subscription needed.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Cache the Playwright browser
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - name: Install Chromium and its system libraries
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter @thoth/web exec playwright install --with-deps chromium
+      - name: Install the system libraries only (browser restored from cache)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter @thoth/web exec playwright install-deps chromium
+      - run: pnpm build
+      - name: Run the browser tests
+        run: pnpm test:e2e
+        env:
+          E2E_SERVER: start
+      - name: Upload the report and traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/web/e2e/.report
+            apps/web/e2e/.results
+          include-hidden-files: true
+          retention-days: 14

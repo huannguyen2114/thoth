@@ -24,5 +24,11 @@
       "suspicious": { "noExplicitAny": "error" }
     },
     "domains": { "next": "recommended", "react": "recommended" }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["apps/web/src/**"],
+      "linter": { "rules": { "correctness": { "usePlaywrightValidDescribeCallback": "off" } } }
+    }
+  ]
 }
