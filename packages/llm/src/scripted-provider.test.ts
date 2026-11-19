@@ -25,6 +25,12 @@ import {
   quizUserMessage,
 } from "../../core/src/usecases/quiz/prompts";
 import { freeResponseGradeSchema, generatedQuizSchema } from "../../core/src/usecases/quiz/schemas";
+import {
+  askSystemPrompt,
+  claudeMindMapSchema,
+  claudeOpsSchema,
+  mindMapSystemPrompt,
+} from "../../core/src/usecases/whiteboard/prompts";
 import { ScriptedLlmProvider } from "./scripted-provider";
 
 const llm = new ScriptedLlmProvider();
@@ -207,5 +213,34 @@ describe("ScriptedLlmProvider", () => {
       z.object({ nope: z.string() }),
     );
     expect(r.ok).toBe(false);
+  });
+});
+
+describe("whiteboard replies (ADR-0031)", () => {
+  const user = { role: "user" as const, content: "Make a map" };
+
+  it("returns a mind map whose nodes cite the context", async () => {
+    const r = await llm.generateObject(
+      { task: "chat", system: mindMapSystemPrompt(), context, messages: [user] },
+      claudeMindMapSchema,
+    );
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.nodes.filter((n) => n.parent === null)).toHaveLength(1);
+    expect(r.value.nodes.map((n) => n.source)).toEqual(["[p.2]", "[p.2]", "[p.3]"]);
+  });
+
+  it("returns a linked flow of board operations", async () => {
+    const r = await llm.generateObject(
+      { task: "chat", system: askSystemPrompt(), context, messages: [user] },
+      claudeOpsSchema,
+    );
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const arrows = r.value.ops.filter((o) => o.fields?.type === "arrow");
+    expect(arrows).toEqual([
+      { op: "add", id: "link1", fields: { type: "arrow", from: "step1", to: "step2" } },
+    ]);
+    expect(r.value.ops[0]?.fields?.source).toBe("[p.2]");
   });
 });

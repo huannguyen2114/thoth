@@ -458,7 +458,7 @@ function WhiteboardPanel({ contentId, onCite }: LearnToolProps) {
   );
 
   return (
-    <div className="flex h-full min-h-96 flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       {error && (
         <p role="alert" className="mb-2 type-caption text-danger">
           {error}

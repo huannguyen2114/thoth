@@ -1,14 +1,45 @@
-import { test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { addPastedText, goto, unique } from "./support";
 
-// Phase 9 Lane 3 (study planner, ADR-0030) builds the planner in parallel. The orchestrator
-// enables this journey when the lane is merged: change `test.fixme` to `test` and fill in the
-// real labels.
-test.fixme("plans an exam, shows today's items and ticks one off", async ({ page }) => {
-  // 1. Add a content and a space containing it (use addPastedText from ./support).
-  // 2. Open the planner (sidebar item "Planner").
-  // 3. Create a plan: pick the space, an exam date a week away, a daily time budget.
-  // 4. The plan lists items per day; today's items also appear in the "Today" section on Home.
-  // 5. Tick today's first item: it moves to done and the heatmap counts a `plan_item_done` action.
-  // 6. Reload: the item is still done.
-  await page.goto("/");
+// Study planner (ADR-0030, doc 17).
+test("plans a goal, shows today's tasks and ticks one off", async ({ page }) => {
+  const source = unique("Planner source");
+  await addPastedText(page, source);
+  const planName = unique("Thermo plan");
+
+  await goto(page, "/planner");
+  await page.getByRole("button", { name: "New plan" }).click();
+  const dialog = page.getByRole("dialog", { name: "New study plan" });
+  await dialog.getByLabel("What to study").selectOption({ label: "Choose contents…" });
+  await dialog.getByRole("checkbox", { name: source }).check();
+  await dialog.getByLabel("Name").fill(planName);
+  // Every day is a study day, so today always has work whatever day the suite runs.
+  const sunday = dialog.getByRole("button", { name: "Sun" });
+  if ((await sunday.getAttribute("aria-pressed")) !== "true") await sunday.click();
+  await dialog.getByRole("button", { name: "Create plan" }).click();
+  await expect(dialog).toBeHidden();
+
+  const tasks = page.getByRole("region", { name: "Tasks for the day" });
+  await expect(tasks.getByRole("heading", { name: "Today" })).toBeVisible();
+  const first = tasks.getByRole("checkbox", { name: /, not done$/ }).first();
+  const name = (await first.getAttribute("aria-label"))?.replace(/, not done$/, "") ?? "";
+  expect(name).not.toBe("");
+  await first.check();
+  const done = tasks.getByRole("checkbox", { name: `${name}, done` });
+  await expect(done).toBeChecked();
+
+  await page.reload();
+  await expect(
+    page.getByRole("region", { name: "Tasks for the day" }).getByRole("checkbox", {
+      name: `${name}, done`,
+    }),
+  ).toBeChecked();
+
+  // Home's Today card lists the plan's tasks.
+  await goto(page, "/");
+  const today = page.getByRole("region", { name: "Today" });
+  await expect(today.getByText(planName).first()).toBeVisible();
+
+  await goto(page, "/history");
+  await expect(page.getByText("Finished a planned task").first()).toBeVisible();
 });

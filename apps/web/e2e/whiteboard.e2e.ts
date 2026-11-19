@@ -1,16 +1,57 @@
-import { test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { addPastedText, goto, unique } from "./support";
 
-// Phase 9 Lane 4 (whiteboard and mind maps, ADR-0031) builds the whiteboard in parallel. The
-// orchestrator enables this journey when the lane is merged: change `test.fixme` to `test` and
-// fill in the real labels.
-test.fixme("draws on the whiteboard, generates a mind map and keeps it after a reload", async ({
+// Whiteboard and mind maps (ADR-0031, doc 18). The scripted LLM returns a map whose nodes cite
+// real paragraphs of the pasted source.
+test("makes a mind map linked to the source, adds a sticky and keeps both after a reload", async ({
   page,
 }) => {
-  // 1. Open /content/sample-lecture and the Whiteboard tab of the Learn panel.
-  // 2. Add a shape or a sticky note with real pointer events; it appears on the canvas.
-  // 3. "Generate mind map": the scripted LLM returns a map whose nodes cite real segments;
-  //    click a node's citation and the Source panel reports the jump.
-  // 4. Reload: the elements are still there (autosave), and the history entry
-  //    "whiteboard_edit" shows in /history.
-  await page.goto("/content/sample-lecture");
+  const path = await addPastedText(page, unique("Whiteboard source"));
+  await goto(page, path);
+  const panels = page.getByRole("region", { name: "Workspace panels" });
+
+  // Close the source first, so the citation has to reopen it.
+  await panels.getByRole("button", { name: "Close Source" }).click();
+  await expect(panels.getByRole("region", { name: "Source" })).toHaveCount(0);
+
+  const tab = page.getByRole("tab", { name: "Whiteboard", exact: true });
+  await tab.click();
+  // Give the board room, as a person would: maximise its group. The citation below must
+  // leave the maximised view to show the source.
+  await tab
+    .locator("xpath=ancestor::*[.//button[@aria-label='Maximise panel']][1]")
+    .getByRole("button", { name: "Maximise panel" })
+    .click();
+  const board = page.getByRole("tabpanel", { name: "Whiteboard" });
+  await board.getByRole("button", { name: "Make a mind map" }).click();
+  await page
+    .getByRole("dialog", { name: "Make a mind map" })
+    .getByRole("button", { name: "Make mind map" })
+    .click();
+
+  const canvas = board.getByRole("application", { name: "Whiteboard canvas" });
+  await expect(canvas.getByText("Source overview")).toBeVisible();
+  const badges = canvas.getByRole("button", { name: /^Show .+ in the source$/ });
+  await expect(badges.first()).toBeVisible();
+  const elements = canvas.locator("[data-el-id]");
+  const before = await elements.count();
+
+  await board.getByRole("button", { name: "Add sticky" }).click();
+  await expect(elements).toHaveCount(before + 1);
+  await expect(board.getByRole("status").filter({ hasText: "Saved" })).toBeVisible();
+
+  // The source link must reopen the source.
+  await badges.first().click();
+  await expect(panels.getByRole("region", { name: "Source" })).toBeVisible();
+
+  await page.reload();
+  await page.getByRole("tab", { name: "Whiteboard", exact: true }).click();
+  const again = page.getByRole("tabpanel", { name: "Whiteboard" }).getByRole("application", {
+    name: "Whiteboard canvas",
+  });
+  await expect(again.getByText("Source overview")).toBeVisible();
+  await expect(again.locator("[data-el-id]")).toHaveCount(before + 1);
+
+  await goto(page, "/history");
+  await expect(page.getByText("Worked on a whiteboard").first()).toBeVisible();
 });

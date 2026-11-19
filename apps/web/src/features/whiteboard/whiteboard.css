@@ -34,7 +34,9 @@
 
   position: absolute;
   inset: 0;
-  overflow: hidden;
+  /* clip, not hidden: a hidden box can still be scrolled by focus, find-in-page or
+     scrollIntoView, which shifts the board under the pointer mid-click. */
+  overflow: clip;
   background-color: var(--surface-100);
   /* A quiet dot grid that pans and zooms with the board. */
   background-image: radial-gradient(circle, var(--border-subtle) 1px, transparent 1.2px);

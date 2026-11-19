@@ -11,7 +11,7 @@ import type { z } from "zod";
  * not know returns an `llm_unavailable` error: a gap fails loudly instead of passing quietly.
  *
  * It matches the prompts in packages/core (chapters, summary, notes, quiz and exam, flashcards,
- * grading, chat). When a prompt's wording changes, the unit tests here fail first.
+ * grading, chat, whiteboard mind map and Ask Claude). When a prompt's wording changes, the unit tests here fail first.
  */
 
 /** A citation token as the model writes it: [p.3], [03:21], [1:02:03], [§4]. */
@@ -134,6 +134,11 @@ export class ScriptedLlmProvider implements LlmProvider {
         return flashcardsReply(req);
       case "grading":
         return gradingReply(req);
+      case "chat":
+        if (req.system.startsWith("You are Thoth's mind-map assistant")) return mindMapReply(req);
+        if (req.system.startsWith("You are Thoth's whiteboard assistant"))
+          return boardOpsReply(req);
+        return null;
       default:
         return null;
     }
@@ -335,4 +340,54 @@ function gradingReply(req: LlmRequest) {
   return enough
     ? { score: 0.9, feedback: "You covered the main point of the rubric." }
     : { score: 0.2, feedback: "You mention the topic but miss the key points." };
+}
+
+// ---- whiteboard (ADR-0031) ---------------------------------------------------------------
+
+/** A root, one theme per passage (at most 4), each citing its passage. */
+function mindMapReply(req: LlmRequest) {
+  const passages = passagesOf(req.context).slice(0, 4);
+  if (passages.length === 0) return null;
+  const root = passages[0] as Passage;
+  return {
+    title: "Map of the source",
+    takeaway: "The main ideas of the source, in the order it covers them.",
+    nodes: [
+      { id: "root", parent: null, label: "Source overview", source: root.token },
+      ...passages.map((p, i) => ({
+        id: `n${i + 1}`,
+        parent: "root",
+        label: words(sentence(p.text), 4) || `Idea ${i + 1}`,
+        source: p.token,
+      })),
+    ],
+  };
+}
+
+/** A left-to-right flow of up to three steps, each citing a passage, joined by arrows. */
+function boardOpsReply(req: LlmRequest) {
+  const passages = passagesOf(req.context).slice(0, 3);
+  const steps = passages.length > 0 ? passages : [{ token: "", text: "Your request" }];
+  const ops: { op: "add"; id: string; fields: Record<string, unknown> }[] = steps.map((p, i) => ({
+    op: "add",
+    id: `step${i + 1}`,
+    fields: {
+      type: "shape",
+      kind: "rounded",
+      x: 1200 + i * 264,
+      y: 0,
+      w: 240,
+      h: 96,
+      text: words(sentence(p.text), 5) || `Step ${i + 1}`,
+      ...(p.token ? { source: p.token } : {}),
+    },
+  }));
+  for (let i = 1; i < steps.length; i++) {
+    ops.push({
+      op: "add",
+      id: `link${i}`,
+      fields: { type: "arrow", from: `step${i}`, to: `step${i + 1}` },
+    });
+  }
+  return { summary: `Added a ${steps.length}-step flow.`, ops };
 }
