@@ -15,17 +15,18 @@ Status: Current. Decision: ADR-0010.
 
 ## Tests
 
-| Layer        | How                                                                                  | Example                                                 |
-| ------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------- |
-| Use cases    | Vitest, with in-memory fakes of the ports                                            | `packages/core/src/usecases/spaces.test.ts`             |
-| Repositories | Vitest, with a libSQL `:memory:` database and real migrations                        | `packages/db/src/repositories/space-repository.test.ts` |
-| LLM adapters | Vitest, with recorded replies. Live parity tests are skipped without credentials     | `packages/llm/src/fake-provider.test.ts`                |
-| UI flows     | Manual walkthrough in the browser for each phase. Playwright e2e planned for Phase 8 |                                                         |
+| Layer        | How                                                                              | Example                                                 |
+| ------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Use cases    | Vitest, with in-memory fakes of the ports                                        | `packages/core/src/usecases/spaces.test.ts`             |
+| Repositories | Vitest, with a libSQL `:memory:` database and real migrations                    | `packages/db/src/repositories/space-repository.test.ts` |
+| LLM adapters | Vitest, with recorded replies. Live parity tests are skipped without credentials | `packages/llm/src/fake-provider.test.ts`                |
+| UI flows     | Playwright end-to-end journeys against a scripted LLM (`pnpm test:e2e`, doc 15)  |                                                         |
 
 ## CI (`.github/workflows/ci.yml`)
 
 1. On every push and pull request: install, `pnpm check`, `pnpm build`.
-2. On pull requests: `tools/check-adr-append-only.sh` (ADR-0001).
+2. On every push and pull request, a separate `e2e` job: build, then `pnpm test:e2e` against the production build (doc 15).
+3. On pull requests: `tools/check-adr-append-only.sh` (ADR-0001).
 
 ## Recipe: add a feature (humans and agents)
 
