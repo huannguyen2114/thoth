@@ -13,8 +13,10 @@
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "0.3.325",
     "@anthropic-ai/sdk": "1.8.0",
+    "@huggingface/transformers": "4.3.2",
     "@thoth/core": "workspace:*",
     "@thoth/db": "workspace:*",
+    "@thoth/embeddings": "workspace:*",
     "@thoth/ingest": "workspace:*",
     "@thoth/llm": "workspace:*",
     "@thoth/ui": "workspace:*",

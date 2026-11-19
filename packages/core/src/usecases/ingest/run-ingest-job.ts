@@ -20,6 +20,8 @@ export interface IngestDeps {
   jobs: JobRepository;
   parser: SourceParser;
   llm: () => Promise<LlmProvider>;
+  /** Called when an `embed` job is claimed; the web app wakes its indexer (ADR-0029). */
+  onEmbedJob?: () => void;
 }
 
 /** Attempts per job, counting the first one. */
@@ -54,6 +56,8 @@ export async function runIngestJob(
   const outcome = await ingest(deps, content, payload, signal);
   if (outcome.ok) {
     await deps.contents.setStatus(contentId, "ready", null);
+    // Vectors come later, in the background: the content is usable now (ADR-0029).
+    await deps.jobs.enqueue("embed", { contentId });
     return { status: "ready" };
   }
 
@@ -172,6 +176,12 @@ async function runJob(
   now: () => Date,
   signal?: AbortSignal,
 ): Promise<JobRunResult> {
+  if (job.kind === "embed") {
+    // A signal only: the indexer embeds every missing segment in batches (ADR-0029).
+    await deps.jobs.complete(job.id);
+    deps.onEmbedJob?.();
+    return "done";
+  }
   const payload = ingestJobPayload.safeParse(job.payload);
   if (job.kind !== "ingest" || !payload.success) {
     await deps.jobs.fail(job.id, `Unknown job: ${job.kind}`, null);

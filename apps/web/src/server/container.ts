@@ -42,6 +42,7 @@ import {
   DrizzleWhiteboardRepository,
   migrateDb,
 } from "@thoth/db";
+import { FakeEmbeddingProvider, TransformersEmbeddingProvider } from "@thoth/embeddings";
 import { SourceIngestor } from "@thoth/ingest";
 import { createLlmProvider, ScriptedLlmProvider } from "@thoth/llm";
 import { env } from "./env";
@@ -102,6 +103,11 @@ async function build(): Promise<Container> {
     plans: new DrizzlePlanRepository(db),
     whiteboards: new DrizzleWhiteboardRepository(db),
     vectors: new DrizzleVectorRepository(db),
+    // Scripted (browser-test) runs use word-hash vectors: no 135 MB download, same code path.
+    embeddings:
+      env.THOTH_LLM === "scripted"
+        ? new FakeEmbeddingProvider()
+        : new TransformersEmbeddingProvider({ cacheDir: resolve(env.THOTH_DATA_DIR, "models") }),
     llm: async () =>
       env.THOTH_LLM === "scripted"
         ? scripted

@@ -11,6 +11,7 @@ import type {
 import type { ChatId, ContentId } from "../../shared/id";
 import { appError, err, ok, type Result } from "../../shared/result";
 import { recordActivity } from "../activity";
+import type { RetrievalDeps } from "../retrieval/retrieve";
 import {
   buildChatContext,
   type ChatContextMode,
@@ -19,7 +20,8 @@ import {
 } from "./context";
 import { buildChatSystemPrompt, chatTitleFrom } from "./prompts";
 
-export interface ChatDeps {
+/** `vectors` and `embeddings` are optional: without them large sources use keywords only. */
+export interface ChatDeps extends RetrievalDeps {
   contents: ContentRepository;
   segments: SegmentRepository;
   chats: ChatRepository;

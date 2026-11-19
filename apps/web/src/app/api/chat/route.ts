@@ -19,6 +19,8 @@ export async function POST(req: Request) {
     {
       contents: c.contents,
       segments: c.segments,
+      vectors: c.vectors,
+      embeddings: c.embeddings,
       chats: c.chats,
       activity: c.activity,
       llm: await c.llm(),

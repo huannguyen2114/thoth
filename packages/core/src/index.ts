@@ -28,6 +28,7 @@ export * from "./usecases/insights";
 export * from "./usecases/llm-settings";
 export * from "./usecases/notes";
 export * from "./usecases/quiz";
+export * from "./usecases/retrieval";
 export * from "./usecases/search";
 export * from "./usecases/spaces";
 export * from "./usecases/study-sets";
