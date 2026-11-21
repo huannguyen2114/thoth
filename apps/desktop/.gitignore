@@ -1,0 +1,7 @@
+# Built or downloaded by scripts/prepare-sidecar.mjs and `tauri build`.
+.cache/
+ui/hearth-tokens.css
+src-tauri/target/
+src-tauri/gen/
+src-tauri/binaries/
+src-tauri/resources/

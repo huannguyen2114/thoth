@@ -1,0 +1,16 @@
+{
+  "name": "@thoth/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare-sidecar": "node scripts/prepare-sidecar.mjs",
+    "dev": "node scripts/prepare-sidecar.mjs --if-missing && node scripts/tauri.mjs dev",
+    "build:app": "node scripts/prepare-sidecar.mjs && node scripts/tauri.mjs build",
+    "smoke": "node scripts/smoke.mjs",
+    "tauri": "node scripts/tauri.mjs"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.12.6"
+  }
+}

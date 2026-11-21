@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Serve on LAN</title>
+    <link rel="stylesheet" href="hearth-tokens.css" />
+    <link rel="stylesheet" href="shell.css" />
+    <script src="lan.js" defer></script>
+  </head>
+  <body>
+    <main class="page">
+      <h1>Serve on LAN</h1>
+
+      <form id="start" class="page" style="padding: 0">
+        <p class="muted">
+          Open Thoth from your phone on the same Wi-Fi, or over Tailscale. Other devices must enter
+          this passcode once. Changing it signs every device out.
+        </p>
+        <label>
+          Passcode (at least 8 characters)
+          <input id="passcode" type="password" minlength="8" autocomplete="new-password" required />
+        </label>
+        <p id="error" class="error" role="alert" hidden></p>
+        <div class="row">
+          <button id="go" class="primary" type="submit" disabled>Start serving</button>
+        </div>
+        <p class="muted small">
+          Plain http on a shared Wi-Fi sends the passcode unencrypted. Away from home, use
+          Tailscale.
+        </p>
+      </form>
+
+      <section id="running" class="page" style="padding: 0" hidden>
+        <p>Thoth is serving on port <span id="port"></span>. Open one of these on your phone:</p>
+        <ul id="urls" class="urls"></ul>
+        <p id="stop-error" class="error" role="alert" hidden></p>
+        <div class="row">
+          <button id="stop" type="button">Stop serving</button>
+        </div>
+        <p class="muted small">Quitting Thoth stops it too.</p>
+      </section>
+    </main>
+  </body>
+</html>
