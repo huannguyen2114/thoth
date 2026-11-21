@@ -1,6 +1,7 @@
 "use client";
 
 import type { Editor } from "@tiptap/react";
+import { flashRange } from "@/features/annotations/text-ranges";
 import { revealInScroller } from "@/features/content-viewer/viewer-context";
 import { quoteBlocks } from "./quote";
 import { canonicalHref } from "./thoth-link";
@@ -40,11 +41,23 @@ export function attachNotes(ownerKey: string, handler: Handler): () => void {
   };
 }
 
-const FLASH = ["ring-2", "ring-accent", "rounded-sm"];
+const FLASH = ["ring-2", "ring-accent"];
 
-function flashEl(el: Element) {
-  el.classList.add(...FLASH);
-  window.setTimeout(() => el.classList.remove(...FLASH), 1400);
+/**
+ * Shows where a quote is. ProseMirror owns the note's DOM and undoes class changes on it, so the
+ * passage is painted with the CSS highlight API, and only the chip (a node view that ignores
+ * DOM changes) gets a ring.
+ */
+function flashQuote(block: Element) {
+  const range = document.createRange();
+  range.selectNodeContents(block);
+  flashRange(range, () => {});
+  const chip = block.matches("[data-thoth-link]")
+    ? block
+    : block.querySelector("[data-thoth-link]");
+  if (!chip) return;
+  chip.classList.add(...FLASH);
+  window.setTimeout(() => chip.classList.remove(...FLASH), 1600);
 }
 
 /** Scrolls `el` to the top of the Notes panel's own scroll box, never the dock around it. */
@@ -68,7 +81,7 @@ export function applyNotesRequest(editor: Editor, req: NotesRequest) {
     const quote = dom.children[dom.children.length - 2];
     if (quote) {
       reveal(quote);
-      flashEl(quote);
+      flashQuote(quote);
     }
     return;
   }
@@ -79,5 +92,5 @@ export function applyNotesRequest(editor: Editor, req: NotesRequest) {
   if (!chip) return;
   const block = chip.closest("blockquote") ?? chip;
   reveal(block);
-  flashEl(block);
+  flashQuote(block);
 }

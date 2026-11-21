@@ -174,7 +174,8 @@ export async function writeAnnotatedPdf(
       });
     }
   }
-  return doc.save();
+  // Plain objects, so readers that skip object streams still see the annotations.
+  return doc.save({ useObjectStreams: false });
 }
 
 function boundsOf(rects: NormRect[], m: ReturnType<typeof mapper>): number[] {
