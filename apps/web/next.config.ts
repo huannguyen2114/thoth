@@ -25,6 +25,8 @@ const nextConfig: NextConfig = {
     // Transformers.js loads ONNX Runtime, a native addon (ADR-0029).
     "@huggingface/transformers",
     "onnxruntime-node",
+    // OS keychain for provider API keys, a native addon (ADR-0037).
+    "@napi-rs/keyring",
   ],
   turbopack: {
     rules: {

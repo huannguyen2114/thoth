@@ -47,7 +47,7 @@ export function ConnectionCheck() {
     <section className="flex flex-col gap-4">
       <h2 className="type-heading-3 text-ink">Check the connection</h2>
       <p className="type-caption text-ink-muted">
-        Save your settings first. Each check sends one short prompt to the selected provider.
+        Save your settings first. Each check sends one short prompt to the provider chat uses.
       </p>
       <div className="flex flex-wrap gap-2">
         <Button

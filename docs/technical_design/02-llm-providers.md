@@ -1,6 +1,6 @@
 # 02. LLM providers
 
-Status: Current (Phase 1). Decisions: ADR-0008, ADR-0013.
+Status: Current (Phase 10). Decisions: ADR-0008, ADR-0013, ADR-0037. OpenAI-compatible providers, profiles, keys and per-task routing: doc 20.
 
 ## Port
 
@@ -10,7 +10,7 @@ Status: Current (Phase 1). Decisions: ADR-0008, ADR-0013.
 classDiagram
   class LlmProvider {
     <<interface>>
-    +id: "anthropic-api" | "claude-subscription" | "fake"
+    +id: "anthropic-api" | "claude-subscription" | "openai-compatible" | "routed" | "fake"
     +generateText(req) Promise~Result~string~~
     +streamText(req) AsyncIterable~LlmStreamEvent~
     +generateObject(req, zodSchema) Promise~Result~T~~
@@ -26,10 +26,12 @@ classDiagram
   }
   LlmProvider <|.. AnthropicApiProvider
   LlmProvider <|.. ClaudeSubscriptionProvider
+  LlmProvider <|.. OpenAiCompatibleProvider
+  LlmProvider <|.. RoutedLlmProvider
   LlmProvider <|.. FakeLlmProvider
 ```
 
-- **`task`** picks the model from the owner's settings (`LlmSettings.models[task]`).
+- **`task`** picks the provider profile and model from the owner's settings (`LlmSettingsV2.tasks[task]`, doc 20).
 - **`effort`** defaults to `defaultEffortByTask[task]` (`packages/core/src/domain/llm-settings.ts`):
 
   | Task       | Default effort |
@@ -52,10 +54,12 @@ classDiagram
 
 ## Adapters (`packages/llm/src`)
 
+The OpenAI-compatible adapter (Ollama, LM Studio, OpenRouter, OpenAI, custom) is described in doc 20.
+
 |                       | `AnthropicApiProvider` (`anthropic-api.ts`)                                                                     | `ClaudeSubscriptionProvider` (`claude-subscription.ts`)                                                                | `FakeLlmProvider`  |
 | --------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------ |
 | **Library**           | `@anthropic-ai/sdk` 1.8, `client.beta.messages`                                                                 | `@anthropic-ai/claude-agent-sdk` 0.3, `query()`                                                                        | none               |
-| **Auth**              | `ANTHROPIC_API_KEY` from `apps/web/.env.local`, or an `ant auth` profile                                        | The `claude` CLI login on this Mac. `ANTHROPIC_API_KEY` is **removed** from its env                                    | none               |
+| **Auth**              | `ANTHROPIC_API_KEY`, else the key saved in the OS keychain, else an `ant auth` profile                          | The `claude` CLI login on this Mac. `ANTHROPIC_API_KEY` is **removed** from its env                                    | none               |
 | **Text**              | `stream(...).finalMessage()`                                                                                    | The `result` message                                                                                                   | canned             |
 | **Streaming**         | `content_block_delta` / `text_delta` events                                                                     | `includePartialMessages: true` → `stream_event` deltas                                                                 | word by word       |
 | **Structured output** | `beta.messages.parse` + `betaZodOutputFormat(schema)`                                                           | `outputFormat: {type: "json_schema", schema: z.toJSONSchema(schema)}`, then zod validates `structured_output`          | `JSON.parse` + zod |
@@ -67,18 +71,20 @@ classDiagram
 
 ```mermaid
 flowchart LR
-  UI[Settings page<br/>features/settings] -->|saveLlmSettingsAction| UC[updateLlmSettings<br/>core use case]
-  UC --> R[(settings table<br/>key = llm)]
-  R --> G[getLlmSettings<br/>defaults if unset]
-  E[env ANTHROPIC_API_KEY] --> F
-  G --> F[createLlmProvider<br/>packages/llm/src/index.ts]
-  F --> C["container.llm()<br/>built per call"]
+  UI[Settings page<br/>features/settings] -->|server actions| UC[LLM settings use cases<br/>core]
+  UC --> R[(settings table<br/>key = llm, v2)]
+  UC --> K[(OS keychain)]
+  R --> G[getLlmSettings<br/>defaults if unset, v1 upgraded]
+  G --> F[createLlmProvider<br/>RoutedLlmProvider]
+  K --> F
+  E[env keys] --> F
+  F --> C["container.llm(task?)<br/>built per call"]
   C --> X[use cases / routes]
 ```
 
-- **The default settings** are `provider: "claude-subscription"` and `claude-opus-5-5` for every task. Options are Opus 5.5, Sonnet 5.5 and Haiku 5.5.
-- **`container.llm()` is rebuilt on every call,** so a settings change applies on the next request without a restart.
-- **`@anthropic-ai/claude-agent-sdk` is in `serverExternalPackages`,** because it spawns the Claude Code CLI from its own package folder.
+- **The default settings** route every task to the Claude subscription with `claude-opus-5-5`. A stored v1 value (one provider for every task) upgrades on read.
+- **`container.llm()`** returns a router that dispatches each request by `request.task`; `container.llm(task)` returns that task's adapter. It is rebuilt on every call, so a settings change applies on the next request without a restart.
+- **`@anthropic-ai/claude-agent-sdk` and `@napi-rs/keyring` are in `serverExternalPackages`.**
 
 ## Streaming over HTTP
 
@@ -89,12 +95,12 @@ flowchart LR
 | Message                                                         | Fix                                                                         |
 | --------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | `Claude Code: Failed to authenticate ... Run claude ... /login` | In a terminal, run `claude`, then `/login`. The Agent SDK shares this login |
-| `No API key found. Set ANTHROPIC_API_KEY ...`                   | Add the key to `apps/web/.env.local`, then restart `pnpm dev`               |
+| `No API key found. Set ANTHROPIC_API_KEY ...`                   | Add the key in Settings (keychain), or to `apps/web/.env.local` and restart |
 | `The API key was rejected`                                      | The key is wrong or revoked                                                 |
 
 ## Rules
 
 - **Prompts live next to their use case** (`packages/core/src/usecases/<feature>/prompts.ts`), not in adapters.
-- **Never send the API key to the client.** Settings only show whether a key is present.
+- **Never send an API key to the client.** Settings only show "Key saved" or "From environment".
 - **Every `generateObject` schema gets a unit test** with a good reply and a bad one.
 - **Adapter tests stub the SDK** (`anthropic-api.test.ts`, `claude-subscription.test.ts`) and assert the request shape, the isolation options and the error mapping. **There is no live call in CI.**

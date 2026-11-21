@@ -31,7 +31,8 @@ export type LlmStreamEvent =
   | { type: "error"; message: string };
 
 export interface LlmProvider {
-  readonly id: LlmProviderId | "fake";
+  /** The adapter kind. "routed" is the per-task dispatcher the container hands out (doc 20). */
+  readonly id: LlmProviderId | "routed" | "fake";
   generateText(req: LlmRequest): Promise<Result<string>>;
   streamText(req: LlmRequest): AsyncIterable<LlmStreamEvent>;
   generateObject<S extends z.ZodType>(req: LlmRequest, schema: S): Promise<Result<z.infer<S>>>;

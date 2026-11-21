@@ -1,22 +1,21 @@
-import type { LlmProvider, LlmSettings } from "@thoth/core";
-import { AnthropicApiProvider } from "./anthropic-api";
-import { ClaudeSubscriptionProvider } from "./claude-subscription";
+import type { LlmSettingsV2 } from "@thoth/core";
+import { RoutedLlmProvider, type RouterDeps } from "./router";
 
 export { AnthropicApiProvider } from "./anthropic-api";
 export { ClaudeSubscriptionProvider } from "./claude-subscription";
 export { FakeLlmProvider } from "./fake-provider";
+export {
+  OpenAiCompatibleProvider,
+  type ProbeResult,
+  probeOpenAiCompatible,
+} from "./openai-compatible";
+export { buildAdapter, RoutedLlmProvider, type RouterDeps } from "./router";
 export { ScriptedLlmProvider } from "./scripted-provider";
 
-export interface ProviderEnv {
-  anthropicApiKey?: string | undefined;
-}
-
-/** Builds the provider the owner selected in Settings. Called by the composition root. */
-export function createLlmProvider(settings: LlmSettings, env: ProviderEnv = {}): LlmProvider {
-  switch (settings.provider) {
-    case "anthropic-api":
-      return new AnthropicApiProvider({ models: settings.models, apiKey: env.anthropicApiKey });
-    case "claude-subscription":
-      return new ClaudeSubscriptionProvider({ models: settings.models });
-  }
+/**
+ * Builds the provider for the saved settings: a router that sends each request to its task's
+ * profile and model (doc 20). Called only by the composition root.
+ */
+export function createLlmProvider(settings: LlmSettingsV2, deps: RouterDeps): RoutedLlmProvider {
+  return new RoutedLlmProvider(settings, deps);
 }

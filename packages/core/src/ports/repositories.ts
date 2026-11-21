@@ -16,7 +16,7 @@ import type { ExamSession } from "../domain/exam";
 import type { Flashcard, FsrsState, NewFlashcard, Review, ReviewRating } from "../domain/flashcard";
 import type { Job, JobKind } from "../domain/job";
 import type { SourceAnchor } from "../domain/link";
-import type { LlmSettings } from "../domain/llm-settings";
+import type { LlmSettingsV2 } from "../domain/llm-profiles";
 import type { Note, NoteOwner } from "../domain/note";
 import type { NewPlanItem, NewStudyPlan, PlanItem, StudyPlan } from "../domain/plan";
 import type { NewQuizAttempt, NewQuizQuestion, QuizAttempt, QuizQuestion } from "../domain/quiz";
@@ -158,9 +158,9 @@ export interface JobRepository {
 }
 
 export interface SettingsRepository {
-  /** Returns null when the owner has never saved LLM settings. */
-  getLlmSettings(): Promise<LlmSettings | null>;
-  saveLlmSettings(settings: LlmSettings): Promise<void>;
+  /** Returns null when the owner has never saved LLM settings. Stored v1 values upgrade on read. */
+  getLlmSettings(): Promise<LlmSettingsV2 | null>;
+  saveLlmSettings(settings: LlmSettingsV2): Promise<void>;
 }
 
 /** Habit tracker log (ADR-0023). Use cases record through this; recording never blocks them. */

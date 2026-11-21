@@ -1,5 +1,5 @@
 import type { Options, query } from "@anthropic-ai/claude-agent-sdk";
-import { defaultLlmSettings } from "@thoth/core";
+import { llmTasks } from "@thoth/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { z } from "zod";
 import { ClaudeSubscriptionProvider, toCliJsonSchema, toPrompt } from "./claude-subscription";
@@ -31,7 +31,10 @@ const req = {
   system: "S",
   messages: [{ role: "user" as const, content: "hi" }],
 };
-const models = defaultLlmSettings.models;
+const models = Object.fromEntries(llmTasks.map((t) => [t, "claude-opus-5-5"])) as Record<
+  (typeof llmTasks)[number],
+  string
+>;
 
 describe("ClaudeSubscriptionProvider", () => {
   const original = process.env.ANTHROPIC_API_KEY;

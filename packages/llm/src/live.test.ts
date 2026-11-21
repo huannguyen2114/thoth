@@ -4,17 +4,15 @@
  *   THOTH_LIVE=api,subscription THOTH_LIVE_MODEL=claude-haiku-5-5 pnpm --filter @thoth/llm test live
  * Each run sends a few short prompts and uses real quota.
  */
-import { type defaultLlmSettings, type LlmModel, type LlmProvider, llmTasks } from "@thoth/core";
+import { type LlmProvider, type LlmTask, llmTasks } from "@thoth/core";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { AnthropicApiProvider } from "./anthropic-api";
 import { ClaudeSubscriptionProvider } from "./claude-subscription";
 
 const enabled = (process.env.THOTH_LIVE ?? "").split(",").filter(Boolean);
-const model = (process.env.THOTH_LIVE_MODEL ?? "claude-sonnet-5-5") as LlmModel;
-const models = Object.fromEntries(
-  llmTasks.map((t) => [t, model]),
-) as typeof defaultLlmSettings.models;
+const model = process.env.THOTH_LIVE_MODEL ?? "claude-sonnet-5-5";
+const models = Object.fromEntries(llmTasks.map((t) => [t, model])) as Record<LlmTask, string>;
 
 const providers: [string, () => LlmProvider][] = [
   ["subscription", () => new ClaudeSubscriptionProvider({ models })],

@@ -1,5 +1,5 @@
 import type Anthropic from "@anthropic-ai/sdk";
-import { defaultLlmSettings } from "@thoth/core";
+import { llmTasks } from "@thoth/core";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { AnthropicApiProvider } from "./anthropic-api";
@@ -43,7 +43,11 @@ const ok: Msg = {
   content: [{ type: "text", text: "Hello" }],
   usage: { input_tokens: 3, output_tokens: 1 },
 };
-const models = { ...defaultLlmSettings.models, chapters: "claude-haiku-5-5" as const };
+const opus = Object.fromEntries(llmTasks.map((t) => [t, "claude-opus-5-5"])) as Record<
+  (typeof llmTasks)[number],
+  string
+>;
+const models = { ...opus, chapters: "claude-haiku-5-5" };
 
 describe("AnthropicApiProvider", () => {
   it("sends effort, cached context and refusal fallbacks for Opus 5.5", async () => {

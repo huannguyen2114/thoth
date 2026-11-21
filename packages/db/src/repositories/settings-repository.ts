@@ -1,4 +1,4 @@
-import { type LlmSettings, llmSettingsSchema, type SettingsRepository } from "@thoth/core";
+import { type LlmSettingsV2, readLlmSettings, type SettingsRepository } from "@thoth/core";
 import { eq, sql } from "drizzle-orm";
 import type { Db } from "../client";
 import { settings } from "../schema";
@@ -8,15 +8,15 @@ const LLM_KEY = "llm";
 export class DrizzleSettingsRepository implements SettingsRepository {
   constructor(private readonly db: Db) {}
 
-  async getLlmSettings(): Promise<LlmSettings | null> {
+  /** Reads v1 or v2 (doc 20). A v1 row is upgraded in memory and rewritten on the next save. */
+  async getLlmSettings(): Promise<LlmSettingsV2 | null> {
     const row = await this.db.query.settings.findFirst({ where: eq(settings.key, LLM_KEY) });
     if (!row) return null;
     // Stored JSON may predate a schema change: ignore it rather than crash.
-    const parsed = llmSettingsSchema.safeParse(row.value);
-    return parsed.success ? parsed.data : null;
+    return readLlmSettings(row.value);
   }
 
-  async saveLlmSettings(value: LlmSettings): Promise<void> {
+  async saveLlmSettings(value: LlmSettingsV2): Promise<void> {
     await this.db
       .insert(settings)
       .values({ key: LLM_KEY, value })
