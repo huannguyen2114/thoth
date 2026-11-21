@@ -1,4 +1,4 @@
-import { type Content, listRecentContents } from "@thoth/core";
+import { type Content, listRecentContents, listTags, type Tag, tagsByContent } from "@thoth/core";
 import Link from "next/link";
 import { connection } from "next/server";
 import { getContainer } from "@/server/container";
@@ -6,11 +6,17 @@ import { retryContentAction } from "./actions";
 import { KindIcon, kindLabels } from "./icons";
 import { RefreshWhileBusy } from "./refresh-while-busy";
 import { StatusBadge } from "./status-badge";
+import { TagButton, TagChip, TagFilteredList } from "./tags";
 
 /** Server Component: the newest contents with live status (refreshes while any is busy). */
 export async function RecentsList() {
   await connection();
-  const contents = await listRecentContents(await getContainer(), 20);
+  const c = await getContainer();
+  const [contents, tags, byContent] = await Promise.all([
+    listRecentContents(c, 20),
+    listTags(c),
+    tagsByContent(c),
+  ]);
 
   if (contents.length === 0) {
     return (
@@ -27,18 +33,33 @@ export async function RecentsList() {
   return (
     <>
       <RefreshWhileBusy busy={busy} />
-      <ul className="flex flex-col divide-y divide-border-subtle rounded-lg border border-border-subtle bg-surface-200">
-        {contents.map((c) => (
-          <RecentItem key={c.id} content={c} />
-        ))}
-      </ul>
+      <TagFilteredList
+        tags={tags}
+        items={contents.map((x) => {
+          const own = byContent.get(x.id) ?? [];
+          return {
+            id: x.id,
+            title: x.title,
+            tagIds: own.map((t) => t.id),
+            node: <RecentItem content={x} tags={own} allTags={tags} />,
+          };
+        })}
+      />
     </>
   );
 }
 
-function RecentItem({ content: c }: { content: Content }) {
+function RecentItem({
+  content: c,
+  tags,
+  allTags,
+}: {
+  content: Content;
+  tags: Tag[];
+  allTags: Tag[];
+}) {
   return (
-    <li className="flex items-start gap-3 px-4 py-3">
+    <div className="flex items-start gap-3 px-4 py-3">
       <span className="mt-1 text-ink-muted" title={kindLabels[c.kind]}>
         <KindIcon kind={c.kind} />
         <span className="sr-only">{kindLabels[c.kind]}</span>
@@ -78,8 +99,16 @@ function RecentItem({ content: c }: { content: Content }) {
             </button>
           </form>
         )}
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {tags.map((t) => (
+              <TagChip key={t.id} tag={t} />
+            ))}
+          </div>
+        )}
       </div>
-    </li>
+      <TagButton contentId={c.id} title={c.title} assigned={tags} all={allTags} />
+    </div>
   );
 }
 

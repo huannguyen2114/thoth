@@ -79,3 +79,9 @@ export function parseText(text: string): Result<ParsedSource, IngestFailure> {
   const title = titleFromText(normalizeWhitespace(text)) || "Pasted text";
   return ok({ title, segments });
 }
+export {
+  parsePlaylistData,
+  parseYtDlpPlaylist,
+  readInitialData,
+  YoutubePlaylistLister,
+} from "./youtube-playlist";

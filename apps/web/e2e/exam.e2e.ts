@@ -18,11 +18,13 @@ test("creates a space, adds a content, sits an exam and sees the topic breakdown
     .click();
   await expect(page.getByRole("heading", { level: 1, name: spaceName })).toBeVisible();
 
-  // Add the content to it.
+  // Add the content to it (Contents tab).
+  await page.getByRole("tablist", { name: "Space" }).getByRole("tab", { name: "Contents" }).click();
   await page.getByLabel("Add content to this space").selectOption({ label: contentTitle });
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await expect(page.getByRole("link", { name: contentTitle })).toBeVisible();
 
+  await page.getByRole("tablist", { name: "Space" }).getByRole("tab", { name: "Exams" }).click();
   // A small exam: the scripted questions are multiple choice, true or false and free response.
   await page.getByRole("button", { name: "New exam" }).click();
   const dialog = page.getByRole("dialog", { name: "New exam" });

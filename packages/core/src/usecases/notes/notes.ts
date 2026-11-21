@@ -77,8 +77,12 @@ export async function saveNote(
       })),
     );
   }
-  // History links a note edit to its content; space notes are logged by Lane 4 (doc 22).
-  if ("contentId" in owner) await recordActivity(deps.activity, "note_edit", owner.contentId);
+  // The ref is the owner id: History resolves a content first, then a space (doc 22).
+  await recordActivity(
+    deps.activity,
+    "note_edit",
+    "contentId" in owner ? owner.contentId : owner.spaceId,
+  );
   return ok(note);
 }
 

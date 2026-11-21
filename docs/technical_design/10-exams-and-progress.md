@@ -1,6 +1,6 @@
 # 10. Exams, spaces and progress
 
-Status: Current (Phase 7). Decisions: ADR-0018, ADR-0019, ADR-0016, ADR-0017.
+Status: Current (Phase 7, space page reshaped in Phase 10). Decisions: ADR-0018, ADR-0019, ADR-0016, ADR-0017. The rest of the space page (chat, dashboard, notes, board, tags, bulk add) is in doc 22.
 
 ## Flow
 
@@ -12,7 +12,7 @@ sequenceDiagram
   participant C as core usecases/exams
   participant L as LLM (task quiz, grading)
   participant D as SQLite
-  U->>S: add contents to the space, New exam
+  U->>S: Contents tab: add contents; Exams tab: New exam
   S->>A: generateExamAction(spaceId, options)
   A->>C: startExamGeneration → set "generating"
   A-->>S: returns at once; after(): runExamGeneration
@@ -36,10 +36,10 @@ sequenceDiagram
 | Generation, sitting, grading, results                            | `packages/core/src/usecases/exams/exams.ts`                                                               |
 | Sampling across chapters, question allocation, chapter lookup    | `packages/core/src/usecases/exams/sampling.ts`                                                            |
 | Progress and "Practice weak spots"                               | `packages/core/src/usecases/exams/progress.ts`                                                            |
-| Space overview, move content to a space                          | `packages/core/src/usecases/spaces.ts`                                                                    |
+| Space overview, move content to a space                          | `packages/core/src/usecases/spaces/{spaces,organise}.ts` (doc 22)                                         |
 | Exam session repository                                          | `packages/db/src/repositories/exam-session-repository.ts`                                                 |
 | Exam UI: dialog, exam list, timed runner, results                | `apps/web/src/features/quiz/exam/` (inside the quiz feature, because it reuses `QuestionInput`, ADR-0012) |
-| Space contents UI                                                | `apps/web/src/features/spaces/space-contents.tsx`                                                         |
+| Space contents UI (Contents tab)                                 | `apps/web/src/features/spaces/space-contents.tsx` (doc 22)                                                |
 | Progress UI                                                      | `apps/web/src/features/progress/`                                                                         |
 | Routes                                                           | `app/spaces/[id]`, `app/exams/[setId]`, `app/progress`                                                    |
 | Deep links to a citation                                         | `app/content/[id]?at=[p.3]` → `features/content-viewer/initial-jump.tsx`                                  |
@@ -48,6 +48,7 @@ sequenceDiagram
 
 - **Answer keys stay on the server until submit.** Never send `QuizQuestion.answer` or `explanation` to an exam page before grading. Use `toExamQuestionView`.
 - **A sitting resumes, never restarts.** `startExam` returns the open, unexpired session. A reload keeps the same deadline. Unsent answers are kept in `localStorage`, for that viewer only.
+- **Progress per space.** `getProgress(deps, now, { spaceId })` covers only the space's contents' quizzes, its exams and its contents' flashcards. The space dashboard (doc 22) uses it.
 - **Scoring:**
   - The score is the mean over **all** questions, with unanswered counted as 0.
   - Topic scores in the results use the same rule.

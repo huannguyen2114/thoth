@@ -1,13 +1,17 @@
 import {
   buildChatSystemPrompt,
   buildNotesSystem,
+  buildSpaceChatSystemPrompt,
   buildSummarySystem,
   CHAPTERS_SYSTEM,
+  type ContentId,
   chaptersOutputSchema,
   chaptersUserPrompt,
   type LlmRequest,
+  linkSpaceCitations,
   notesUserMessage,
   parseCitations,
+  parseLinks,
   summaryUserMessage,
 } from "@thoth/core";
 import { describe, expect, it } from "vitest";
@@ -162,6 +166,28 @@ describe("ScriptedLlmProvider", () => {
     expect(last).toBe("done");
     expect(parseCitations(text)[0]?.raw).toBe("[p.2]");
     expect(text).toContain("What is photosynthesis?");
+  });
+
+  it("streams a space chat answer citing the first passage of the first two sources", async () => {
+    const { text } = await collect({
+      task: "chat",
+      system: buildSpaceChatSystemPrompt({ spaceName: "Bio", mode: "full", instructions: null }),
+      context: [
+        `<source id="S1" title="Plants" kind="pdf">\n${context}\n</source>`,
+        '<source id="S2" title="Cells" kind="text">\n[§1] Cells divide.\n[§2] More.\n</source>',
+      ].join("\n\n"),
+      messages: [{ role: "user", content: "How do plants eat?" }],
+    });
+    expect(text).toContain("[S1 p.2]");
+    expect(text).toContain("[S2 §1]");
+    const linked = linkSpaceCitations(text, [
+      { label: "S1", contentId: "a" as ContentId, title: "Plants", kind: "pdf" },
+      { label: "S2", contentId: "b" as ContentId, title: "Cells", kind: "text" },
+    ]);
+    expect(parseLinks(linked).map((l) => l.href)).toEqual([
+      "thoth:c/a?at=p.2",
+      "thoth:c/b?at=par.1",
+    ]);
   });
 
   it("streams a summary and notes with citations", async () => {

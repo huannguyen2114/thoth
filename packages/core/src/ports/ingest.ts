@@ -37,3 +37,20 @@ export const ingestFailure = (
   cause === undefined
     ? { code: "ingest_failed", message, retryable }
     : { code: "ingest_failed", message, retryable, cause };
+
+/** One video of a YouTube playlist (Phase 10 bulk add, doc 22). */
+export interface PlaylistVideo {
+  /** The 11-character video id. */
+  id: string;
+  title: string | null;
+}
+
+export interface PlaylistListing {
+  title: string | null;
+  videos: PlaylistVideo[];
+}
+
+/** Lists a YouTube playlist's videos. Implemented in @thoth/ingest; never downloads media. */
+export interface PlaylistLister {
+  list(playlistId: string, signal?: AbortSignal): Promise<Result<PlaylistListing, IngestFailure>>;
+}

@@ -1,0 +1,10 @@
+{
+  "_type": "playlist",
+  "id": "PLlong000000",
+  "title": "Long course",
+  "entries": [
+    { "_type": "url", "ie_key": "Youtube", "id": "ccccccccc_3", "title": "Week 3" },
+    { "_type": "url", "ie_key": "Youtube", "id": "ddddddddd-4", "title": "Week 4" },
+    { "_type": "url", "id": "[private]", "title": "[Private video]" }
+  ]
+}

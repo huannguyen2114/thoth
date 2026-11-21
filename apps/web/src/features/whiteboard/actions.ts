@@ -6,13 +6,16 @@ import {
   type BoardElement,
   type ContentId,
   createBoard,
+  createSpaceBoard,
   deleteBoard,
   generateMindMap,
   getBoard,
   listBoards,
   listSourceAnchors,
+  listSpaceBoards,
   renameBoard,
   type SourcePlace,
+  type SpaceId,
   type Whiteboard,
   type WhiteboardId,
 } from "@thoth/core";
@@ -178,4 +181,26 @@ export async function readRunAction(runId: string): Promise<RunState | null> {
 
 export async function stopRunAction(runId: string): Promise<void> {
   whiteboardRuns().stop(runId);
+}
+
+/** A space's boards (Phase 10, doc 22): same list shape as a content's. */
+export async function listSpaceBoardsAction(spaceId: string): Promise<BoardSummaryDto[]> {
+  const boards = await listSpaceBoards(await deps(), spaceId as SpaceId);
+  const runs = whiteboardRuns();
+  return boards.map((b) => ({
+    id: b.id,
+    title: b.title,
+    count: b.elements.length,
+    updatedAt: b.updatedAt.getTime(),
+    running: runs.runningOn(b.id),
+  }));
+}
+
+export async function createSpaceBoardAction(spaceId: string): Promise<ActionResult<BoardDto>> {
+  const c = await getContainer();
+  const r = await createSpaceBoard(
+    { whiteboards: c.whiteboards, spaces: c.spaces },
+    { spaceId: spaceId as SpaceId },
+  );
+  return r.ok ? { ok: true, value: toDto(r.value) } : { ok: false, error: r.error.message };
 }

@@ -1,0 +1,119 @@
+/*
+ * Accent swatches for tags and spaces (doc 22, ADR-0040 draft). Hearth has one brand hue, so the
+ * nine accent names are derived from Hearth's semantic tokens with color-mix: no hex, and both
+ * themes follow automatically because every input is a theme token. Text on a tint stays `ink`;
+ * the accent itself is only a dot, an icon or a ring.
+ */
+[data-accent] {
+  --accent-fg: var(--color-ink-muted);
+  --accent-tint: color-mix(in oklab, var(--accent-fg) 14%, var(--color-surface-200));
+}
+[data-accent="red"] {
+  --accent-fg: var(--color-danger);
+}
+[data-accent="orange"] {
+  --accent-fg: var(--color-accent);
+}
+[data-accent="yellow"] {
+  --accent-fg: var(--color-warning);
+}
+[data-accent="green"] {
+  --accent-fg: color-mix(in oklch, var(--color-success) 55%, var(--color-warning));
+}
+[data-accent="teal"] {
+  --accent-fg: var(--color-success);
+}
+[data-accent="blue"] {
+  --accent-fg: var(--color-info);
+}
+[data-accent="purple"] {
+  --accent-fg: color-mix(in oklch, var(--color-info) 55%, var(--color-danger));
+}
+[data-accent="pink"] {
+  --accent-fg: color-mix(in oklch, var(--color-danger) 78%, var(--color-info));
+}
+
+.accent-fg {
+  color: var(--accent-fg);
+}
+.accent-dot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--accent-fg);
+}
+.accent-tint {
+  background: var(--accent-tint);
+}
+
+/* A tag as a chip: tint ground, ink text, accent dot. Pressed (selected filter) gets a ring. */
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 1.75rem;
+  padding-inline: 0.625rem;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background: var(--accent-tint);
+  color: var(--color-ink);
+  transition:
+    border-color 150ms cubic-bezier(0.2, 0, 0, 1),
+    background-color 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+button.tag-chip:hover {
+  border-color: var(--accent-fg);
+}
+.tag-chip[aria-pressed="true"] {
+  border-color: var(--accent-fg);
+  box-shadow: inset 0 0 0 1px var(--accent-fg);
+}
+@media (max-width: 767px) {
+  button.tag-chip {
+    min-height: 2.75rem;
+  }
+}
+
+/* A colour picker swatch: a round button showing the accent, ringed when chosen. */
+.accent-swatch {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+}
+.accent-swatch::after {
+  content: "";
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  background: var(--accent-fg);
+}
+.accent-swatch:has(input:checked) {
+  border-color: var(--color-ink);
+}
+.accent-swatch:has(input:focus-visible),
+.icon-choice:has(input:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+@media (max-width: 767px) {
+  .accent-swatch {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+
+/* A row that accepts a dragged content (Contents tab, sidebar spaces). */
+.drop-target[data-over="true"] {
+  background: var(--color-accent-tint);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tag-chip {
+    transition: none;
+  }
+}

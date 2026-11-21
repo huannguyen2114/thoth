@@ -2,14 +2,17 @@
 
 import type { BoardElement } from "@thoth/core";
 import { Button, CancelButton, cx, Dialog } from "@thoth/ui";
+import { useRouter } from "next/navigation";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type Command, useCommands } from "@/app/_components/commands";
 import type { LearnTool, LearnToolProps } from "@/features/learn-panel/types";
 import {
   type BoardSummaryDto,
   createBoardAction,
+  createSpaceBoardAction,
   deleteBoardAction,
   listBoardsAction,
+  listSpaceBoardsAction,
   renameBoardAction,
   startMindMapAction,
 } from "./actions";
@@ -172,18 +175,23 @@ function OpenBoard({
   initialRun,
   header,
   onTouched,
+  spaceContents,
 }: {
   boardId: string;
-  contentId: string;
-  onCite?: ((token: string) => void) | undefined;
+  /** The board's own content; null on a space board, which links any content of the space. */
+  contentId: string | null;
+  onCite?: ((token: string, contentId?: string) => void) | undefined;
   initialRun: { id: string; kind: RunKind } | null;
   header: ReactNode;
   onTouched: () => void;
+  spaceContents?: { id: string; title: string }[] | undefined;
 }) {
   const state = useBoard(boardId, initialRun);
   const phone = usePhone();
   const [selected, setSelected] = useState<string[]>([]);
   const [linking, setLinking] = useState<string[] | null>(null);
+  // On a space board "Link to source…" first asks which content (doc 22).
+  const [linkContent, setLinkContent] = useState<string | null>(contentId);
   const composer = useRef<HTMLTextAreaElement>(null);
 
   // A finished run changes the board list (counts, "Drawing…").
@@ -210,12 +218,19 @@ function OpenBoard({
 
   const link = (token: string) => {
     const ids = new Set(linking ?? []);
+    const target = linkContent;
+    if (!target) return;
     state.change((els) =>
       els.map((e) =>
-        ids.has(e.id) ? ({ ...e, source: { contentId, token } } as BoardElement) : e,
+        ids.has(e.id) ? ({ ...e, source: { contentId: target, token } } as BoardElement) : e,
       ),
     );
     setLinking(null);
+    if (!contentId) setLinkContent(null);
+  };
+  const closeLinking = () => {
+    setLinking(null);
+    if (!contentId) setLinkContent(null);
   };
   const linkingCurrent = useMemo(() => {
     const tokens = new Set(
@@ -267,7 +282,7 @@ function OpenBoard({
               setSelected={setSelected}
               readOnly={phone}
               onCite={onCite}
-              contentId={contentId}
+              contentId={contentId ?? ""}
               bottomInset={COMPOSER_INSET}
               onLinkSource={(ids) => setLinking(ids)}
             />
@@ -288,13 +303,34 @@ function OpenBoard({
           </>
         )}
       </div>
-      {linking && (
+      {linking && linkContent && (
         <SourcePicker
-          contentId={contentId}
+          contentId={linkContent}
           current={linkingCurrent}
           onPick={link}
-          onClose={() => setLinking(null)}
+          onClose={closeLinking}
         />
+      )}
+      {linking && !linkContent && (
+        <Dialog title="Link to which source?" onClose={closeLinking}>
+          {(spaceContents ?? []).length === 0 ? (
+            <p className="text-ink-muted">Add a content to this space first.</p>
+          ) : (
+            <ul className="flex flex-col divide-y divide-border-subtle">
+              {(spaceContents ?? []).map((c) => (
+                <li key={c.id}>
+                  <button
+                    type="button"
+                    className="menu__item w-full"
+                    onClick={() => setLinkContent(c.id)}
+                  >
+                    <span className="truncate">{c.title}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Dialog>
       )}
     </div>
   );
@@ -321,7 +357,52 @@ function MindMapSkeleton() {
   );
 }
 
+/**
+ * Who owns the boards: a content (the Learn panel) or a space (the space page's Board tab,
+ * doc 22). A space board has no mind map (that needs one source) and links any of its contents.
+ */
+export type BoardOwner =
+  | { kind: "content"; contentId: string }
+  | { kind: "space"; spaceId: string; contents: { id: string; title: string }[] };
+
 function WhiteboardPanel({ contentId, onCite }: LearnToolProps) {
+  return <BoardsPanel owner={{ kind: "content", contentId }} onCite={onCite} />;
+}
+
+/** The whiteboard of a space (doc 22): a citation badge opens its content at the spot. */
+export function SpaceWhiteboard({
+  spaceId,
+  contents,
+}: {
+  spaceId: string;
+  contents: { id: string; title: string }[];
+}) {
+  const router = useRouter();
+  const owner = useMemo<BoardOwner>(
+    () => ({ kind: "space", spaceId, contents }),
+    [spaceId, contents],
+  );
+  return (
+    <BoardsPanel
+      owner={owner}
+      onCite={(token, cid) => cid && router.push(`/content/${cid}?at=${encodeURIComponent(token)}`)}
+    />
+  );
+}
+
+function BoardsPanel({
+  owner,
+  onCite,
+}: {
+  owner: BoardOwner;
+  onCite?: ((token: string, contentId?: string) => void) | undefined;
+}) {
+  const ownerId = owner.kind === "content" ? owner.contentId : owner.spaceId;
+  const contentId = owner.kind === "content" ? owner.contentId : null;
+  const listFor = useCallback(
+    (id: string) => (owner.kind === "content" ? listBoardsAction(id) : listSpaceBoardsAction(id)),
+    [owner.kind],
+  );
   const [boards, setBoards] = useState<BoardSummaryDto[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [initialRun, setInitialRun] = useState<{ id: string; kind: RunKind } | null>(null);
@@ -332,14 +413,14 @@ function WhiteboardPanel({ contentId, onCite }: LearnToolProps) {
   const [busy, setBusy] = useState(false);
 
   const refresh = useCallback(async () => {
-    const list = await listBoardsAction(contentId);
+    const list = await listFor(ownerId);
     setBoards(list);
     return list;
-  }, [contentId]);
+  }, [listFor, ownerId]);
 
   useEffect(() => {
     let cancelled = false;
-    listBoardsAction(contentId)
+    listFor(ownerId)
       .then((list) => {
         if (cancelled) return;
         setBoards(list);
@@ -353,7 +434,7 @@ function WhiteboardPanel({ contentId, onCite }: LearnToolProps) {
     return () => {
       cancelled = true;
     };
-  }, [contentId]);
+  }, [listFor, ownerId]);
 
   const open = (id: string) => {
     setOpenId(id);
@@ -362,7 +443,10 @@ function WhiteboardPanel({ contentId, onCite }: LearnToolProps) {
 
   async function newBoard() {
     setBusy(true);
-    const r = await createBoardAction(contentId);
+    const r =
+      owner.kind === "content"
+        ? await createBoardAction(owner.contentId)
+        : await createSpaceBoardAction(owner.spaceId);
     setBusy(false);
     if (!r.ok) return setError(r.error);
     await refresh();
@@ -371,6 +455,7 @@ function WhiteboardPanel({ contentId, onCite }: LearnToolProps) {
   }
 
   async function mindMap(focus: string) {
+    if (!contentId) return;
     setBusy(true);
     const r = await startMindMapAction(contentId, focus);
     setBusy(false);
@@ -401,6 +486,7 @@ function WhiteboardPanel({ contentId, onCite }: LearnToolProps) {
 
   const newBoardRef = useRef(newBoard);
   newBoardRef.current = newBoard;
+  const canMap = contentId !== null;
   const panelCommands = useMemo<Command[]>(
     () => [
       {
@@ -409,15 +495,19 @@ function WhiteboardPanel({ contentId, onCite }: LearnToolProps) {
         label: "New whiteboard",
         run: () => void newBoardRef.current(),
       },
-      {
-        id: "wb-mindmap",
-        group: "Whiteboard",
-        label: "Make a mind map",
-        keywords: ["whiteboard", "concept map"],
-        run: () => setAskingMap(true),
-      },
+      ...(canMap
+        ? [
+            {
+              id: "wb-mindmap",
+              group: "Whiteboard",
+              label: "Make a mind map",
+              keywords: ["whiteboard", "concept map"],
+              run: () => setAskingMap(true),
+            },
+          ]
+        : []),
     ],
-    [],
+    [canMap],
   );
   useCommands("Whiteboard panel", panelCommands);
 
@@ -447,9 +537,11 @@ function WhiteboardPanel({ contentId, onCite }: LearnToolProps) {
         onDelete={() => setDeleting(true)}
       />
       <div className="ml-auto flex items-center gap-2">
-        <Button size="sm" variant="secondary" onClick={() => setAskingMap(true)} disabled={busy}>
-          Mind map
-        </Button>
+        {canMap && (
+          <Button size="sm" variant="secondary" onClick={() => setAskingMap(true)} disabled={busy}>
+            Mind map
+          </Button>
+        )}
         <Button size="sm" variant="ghost" onClick={() => void newBoard()} disabled={busy}>
           New board
         </Button>
@@ -473,19 +565,28 @@ function WhiteboardPanel({ contentId, onCite }: LearnToolProps) {
           initialRun={initialRun}
           header={header}
           onTouched={() => void refresh()}
+          spaceContents={owner.kind === "space" ? owner.contents : undefined}
         />
       ) : (
         <div className="grid flex-1 place-items-center rounded-lg border border-border-subtle bg-surface-200 p-6 text-center">
           <div className="max-w-sm">
             <h3 className="type-heading-3 text-ink">No boards yet</h3>
             <p className="mt-1 text-ink-muted">
-              Let Claude map the chapters, or start a blank board and ask it to explain something.
+              {canMap
+                ? "Let Claude map the chapters, or start a blank board and ask it to explain something."
+                : "Start a board for the whole space: sketch how its sources connect, and link any note to its source."}
             </p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              <Button variant="primary" onClick={() => setAskingMap(true)} disabled={busy}>
-                Make a mind map
-              </Button>
-              <Button variant="secondary" onClick={() => void newBoard()} disabled={busy}>
+              {canMap && (
+                <Button variant="primary" onClick={() => setAskingMap(true)} disabled={busy}>
+                  Make a mind map
+                </Button>
+              )}
+              <Button
+                variant={canMap ? "secondary" : "primary"}
+                onClick={() => void newBoard()}
+                disabled={busy}
+              >
                 New board
               </Button>
             </div>

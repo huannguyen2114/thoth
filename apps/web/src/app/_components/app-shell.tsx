@@ -10,7 +10,12 @@ import { Sidebar } from "./sidebar";
 /** Spaces for the sidebar and palette: data, so it streams in after the frame paints. */
 async function ShellData() {
   await connection();
-  const spaces = (await listSpaces(await getContainer())).map((s) => ({ id: s.id, name: s.name }));
+  const spaces = (await listSpaces(await getContainer())).map((s) => ({
+    id: s.id,
+    name: s.name,
+    color: s.color,
+    icon: s.icon,
+  }));
   return (
     <>
       <Sidebar spaces={spaces} />

@@ -17,6 +17,7 @@ import {
   type LlmTask,
   type NoteRepository,
   type PlanRepository,
+  type PlaylistLister,
   type QuizRepository,
   type Result,
   resolveProviderKey,
@@ -54,7 +55,7 @@ import {
   migrateDb,
 } from "@thoth/db";
 import { FakeEmbeddingProvider, TransformersEmbeddingProvider } from "@thoth/embeddings";
-import { SourceIngestor } from "@thoth/ingest";
+import { SourceIngestor, YoutubePlaylistLister } from "@thoth/ingest";
 import {
   createLlmProvider,
   type ProbeResult,
@@ -94,6 +95,8 @@ export interface Container {
   settings: SettingsRepository;
   /** Source parsers (PDF, YouTube, web page, text) used by ingest jobs. */
   ingest: SourceParser;
+  /** Lists YouTube playlist videos for bulk add (Phase 10, doc 22). */
+  playlists: PlaylistLister;
   /**
    * Built per call from saved settings, so a settings change applies immediately.
    * Without a task it is a router that sends each request to its `request.task`'s profile and
@@ -146,6 +149,7 @@ async function build(): Promise<Container> {
     activity: new DrizzleActivityRepository(db),
     settings,
     ingest: new SourceIngestor(),
+    playlists: new YoutubePlaylistLister(),
     plans: new DrizzlePlanRepository(db),
     whiteboards: new DrizzleWhiteboardRepository(db),
     vectors: new DrizzleVectorRepository(db),
