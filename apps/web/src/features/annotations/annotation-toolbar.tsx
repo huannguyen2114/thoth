@@ -114,10 +114,14 @@ export function AnnotationToolbar({
       role="toolbar"
       aria-label={current ? "Annotation" : "Selected text"}
       className={cx(
-        "fixed z-50 flex max-w-sm flex-col gap-2 rounded-lg border border-border-subtle bg-surface-200 p-1.5 shadow-hearth-md",
+        "fixed z-50 flex flex-col gap-2 rounded-lg border border-border-subtle bg-surface-200 p-1.5 shadow-hearth-md",
         !pos && "invisible",
       )}
-      style={pos ?? { left: 0, top: 0 }}
+      // Never wider than the screen minus its gutters (phones).
+      style={{
+        ...(pos ?? { left: 0, top: 0 }),
+        maxWidth: `min(24rem, calc(100vw - ${GAP * 2}px))`,
+      }}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           e.stopPropagation();

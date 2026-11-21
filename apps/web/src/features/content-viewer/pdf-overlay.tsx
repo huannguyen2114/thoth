@@ -46,6 +46,7 @@ export function PdfOverlay({
   const [draft, setDraft] = useState<Draft | null>(null);
   const draftRef = useRef<Draft | null>(null);
   const penSeen = useRef(false);
+  const activePointer = useRef<number | null>(null);
   const h = viewH(ratio);
   const drawing = DRAW_TOOLS.includes(tool);
 
@@ -71,7 +72,12 @@ export function PdfOverlay({
     if (e.pointerType === "touch" && penSeen.current) return;
     if (e.button !== 0) return;
     e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
+    activePointer.current = e.pointerId;
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // A pointer the browser no longer tracks; moves still arrive while it is over the page.
+    }
     const [x, y] = toPage(e);
     if (tool === "pen") set({ type: "ink", strokes: [[[x, y, pressureOf(e)]]] });
     else set({ type: "shape", x1: x, y1: y, x2: x, y2: y });
@@ -79,9 +85,11 @@ export function PdfOverlay({
 
   function onPointerMove(e: React.PointerEvent<SVGSVGElement>) {
     const d = draftRef.current;
-    if (!d || !e.currentTarget.hasPointerCapture(e.pointerId)) return;
+    if (!d || activePointer.current !== e.pointerId) return;
     if (d.type === "ink") {
-      const events = e.nativeEvent.getCoalescedEvents?.() ?? [e.nativeEvent];
+      // Coalesced samples give smooth strokes; the list can be empty (synthetic events).
+      const coalesced = e.nativeEvent.getCoalescedEvents?.() ?? [];
+      const events = coalesced.length > 0 ? coalesced : [e.nativeEvent];
       const stroke = [...(d.strokes[0] ?? [])];
       for (const ev of events) {
         const [x, y] = toPage(ev);
@@ -96,7 +104,8 @@ export function PdfOverlay({
 
   function onPointerUp(e: React.PointerEvent<SVGSVGElement>) {
     const d = draftRef.current;
-    if (!d) return;
+    if (!d || activePointer.current !== e.pointerId) return;
+    activePointer.current = null;
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
@@ -127,7 +136,10 @@ export function PdfOverlay({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-      onPointerCancel={() => set(null)}
+      onPointerCancel={() => {
+        activePointer.current = null;
+        set(null);
+      }}
     >
       {annotations.map((a) => (
         <AnnotationShape key={a.id} a={a} page={page} ratio={ratio} />

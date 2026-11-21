@@ -452,7 +452,7 @@ export function PdfViewer({ url, contentId }: { url: string; contentId: string }
       onFlashcard: async (suggest) => {
         const a = await highlightFrom(sel, "yellow");
         if (!a) return { ok: false, message: "The highlight was not saved, so no card was made." };
-        clearSelection();
+        // The selection stays until the card exists, so the bar can say where it went.
         return passage.flashcard({ annotationId: a.id }, suggest);
       },
     };
@@ -584,7 +584,7 @@ export function PdfViewer({ url, contentId }: { url: string; contentId: string }
       <div
         role="toolbar"
         aria-label="PDF tools"
-        className="sticky top-0 z-10 flex flex-wrap items-center gap-1 rounded-lg border border-border-subtle bg-surface-200 p-1 shadow-hearth-sm select-none"
+        className="z-10 flex flex-wrap md:sticky md:top-0 items-center gap-1 rounded-lg border border-border-subtle bg-surface-200 p-1 shadow-hearth-sm select-none"
       >
         <fieldset className="m-0 flex items-center gap-0.5 border-0 p-0">
           <legend className="sr-only">Tool</legend>

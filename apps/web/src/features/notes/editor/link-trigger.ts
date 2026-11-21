@@ -74,8 +74,12 @@ export const LinkTrigger = Extension.create<LinkTriggerOptions>({
           },
         },
         view: () => ({
+          // Only while typing: an unfinished "[[" saved in the note does not open on load.
           update: (view) =>
-            options.onChange(editor.isEditable ? activeMatch(view.state) : null, view),
+            options.onChange(
+              editor.isEditable && view.hasFocus() ? activeMatch(view.state) : null,
+              view,
+            ),
           destroy: () => options.onChange(null, null),
         }),
         props: {
