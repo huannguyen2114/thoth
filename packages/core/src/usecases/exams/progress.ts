@@ -9,7 +9,7 @@ import type {
   SpaceRepository,
   StudySetRepository,
 } from "../../ports/repositories";
-import type { ContentId } from "../../shared/id";
+import type { ContentId, SpaceId } from "../../shared/id";
 import { appError, err, type Result } from "../../shared/result";
 import { type QuizGenerationDeps, startQuizGeneration } from "../quiz/generate-quiz";
 import { latestAttempts } from "../quiz/stats";
@@ -44,16 +44,24 @@ export interface Progress {
 
 export const WEAK_THRESHOLD = 0.8;
 
-/** Computed on read from quiz and exam attempts (ADR-0018). */
-export async function getProgress(deps: ProgressDeps, now: Date): Promise<Progress> {
-  const contents = await deps.contents.listRecent(1000);
+/**
+ * Computed on read from quiz and exam attempts (ADR-0018). With `scope.spaceId` it covers only
+ * that space: its contents' quizzes, its exams and its contents' flashcards (doc 22).
+ */
+export async function getProgress(
+  deps: ProgressDeps,
+  now: Date,
+  scope: { spaceId?: SpaceId } = {},
+): Promise<Progress> {
+  const contents = scope.spaceId
+    ? await deps.contents.listBySpace(scope.spaceId)
+    : await deps.contents.listRecent(1000);
   const byId = new Map<string, Content>(contents.map((c) => [c.id, c]));
 
   const sets: StudySet[] = [];
   for (const c of contents) sets.push(...(await deps.studySets.listByContent(c.id, "quiz")));
-  for (const s of await deps.spaces.list()) {
-    sets.push(...(await deps.studySets.listBySpace(s.id, "exam")));
-  }
+  const spaceIds = scope.spaceId ? [scope.spaceId] : (await deps.spaces.list()).map((s) => s.id);
+  for (const id of spaceIds) sets.push(...(await deps.studySets.listBySpace(id, "exam")));
 
   const scores = new Map<string, TopicProgress & { sum: number }>();
   let answered = 0;
@@ -89,7 +97,9 @@ export async function getProgress(deps: ProgressDeps, now: Date): Promise<Progre
   const topics = [...scores.values()]
     .map(({ sum: s, ...t }) => ({ ...t, score: s / t.answered }))
     .sort((a, b) => a.score - b.score || a.topic.localeCompare(b.topic));
-  const cardsDue = (await deps.flashcards.listDue(now, 10_000)).length;
+  const cardsDue = scope.spaceId
+    ? await countDueInContents(deps, contents, now)
+    : (await deps.flashcards.listDue(now, 10_000)).length;
   return {
     answered,
     accuracy: answered ? sum / answered : null,
@@ -97,6 +107,23 @@ export async function getProgress(deps: ProgressDeps, now: Date): Promise<Progre
     weak: topics.filter((t) => t.score < WEAK_THRESHOLD).slice(0, 8),
     topics,
   };
+}
+
+/** Due cards in the flashcard sets of the given contents. */
+async function countDueInContents(
+  deps: Pick<ProgressDeps, "studySets" | "flashcards">,
+  contents: readonly Content[],
+  now: Date,
+): Promise<number> {
+  let n = 0;
+  for (const c of contents) {
+    for (const set of await deps.studySets.listByContent(c.id, "flashcards")) {
+      n += (await deps.flashcards.listBySet(set.id)).filter(
+        (card) => card.fsrs.due.getTime() <= now.getTime(),
+      ).length;
+    }
+  }
+  return n;
 }
 
 /** Questions per "Practice weak spots" quiz. */

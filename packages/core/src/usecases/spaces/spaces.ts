@@ -1,16 +1,16 @@
-import type { Content } from "../domain/content";
-import type { ExamSession } from "../domain/exam";
-import { type CreateSpaceInput, createSpaceInput, type Space } from "../domain/space";
-import type { StudySet } from "../domain/study-set";
+import type { Content } from "../../domain/content";
+import type { ExamSession } from "../../domain/exam";
+import { type CreateSpaceInput, createSpaceInput, type Space } from "../../domain/space";
+import type { StudySet } from "../../domain/study-set";
 import type {
   ContentRepository,
   ExamSessionRepository,
   SpaceRepository,
   StudySetRepository,
-} from "../ports/repositories";
-import type { ContentId, SpaceId } from "../shared/id";
-import { appError, err, ok, type Result } from "../shared/result";
-import { failStaleSets } from "./study-sets";
+} from "../../ports/repositories";
+import type { ContentId, SpaceId } from "../../shared/id";
+import { appError, err, ok, type Result } from "../../shared/result";
+import { failStaleSets } from "../study-sets";
 
 export interface SpaceDeps {
   spaces: SpaceRepository;

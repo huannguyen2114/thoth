@@ -114,6 +114,11 @@ export class ScriptedLlmProvider implements LlmProvider {
 
   private textFor(req: LlmRequest): string | null {
     const user = lastUser(req);
+    if (
+      req.task === "chat" &&
+      req.system.startsWith("You are Thoth, a study companion for a whole space")
+    )
+      return spaceChatReply(req, user);
     if (req.task === "chat") return chatReply(req, user);
     if (req.task === "summary") {
       if (req.system.startsWith("You draft study notes")) return notesReply(req);
@@ -166,6 +171,33 @@ function chatReply(req: LlmRequest, user: { content: string } | undefined): stri
   const second = passages.find((p) => p.token !== first.token);
   if (second) lines.push(`It also says: ${snippet(second.text, 14)}. ${second.token}`);
   return lines.join("\n\n");
+}
+
+/**
+ * Space chat (doc 22): the context holds `<source id="Sn" title="…">` blocks. The answer cites
+ * the first passage of the first two sources as `[S1 <token>]` and `[S2 <token>]`, so a test can
+ * check that a chip opens the second content at the right place.
+ */
+function spaceChatReply(req: LlmRequest, user: { content: string } | undefined): string {
+  const question = (user?.content ?? "").trim();
+  const blocks = [
+    ...(req.context ?? "").matchAll(
+      /<source id="(S\d+)" title="([^"]*)"[^>]*>\n([\s\S]*?)<\/source>/g,
+    ),
+  ].map((m) => ({ id: m[1] ?? "", title: m[2] ?? "", first: passagesOf(m[3])[0] }));
+  const cited = blocks.filter((b) => b.first).slice(0, 2);
+  if (cited.length === 0) {
+    return "The sources in this space do not cover that, so I can only answer from general knowledge.";
+  }
+  return cited
+    .map((b, i) => {
+      const p = b.first as Passage;
+      const inner = p.token.slice(1, -1);
+      const lead =
+        i === 0 ? `You asked: "${words(question, 12)}". ${b.title} says` : `${b.title} adds`;
+      return `${lead}: ${snippet(p.text, 14)}. [${b.id} ${inner}]`;
+    })
+    .join("\n\n");
 }
 
 // ---- summary and notes -----------------------------------------------------------------

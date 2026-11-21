@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { NewSpace, Space } from "../domain/space";
-import type { SpaceRepository } from "../ports/repositories";
-import { newId, type SpaceId } from "../shared/id";
+import type { NewSpace, Space } from "../../domain/space";
+import type { SpaceRepository } from "../../ports/repositories";
+import { newId, type SpaceId } from "../../shared/id";
 import { createSpace } from "./spaces";
 
 class InMemorySpaces implements SpaceRepository {

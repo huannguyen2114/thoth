@@ -3,6 +3,7 @@ import type {
   ContentRepository,
   NoteRepository,
   SegmentRepository,
+  SpaceRepository,
 } from "../../ports/repositories";
 import { type RetrievalDeps, retrieveSegments } from "../retrieval/retrieve";
 
@@ -11,8 +12,11 @@ export type SearchHitKind = "title" | "note" | "source";
 export interface SearchHit {
   id: string;
   kind: SearchHitKind;
+  /** The content the hit belongs to; empty for a space's notes. */
   contentId: string;
-  /** Content title. */
+  /** Set for a space's notes (Phase 10, doc 22). */
+  spaceId?: string;
+  /** Content title, or the space name for a space's notes. */
   title: string;
   /** For notes and source hits: a snippet around the match. */
   snippet: string | null;
@@ -28,6 +32,8 @@ export interface SearchDeps extends RetrievalDeps {
   contents: ContentRepository;
   notes: NoteRepository;
   segments: SegmentRepository;
+  /** Names space notes in results (Phase 10, doc 22). Without it, space notes are skipped. */
+  spaces?: SpaceRepository;
 }
 
 /**
@@ -136,20 +142,28 @@ export async function searchEverything(
     }
   }
 
+  const spaceNames = deps.spaces
+    ? new Map((await deps.spaces.list()).map((s) => [s.id as string, s.name]))
+    : new Map<string, string>();
   for (const n of notes) {
-    // Space notes are not searched yet (Lane 4, doc 22).
-    if (!n.contentId) continue;
-    const title = titles.get(n.contentId);
+    // A content's notes open the content; a space's notes open its Notes tab (doc 22).
+    const ownerId = n.contentId ?? n.spaceId;
+    const title = n.contentId
+      ? titles.get(n.contentId)
+      : n.spaceId
+        ? spaceNames.get(n.spaceId)
+        : undefined;
     const lower = n.markdown.toLowerCase();
-    if (title === undefined || !terms.every((t) => lower.includes(t))) continue;
+    if (!ownerId || title === undefined || !terms.every((t) => lower.includes(t))) continue;
     hits.push({
-      id: `n-${n.contentId}`,
+      id: `n-${ownerId}`,
       kind: "note",
-      contentId: n.contentId,
+      contentId: n.contentId ?? "",
+      ...(n.spaceId ? { spaceId: n.spaceId } : {}),
       title,
       snippet: snippetAround(n.markdown, terms),
       at: null,
-      href: `/content/${n.contentId}`,
+      href: n.contentId ? `/content/${n.contentId}` : `/spaces/${n.spaceId}?tab=notes`,
       score: terms.reduce((s, t) => s + lower.split(t).length - 1, 0),
     });
   }

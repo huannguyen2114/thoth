@@ -6,6 +6,7 @@ import type {
   ExamSessionRepository,
   FlashcardRepository,
   QuizRepository,
+  SpaceRepository,
   StudySetRepository,
 } from "../../ports/repositories";
 import type {
@@ -57,6 +58,8 @@ export interface HistoryDeps {
   flashcards: FlashcardRepository;
   chats: ChatRepository;
   examSessions: ExamSessionRepository;
+  /** Resolves space-notes edits (Phase 10, doc 22). Optional: without it they get no link. */
+  spaces?: SpaceRepository;
 }
 
 interface Target {
@@ -102,8 +105,15 @@ export async function getHistory(
     if (!e.ref) return NONE;
     switch (e.kind) {
       case "content_added":
-      case "note_edit":
         return contentTarget(e.ref as ContentId);
+      case "note_edit":
+        // A content's notes hold the content id; a space's notes hold the space id (doc 22).
+        return once(`note:${e.ref}`, async () => {
+          const content = await contentTarget(e.ref as ContentId);
+          if (content.href || !deps.spaces) return content;
+          const space = await deps.spaces.get(e.ref as SpaceId);
+          return space ? { subject: space.name, href: `/spaces/${space.id}?tab=notes` } : NONE;
+        });
       case "summary_generated":
         return setTarget(e.ref as StudySetId);
       case "quiz_answer":
