@@ -97,7 +97,7 @@ export function SpaceContents({
               tagIds: c.tags.map((t) => t.id),
               node: (
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
-                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <div className="flex min-w-0 flex-1 basis-full flex-col gap-1 sm:basis-0">
                     <div className="flex min-w-0 items-center gap-2">
                       {c.status === "ready" ? (
                         <Link
@@ -150,7 +150,7 @@ export function SpaceContents({
           />
         )}
         {contents.length > 0 && (
-          <p className="type-caption text-ink-muted">
+          <p className="hidden type-caption text-ink-muted md:block">
             Tip: drag a row onto a space in the sidebar to move it there.
           </p>
         )}

@@ -73,6 +73,8 @@ export function SpaceIcon({
         viewBox="0 0 16 16"
         fill="none"
         stroke="currentColor"
+        // Chosen colours win over a nav item's current-page icon colour.
+        style={color ? { stroke: "var(--accent-fg)" } : undefined}
         strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"

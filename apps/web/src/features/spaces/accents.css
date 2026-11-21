@@ -30,7 +30,7 @@
   --accent-fg: color-mix(in oklch, var(--color-info) 55%, var(--color-danger));
 }
 [data-accent="pink"] {
-  --accent-fg: color-mix(in oklch, var(--color-danger) 65%, var(--color-accent-muted));
+  --accent-fg: color-mix(in oklch, var(--color-danger) 78%, var(--color-info));
 }
 
 .accent-fg {

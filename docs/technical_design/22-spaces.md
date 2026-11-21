@@ -123,3 +123,5 @@ The composer (`AddContentComposer`) is on the home page and, with `spaceId`, in 
 - A whiteboard edit's History event still holds the board id (`whiteboard_edit`, ADR-0031), so it does not appear in a space's recent activity.
 - The dashboard's "Review" opens the global review queue; there is no per-space review session yet.
 - A text dropped onto a space board with a citation token in it becomes a plain sticky: the board has no single content to link. Use "Link to source…" instead.
+- New `chat_question` events hold the message id, which History cannot resolve, so space chat questions do not appear in a space's recent activity yet.
+- The accent swatches for pink and orange are close in light theme; a Hearth category palette would separate them.
