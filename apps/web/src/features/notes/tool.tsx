@@ -7,6 +7,7 @@ import type { LearnTool, LearnToolProps } from "@/features/learn-panel/types";
 import { loadNoteAction } from "./actions";
 import { Callout } from "./callout";
 import { notesExtensions } from "./editor/extensions";
+import { NotesLinksLayer, useNotesLinks } from "./editor/link-picker";
 import { EMPTY_DOC, parseNote } from "./editor/markdown";
 import { PROSE } from "./editor/prose";
 import { SlashMenu, useSlashMenu } from "./editor/slash-menu";
@@ -51,12 +52,19 @@ export function NotesEditor({
   const cite = useRef(onCite);
   cite.current = onCite;
   const slash = useSlashMenu();
+  const links = useNotesLinks(ownerKey);
   const onEdit = useRef<() => void>(() => {});
   const onBlur = useRef<() => void>(() => {});
 
   const extensions = useMemo(
-    () => notesExtensions({ onCite: (token) => cite.current?.(token), slash: slash.options }),
-    [slash.options],
+    () =>
+      notesExtensions({
+        onCite: (token) => cite.current?.(token),
+        slash: slash.options,
+        links: links.extensionOptions,
+        onOpenLink: links.onOpenLink,
+      }),
+    [slash.options, links.extensionOptions, links.onOpenLink],
   );
 
   const editor = useEditor({
@@ -77,6 +85,7 @@ export function NotesEditor({
     onBlur: () => onBlur.current(),
   });
   slash.bind(editor);
+  links.bind(editor);
 
   const autosave = useAutosave(ownerKey, editor);
   onBlur.current = () => void autosave.flush();
@@ -224,6 +233,7 @@ export function NotesEditor({
         </div>
       </div>
 
+      <NotesLinksLayer links={links} editor={editor} loaded={loaded} />
       <SlashMenu
         editor={editor}
         open={slash.open}

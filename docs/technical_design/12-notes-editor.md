@@ -79,6 +79,10 @@ flowchart LR
 - The chip is a `<button>` (`badge badge--accent`) with `aria-label="Go to p.3 in the source"`. Mousedown does not move the caret.
 - `onCite` is read through a ref, so a new `onCite` from the host applies without rebuilding the editor.
 
+## Link chips and the link picker (Phase 10)
+
+`[Lecture 2 · p.3](thoth:a/<id>)` loads as a `ThothLink` chip (`editor/thoth-link.ts`) and saves back unchanged. Its tokenizer runs before the Link mark, and the citation tokenizer skips a `[p.3]` followed by `(`. Typing `[[` or `@` opens the link picker (`editor/link-trigger.ts`, `editor/link-picker.tsx`). Clicking a chip jumps the viewer or opens the other content; a deleted target shows as a broken chip. `editor/bridge.ts` lets other panels append a quote ("Add to notes") or scroll to a link, queued until the note has loaded. `NotesEditor` wires all of it with `useNotesLinks(ownerKey)` and `<NotesLinksLayer>`. Details: doc 21.
+
 ## Slash menu
 
 ```mermaid

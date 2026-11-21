@@ -3,6 +3,7 @@
 import type { SourceBounds, SummaryOptionsInput } from "@thoth/core";
 import { Button, cx, Dialog } from "@thoth/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { SummaryPassages } from "@/features/annotations/summary-passages";
 import type { LearnTool, LearnToolProps } from "@/features/learn-panel/types";
 import {
   deleteSummaryAction,
@@ -168,7 +169,11 @@ function SummaryPanel({ contentId, onCite }: LearnToolProps) {
               Claude is reading the source and writing. This takes up to a minute.
             </p>
           )}
-          {open.body && <Markdown source={open.body} onCite={onCite} />}
+          {open.body && (
+            <SummaryPassages contentId={contentId} setId={open.id} onOpenSet={setOpenId}>
+              <Markdown source={open.body} onCite={onCite} />
+            </SummaryPassages>
+          )}
           {open.status === "generating" && open.body && (
             <p className="type-caption text-ink-muted" role="status">
               Still writing…

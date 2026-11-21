@@ -105,6 +105,8 @@ Under 768 px there is no dock. `PhoneWorkspace` shows one panel and a bottom tab
 
 ## Viewer and jumps
 
+Phase 10 (doc 21) added `jumpTo(target)` for annotation, passage and summary jumps, `showPanel(id)` (runs the workspace's `workspace.show.<id>` command), and `useOptionalViewer()` for editors outside a content page. `InitialJump` also reads `?at=p.3`, `?ann=`, `?q=`, `?set=` and `?reveal=`. Transcript rows and chapter summaries are now selectable text: the time or title is the button, and a click on the text (without a selection) still jumps.
+
 `ViewerProvider` (`viewer-context.tsx`) keeps two contexts:
 
 - **actions** (stable): `register(handle)`, `jump(ref)`, `jumpToToken("[p.5]")`, `setPosition`.
@@ -145,12 +147,12 @@ sequenceDiagram
 - Viewers scroll with `revealInScroller`, which moves only the nearest scrolling box. `scrollIntoView` would also scroll the clipped dock containers around it.
 - **Deep links** `/content/{id}?at=[p.3]` still work (`InitialJump`, used by exam results and the progress page). If the saved layout has no Source panel, the jump reopens it.
 
-| Kind                | Viewer                                                                                     | Handle                    | Position source                 | Token     |
-| ------------------- | ------------------------------------------------------------------------------------------ | ------------------------- | ------------------------------- | --------- |
-| youtube             | `YouTubePlayer`: IFrame Player API, loaded once from `youtube.com/iframe_api`              | `seek(sec)` + `playVideo` | `getCurrentTime()` every 500 ms | `[mm:ss]` |
-| pdf with `filePath` | `PdfViewer`: `pdfjs-dist` 6.5, one canvas per page, drawn when within a screen of the view | `showPage(n)`             | page ≥ 50% visible              | `[p.N]`   |
-| pdf without file    | `TextViewer` in `pages` mode (the seed)                                                    | `showPage(n)`             | top-most visible page           | `[p.N]`   |
-| webpage, text       | `TextViewer` in `paragraphs` mode; anchor `§n` = segment `idx + 1`                         | `showParagraph(n)`        | top-most visible paragraph      | `[§n]`    |
+| Kind                | Viewer                                                                                                                                           | Handle                                       | Position source                 | Token     |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- | ------------------------------- | --------- |
+| youtube             | `YouTubePlayer`: IFrame Player API, loaded once from `youtube.com/iframe_api`                                                                    | `seek(sec)` + `playVideo`                    | `getCurrentTime()` every 500 ms | `[mm:ss]` |
+| pdf with `filePath` | `PdfViewer`: `pdfjs-dist` 6.5, one canvas per page, drawn when within a screen of the view, plus a text layer and an annotation overlay (doc 21) | `showPage(n)`, `showAnnotation`, `showQuote` | page ≥ 50% visible              | `[p.N]`   |
+| pdf without file    | `TextViewer` in `pages` mode (the seed)                                                                                                          | `showPage(n)`                                | top-most visible page           | `[p.N]`   |
+| webpage, text       | `TextViewer` in `paragraphs` mode; anchor `§n` = segment `idx + 1`                                                                               | `showParagraph(n)`                           | top-most visible paragraph      | `[§n]`    |
 
 - A seek requested before the YouTube player is ready is kept and applied on ready. A page requested before the PDF has loaded is shown once its pages exist.
 - `youtubeVideoId` accepts `watch?v=`, `youtu.be/`, `/embed/`, `/shorts/` and `/live/` URLs. Anything else shows a warning callout, and chat still works.
@@ -246,7 +248,7 @@ The previous question joins the search query so a short follow-up ("and the seco
 
 ## Known limits and follow-ups
 
-- The PDF viewer draws canvases only, with no text layer, so PDF text cannot be selected yet.
+- Annotations, selection, link chips and backlinks on every viewer are in doc 21.
 - `ChatRepository` has no delete or rename, so chats cannot be removed from History yet.
 - Floating panels and popout windows are turned off (`disableFloatingGroups`, no `popoutUrl`).
 - Dragging panels has no keyboard alternative yet; the Add panel menu, the presets and the palette commands cover opening and arranging. dockview's own keyboard navigation is off, because it would handle keys outside the command registry.

@@ -1,0 +1,4 @@
+/* A passage a link jumped to, painted for a moment with the CSS highlight API (doc 21). */
+::highlight(thoth-flash) {
+  background-color: var(--accent-tint);
+}
