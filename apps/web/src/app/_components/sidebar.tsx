@@ -6,11 +6,12 @@ import { type ReactNode, useEffect, useState } from "react";
 import { HistoryIcon } from "@/features/history/history-icon";
 import { PlannerCommands } from "@/features/planner/planner-commands";
 import { PlannerIcon } from "@/features/planner/planner-icon";
+import { MoveCommands } from "@/features/spaces/move-commands";
+import { type NavSpace, SpaceNavItem } from "@/features/spaces/space-nav-item";
 import { formatShortcut, useRegistry } from "./commands";
 import {
   CardsIcon,
   ChartIcon,
-  FolderIcon,
   GearIcon,
   MenuIcon,
   MonitorIcon,
@@ -22,10 +23,8 @@ import {
 } from "./icons";
 import { applySidebar, applyTheme, readSidebar, readTheme, type ThemePref } from "./prefs";
 
-export interface SidebarSpace {
-  id: string;
-  name: string;
-}
+/** A space in the sidebar: name, plus its Hearth accent and icon names (doc 22). */
+export type SidebarSpace = NavSpace;
 
 function Item({
   href,
@@ -119,6 +118,7 @@ export function Sidebar({ spaces }: { spaces: SidebarSpace[] }) {
 
       <aside className="app-sidebar" aria-label="Sidebar">
         <PlannerCommands />
+        <MoveCommands spaces={spaces} />
         <div className="app-sidebar__head">
           <Link
             href="/"
@@ -166,9 +166,7 @@ export function Sidebar({ spaces }: { spaces: SidebarSpace[] }) {
             {spaces.length === 0 ? (
               <p className="app-label px-3 type-caption text-ink-muted">No spaces yet</p>
             ) : (
-              spaces.map((s) => (
-                <Item key={s.id} href={`/spaces/${s.id}`} icon={<FolderIcon />} label={s.name} />
-              ))
+              spaces.map((s) => <SpaceNavItem key={s.id} space={s} />)
             )}
           </nav>
         </div>

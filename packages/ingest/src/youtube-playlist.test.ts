@@ -18,7 +18,7 @@ const noYtDlp: YtDlpRunner = async () => "missing";
 
 describe("ytInitialData", () => {
   it("reads the playlist videos in order, without duplicates or bad ids", () => {
-    const data = readInitialData(fixture("youtube-playlist.html"));
+    const data = readInitialData(fixture("youtube-playlist.page.txt"));
     const { listing, more } = parsePlaylistData(data);
     expect(listing.title).toBe("Intro to Biology");
     expect(listing.videos).toEqual([
@@ -30,7 +30,7 @@ describe("ytInitialData", () => {
 
   it("reads the newer lockup shape and notices a continuation", () => {
     const { listing, more } = parsePlaylistData(
-      readInitialData(fixture("youtube-playlist-lockup.html")),
+      readInitialData(fixture("youtube-playlist-lockup.page.txt")),
     );
     expect(listing.videos).toEqual([{ id: "ccccccccc_3", title: "Week 3" }]);
     expect(more).toBe(true);
@@ -45,7 +45,7 @@ describe("YoutubePlaylistLister", () => {
   it("uses the page when it holds the whole playlist", async () => {
     let asked = false;
     const lister = new YoutubePlaylistLister({
-      fetch: page(fixture("youtube-playlist.html")),
+      fetch: page(fixture("youtube-playlist.page.txt")),
       ytDlp: async () => {
         asked = true;
         return "missing";
@@ -59,7 +59,7 @@ describe("YoutubePlaylistLister", () => {
   it("asks yt-dlp for the rest of a long playlist", async () => {
     const calls: string[][] = [];
     const lister = new YoutubePlaylistLister({
-      fetch: page(fixture("youtube-playlist-lockup.html")),
+      fetch: page(fixture("youtube-playlist-lockup.page.txt")),
       ytDlp: async (args) => {
         calls.push(args);
         return fixture("yt-dlp-playlist.json");
@@ -72,7 +72,7 @@ describe("YoutubePlaylistLister", () => {
 
   it("keeps the first page when yt-dlp is not installed", async () => {
     const lister = new YoutubePlaylistLister({
-      fetch: page(fixture("youtube-playlist-lockup.html")),
+      fetch: page(fixture("youtube-playlist-lockup.page.txt")),
       ytDlp: noYtDlp,
     });
     const r = await lister.list("PLlong000000");

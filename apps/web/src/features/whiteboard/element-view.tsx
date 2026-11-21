@@ -102,7 +102,8 @@ export interface ElementViewProps {
   enter: number;
   dropTarget: boolean;
   readOnly: boolean;
-  onCite?: ((token: string) => void) | undefined;
+  /** Gets the element's content too, so a space board can open the right content (doc 22). */
+  onCite?: ((token: string, contentId?: string) => void) | undefined;
   onCommitText: (id: string, text: string) => void;
 }
 
@@ -228,7 +229,7 @@ export const ElementView = memo(function ElementView({
           onDoubleClick={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
-            if (el.source) onCite(el.source.token);
+            if (el.source) onCite(el.source.token, el.source.contentId);
           }}
         >
           {badgeLabel(el.source.token)}

@@ -3,9 +3,10 @@ import type { BoardElement, BoardOp, Whiteboard } from "../../domain/whiteboard"
 import type {
   ActivityRepository,
   ContentRepository,
+  SpaceRepository,
   WhiteboardRepository,
 } from "../../ports/repositories";
-import type { ContentId, WhiteboardId } from "../../shared/id";
+import type { ContentId, SpaceId, WhiteboardId } from "../../shared/id";
 import { appError, err, ok, type Result } from "../../shared/result";
 import { applyOpsToElements, type OpRefusal } from "./ops";
 
@@ -48,6 +49,29 @@ export async function createBoard(
       elements: input.elements ?? [],
     }),
   );
+}
+
+/** A board owned by a space, for the space page (Phase 10, doc 22). Its elements may link any content. */
+export async function createSpaceBoard(
+  deps: Pick<BoardDeps, "whiteboards"> & { spaces: SpaceRepository },
+  input: { spaceId: SpaceId; title?: string },
+): Promise<Result<Whiteboard>> {
+  if (!(await deps.spaces.get(input.spaceId))) {
+    return err(appError("not_found", "This space no longer exists."));
+  }
+  const existing = await deps.whiteboards.listBySpace(input.spaceId);
+  const title = cleanTitle(input.title ?? "") || `Board ${existing.length + 1}`;
+  return ok(
+    await deps.whiteboards.create({ contentId: null, spaceId: input.spaceId, title, elements: [] }),
+  );
+}
+
+/** A space's boards, newest first. */
+export async function listSpaceBoards(
+  deps: Pick<BoardDeps, "whiteboards">,
+  spaceId: SpaceId,
+): Promise<Whiteboard[]> {
+  return deps.whiteboards.listBySpace(spaceId);
 }
 
 /** Newest first. */

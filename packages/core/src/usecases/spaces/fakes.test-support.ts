@@ -126,12 +126,12 @@ export class MemContents implements ContentRepository {
 
 export class MemSegments implements SegmentRepository {
   rows: Segment[] = [];
-  /** Content ids whose text contains every query word: a tiny stand-in for FTS5. */
+  /** Queries seen. `search` matches any word of 4+ letters: a tiny stand-in for FTS5. */
   searches: string[] = [];
   add(contentId: ContentId, texts: string[], locator: (i: number) => Segment["locator"]) {
-    texts.forEach((text, idx) =>
-      this.rows.push({ id: newId<SegmentId>(), contentId, idx, text, locator: locator(idx) }),
-    );
+    for (const [idx, text] of texts.entries()) {
+      this.rows.push({ id: newId<SegmentId>(), contentId, idx, text, locator: locator(idx) });
+    }
   }
   async replaceForContent(contentId: ContentId, segments: NewSegment[]) {
     this.rows = this.rows.filter((r) => r.contentId !== contentId);
