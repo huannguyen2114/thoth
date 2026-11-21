@@ -1,6 +1,6 @@
 # Thoth: agent guide
 
-Thoth is a single-user, local-first study PWA. It is a personal alternative to YouLearn. It turns PDFs, YouTube videos and web pages into chat, summaries, notes, quizzes, flashcards and exams. The LLM is either the owner's Anthropic API key or their Claude subscription, through headless Claude Code.
+Thoth is a single-user, local-first study PWA. It is a personal alternative to YouLearn. It turns PDFs, YouTube videos and web pages into chat, summaries, notes, quizzes, flashcards and exams. The LLM is the owner's Claude subscription (headless Claude Code), their Anthropic API key, or any OpenAI-compatible provider (Ollama, LM Studio, OpenRouter, OpenAI), chosen per task. It also ships as a Tauri desktop app.
 
 ## Read before you grep (in this order)
 
