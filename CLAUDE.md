@@ -59,6 +59,7 @@ Only then search the code. Most "where is X" questions are answered by `01-archi
 - `pnpm test:e2e`: the Playwright browser journeys against a scripted LLM (doc 15). Run it after UI changes; CI runs it too.
 - `pnpm format`: Biome auto-fix.
 - `pnpm build`: production build.
+- `pnpm desktop:dev` and `pnpm desktop:build`: run or package the Tauri desktop app (doc 19). Building needs the Rust toolchain; the web app does not.
 - `pnpm --filter @thoth/db db:generate`: create a migration after a schema change.
 - `pnpm --filter @thoth/ui tokens`: regenerate the Hearth CSS.
 

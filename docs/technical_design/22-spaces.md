@@ -1,6 +1,6 @@
 # 22. Spaces: chat, dashboard, notes, board, organising
 
-Status: Current (Phase 10, Lane 4). Decisions: ADR-0039, ADR-0038, draft `docs/decision/NNNN-draft-p10-lane4.md`. Exams and progress inside a space: doc 10.
+Status: Current (Phase 10). Decisions: ADR-0038, ADR-0039, ADR-0042. Exams and progress inside a space: doc 10.
 
 A space is a place to study, not just a folder. Its page is a workspace with six tabs: **Overview**, **Chat**, **Notes**, **Board**, **Contents** and **Exams**.
 

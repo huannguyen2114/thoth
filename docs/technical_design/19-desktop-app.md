@@ -1,6 +1,6 @@
 # 19. Desktop app
 
-Status: Current (Phase 10, Lane 1). Decisions: ADR-0036, and draft `docs/decision/NNNN-draft-p10-lane1.md`.
+Status: Current (Phase 10). Decisions: ADR-0036, ADR-0043.
 
 Thoth as a desktop app on macOS, Windows and Linux. A Tauri 2 shell (`apps/desktop`) starts the Next standalone server on a bundled Node 22 binary, on 127.0.0.1 only, and shows it in a native window. Nothing in `apps/web` knows it is running in a shell: it only gets different env vars.
 

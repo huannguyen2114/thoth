@@ -1,6 +1,6 @@
-# ADR-0040 (draft, Phase 10 Lane 2): A per-task router behind `container.llm()`, and how structured output degrades
+# ADR-0040: A per-task router behind `container.llm()`, and how structured output degrades
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-21
 - Refines: ADR-0037
 

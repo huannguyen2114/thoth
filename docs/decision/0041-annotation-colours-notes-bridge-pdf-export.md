@@ -1,6 +1,6 @@
-# ADR-NNNN (draft): Annotation colours, the notes bridge and PDF export (Phase 10, Lane 3)
+# ADR-0041: Annotation colours, the notes bridge and PDF export
 
-- Status: Draft (the orchestrator numbers it at merge)
+- Status: Accepted
 - Date: 2026-11-21
 - Builds on: ADR-0009, ADR-0022, ADR-0038
 

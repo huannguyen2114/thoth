@@ -225,6 +225,13 @@ Each phase ends with something that runs. After each phase I check it in the bro
 - A deterministic study planner with /planner and a Today card (ADRs 0030, 0034; doc 17).
 - A whiteboard canvas Claude draws on, with tidy-tree mind maps and source links on every element (ADRs 0031, 0035; doc 18).
 
+### Phase 10: Desktop app, more model providers, annotations and linked notes, spaces — DONE 2026-11-21
+
+- A Tauri 2 desktop app for macOS, Windows and Linux that runs the web server as a Node sidecar on 127.0.0.1 (ADRs 0036, 0043; doc 19).
+- OpenAI-compatible providers (Ollama, LM Studio, OpenRouter, OpenAI, any base URL), a provider and model per task, keys in the OS keychain (ADRs 0037, 0040; doc 20).
+- PDF highlights, comments, pen and shapes, annotated PDF export, passages sent to notes with `thoth:` links back, `[[` / `@` link chips, backlinks, highlight to flashcard (ADRs 0038, 0041; doc 21).
+- Spaces with a dashboard, chat across sources, space notes and board, tags, colour and icon, moving contents, bulk add of PDFs, folders and YouTube playlists (ADRs 0039, 0042; doc 22).
+
 ### Later phases (after the MVP)
 
 - **9:** Podcast. A two-host script from the LLM, then TTS (OpenAI TTS, ElevenLabs, or local Kokoro), then merged audio with ffmpeg. Then Voice tutor mode and Dictate (Web Speech API or whisper).

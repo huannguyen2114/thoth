@@ -1,6 +1,6 @@
-# ADR-NNNN (draft, Phase 10 Lane 1): Desktop server entry, flat bundle and CLI shim
+# ADR-0043: Desktop server entry, flat bundle and CLI shim
 
-- Status: Proposed (draft; the orchestrator numbers it at merge)
+- Status: Accepted
 - Date: 2026-11-21
 - Builds on: ADR-0027, ADR-0036
 

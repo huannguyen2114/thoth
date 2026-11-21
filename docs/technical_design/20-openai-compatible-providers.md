@@ -1,6 +1,6 @@
 # 20. OpenAI-compatible providers and per-task routing
 
-Status: Current (Phase 10, Lane 2). Decision: ADR-0037. Amends doc 02.
+Status: Current (Phase 10). Decisions: ADR-0037, ADR-0040. Amends doc 02.
 
 Thoth can send each task to its own provider and model: for example chat on Claude and flashcards on a local Ollama model. Providers are saved as **profiles**. API keys live in the OS keychain.
 

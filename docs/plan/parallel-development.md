@@ -155,7 +155,7 @@ The merge order is 2, 4, 3, 1: tests last, so they run against everything.
 
 # Phase 10 lanes (2026-11-21)
 
-Status: **In progress.** Step 0 is on `main`:
+Status: **Done** (2026-11-21): merged in the order 2, 3, 4, 1, with ADRs 0040–0043. Space chat chips use Lane 3's link opener. Step 0 was:
 
 - **ADRs 0036–0039.**
 - **Core:**

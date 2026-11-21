@@ -89,5 +89,9 @@ What becomes easier, what becomes harder, and the follow-ups.
 | [0037](0037-openai-compatible-providers-profiles-keychain.md) | OpenAI-compatible providers, per-task profiles, keys in the OS keychain (amends 0008, 0013) | Accepted                         |
 | [0038](0038-annotations-thoth-links-backlinks.md)             | Annotations, `thoth:` links and a backlink index                                            | Accepted                         |
 | [0039](0039-space-owned-notes-chats-and-safe-rebuilds.md)     | Spaces own notes and chats; migrations run with foreign keys off                            | Accepted                         |
+| [0040](0040-llm-router-and-structured-output-fallback.md)     | A per-task router behind `container.llm()`, and how structured output degrades              | Accepted                         |
+| [0041](0041-annotation-colours-notes-bridge-pdf-export.md)    | Annotation colours, the notes bridge and PDF export                                         | Accepted                         |
+| [0042](0042-space-chat-citations-accents-playlists-tabs.md)   | Space chat citations, accent swatches, playlist listing, space tabs                         | Accepted                         |
+| [0043](0043-desktop-server-entry-bundle-cli-shim.md)          | Desktop server entry, flat bundle and CLI shim                                              | Accepted                         |
 
 Add a new row when you add an ADR. When you supersede one, change its status here as well.

@@ -1,6 +1,6 @@
 # 21. Annotations, links and backlinks
 
-Status: Current (Phase 10, Lane 3). Decisions: ADR-0038, and the draft `decision/NNNN-draft-p10-lane3.md`.
+Status: Current (Phase 10). Decisions: ADR-0038, ADR-0041.
 
 The owner can mark up a source, send a passage to notes as a quote that jumps back, link notes to any place in Thoth, see which notes quote a source, and turn a highlight into a flashcard.
 

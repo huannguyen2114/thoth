@@ -1,6 +1,6 @@
-# ADR-NNNN (draft, Phase 10 Lane 4): Space chat citations, accent swatches, playlist listing, space tabs
+# ADR-0042: Space chat citations, accent swatches, playlist listing, space tabs
 
-- Status: Draft (the orchestrator numbers and accepts it at merge)
+- Status: Accepted
 - Date: 2026-11-21
 - Builds on: ADR-0009, ADR-0029, ADR-0038, ADR-0039
 
