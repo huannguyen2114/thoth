@@ -24,6 +24,7 @@ export * from "./ports/secrets";
 export * from "./shared/id";
 export * from "./shared/result";
 export * from "./usecases/activity";
+export * from "./usecases/annotations";
 export * from "./usecases/chat";
 export * from "./usecases/exams";
 export * from "./usecases/export";
