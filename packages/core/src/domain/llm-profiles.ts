@@ -1,25 +1,11 @@
 import { z } from "zod";
-import {
-  defaultLlmSettings,
-  type LlmSettings,
-  type LlmTask,
-  llmModels,
-  llmSettingsSchema as llmSettingsV1Schema,
-  llmTasks,
-} from "./llm-settings";
+import { type LlmTask, llmModels, llmProviderIds, llmTasks } from "./llm-settings";
 
 /**
- * LLM settings v2 (Phase 10, doc 20): several saved providers ("profiles") and a profile plus
- * model per task, so chat can stay on Claude while flashcards use a local Ollama model.
- *
- * Contract frozen in Phase 10 Step 0. Lane 2 moves every reader of `LlmSettings` (v1) to this
- * shape and then deletes v1, keeping `upgradeLlmSettings` so stored v1 values still load.
+ * LLM settings v2 (Phase 10, doc 20, ADR-0037): several saved providers ("profiles") and a
+ * profile plus model per task, so chat can stay on Claude while flashcards use a local model.
  */
-export const llmProfileKinds = [
-  "claude-subscription",
-  "anthropic-api",
-  "openai-compatible",
-] as const;
+export const llmProfileKinds = llmProviderIds;
 export type LlmProfileKind = (typeof llmProfileKinds)[number];
 
 export const llmProfileSchema = z.object({
@@ -68,7 +54,7 @@ export const llmSettingsV2Schema = z
   });
 export type LlmSettingsV2 = z.infer<typeof llmSettingsV2Schema>;
 
-/** The two Claude profiles every install starts with. */
+/** The two Claude profiles every install starts with. They cannot be edited or deleted. */
 export const builtInProfiles: LlmProfile[] = [
   {
     id: "claude-subscription",
@@ -90,8 +76,23 @@ export const builtInProfiles: LlmProfile[] = [
   },
 ];
 
+export const isBuiltInProfile = (id: string): boolean => builtInProfiles.some((p) => p.id === id);
+
+// ---- v1 (Phases 1–9): one provider for every task. Kept only to upgrade stored values. ----
+
+const llmSettingsV1Schema = z.object({
+  provider: z.enum(["anthropic-api", "claude-subscription"]),
+  models: z.object(
+    Object.fromEntries(llmTasks.map((t) => [t, z.enum(llmModels)])) as Record<
+      LlmTask,
+      z.ZodEnum<{ [K in (typeof llmModels)[number]]: K }>
+    >,
+  ),
+});
+export type LlmSettingsV1 = z.infer<typeof llmSettingsV1Schema>;
+
 /** v1 → v2: the old single provider becomes every task's profile, keeping each task's model. */
-export function upgradeLlmSettings(v1: LlmSettings): LlmSettingsV2 {
+export function upgradeLlmSettings(v1: LlmSettingsV1): LlmSettingsV2 {
   return {
     version: 2,
     profiles: builtInProfiles,
@@ -101,12 +102,104 @@ export function upgradeLlmSettings(v1: LlmSettings): LlmSettingsV2 {
   };
 }
 
-/** Reads a stored settings value of either version. Null when it is neither. */
+/**
+ * Reads a stored settings value of either version. Null when it is neither.
+ * Built-in profiles are always present and always current, whatever was stored.
+ */
 export function readLlmSettings(stored: unknown): LlmSettingsV2 | null {
   const v2 = llmSettingsV2Schema.safeParse(stored);
-  if (v2.success) return v2.data;
+  if (v2.success) return withBuiltIns(v2.data);
   const v1 = llmSettingsV1Schema.safeParse(stored);
   return v1.success ? upgradeLlmSettings(v1.data) : null;
 }
-/** What a fresh install uses: the Claude subscription for every task. */
-export const defaultLlmSettingsV2: LlmSettingsV2 = upgradeLlmSettings(defaultLlmSettings);
+
+function withBuiltIns(s: LlmSettingsV2): LlmSettingsV2 {
+  const custom = s.profiles.filter((p) => !isBuiltInProfile(p.id));
+  return { ...s, profiles: [...builtInProfiles, ...custom] };
+}
+
+/** What a fresh install uses: the Claude subscription with Opus 5.5 for every task. */
+export const defaultLlmSettingsV2: LlmSettingsV2 = upgradeLlmSettings({
+  provider: "claude-subscription",
+  models: Object.fromEntries(
+    llmTasks.map((t) => [t, "claude-opus-5-5"]),
+  ) as LlmSettingsV1["models"],
+});
+
+// ---- Presets and keys for OpenAI-compatible profiles (doc 20) ----
+
+export const llmPresetIds = ["ollama", "lmstudio", "openrouter", "openai", "custom"] as const;
+export type LlmPresetId = (typeof llmPresetIds)[number];
+
+export interface LlmPreset {
+  id: LlmPresetId;
+  name: string;
+  baseUrl: string;
+  /** Whether the provider needs an API key. Local servers do not. */
+  needsKey: boolean;
+  /** A starting model id, so the form is never empty. "Test connection" lists the real ones. */
+  model: string;
+  help: string;
+}
+
+export const llmPresets: Record<LlmPresetId, LlmPreset> = {
+  ollama: {
+    id: "ollama",
+    name: "Ollama",
+    baseUrl: "http://localhost:11434/v1",
+    needsKey: false,
+    model: "llama3.2",
+    help: "Local models on this computer. Install Ollama, then `ollama pull <model>`.",
+  },
+  lmstudio: {
+    id: "lmstudio",
+    name: "LM Studio",
+    baseUrl: "http://localhost:1234/v1",
+    needsKey: false,
+    model: "local-model",
+    help: "Local models. Start the server from LM Studio's Developer tab.",
+  },
+  openrouter: {
+    id: "openrouter",
+    name: "OpenRouter",
+    baseUrl: "https://openrouter.ai/api/v1",
+    needsKey: true,
+    model: "openai/gpt-5-mini",
+    help: "Many hosted models behind one key from openrouter.ai.",
+  },
+  openai: {
+    id: "openai",
+    name: "OpenAI",
+    baseUrl: "https://api.openai.com/v1",
+    needsKey: true,
+    model: "gpt-5-mini",
+    help: "Bills your OpenAI API account.",
+  },
+  custom: {
+    id: "custom",
+    name: "Custom",
+    baseUrl: "http://localhost:8000/v1",
+    needsKey: false,
+    model: "model",
+    help: "Any server that speaks the OpenAI chat-completions API.",
+  },
+};
+
+/** Environment variables that override a saved key (ADR-0037). */
+export const llmKeyEnvVars = ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "OPENROUTER_API_KEY"] as const;
+export type LlmKeyEnvVar = (typeof llmKeyEnvVars)[number];
+
+/** Which environment variable, if any, supplies this profile's key. Env always wins. */
+export function envKeyVarFor(profile: Pick<LlmProfile, "kind" | "baseUrl">): LlmKeyEnvVar | null {
+  if (profile.kind === "anthropic-api") return "ANTHROPIC_API_KEY";
+  if (profile.kind !== "openai-compatible" || !profile.baseUrl) return null;
+  let host: string;
+  try {
+    host = new URL(profile.baseUrl).hostname;
+  } catch {
+    return null;
+  }
+  if (host === "api.openai.com") return "OPENAI_API_KEY";
+  if (host === "openrouter.ai" || host.endsWith(".openrouter.ai")) return "OPENROUTER_API_KEY";
+  return null;
+}

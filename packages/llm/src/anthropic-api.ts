@@ -5,7 +5,6 @@ import {
   appError,
   defaultEffortByTask,
   err,
-  type LlmModel,
   type LlmProvider,
   type LlmRequest,
   type LlmStreamEvent,
@@ -20,7 +19,7 @@ type BetaParams = Anthropic.Beta.Messages.MessageCreateParamsNonStreaming;
 export interface AnthropicApiOptions {
   /** Omit to let the SDK resolve ANTHROPIC_API_KEY / an `ant auth` profile. */
   apiKey?: string | undefined;
-  models: Record<LlmTask, LlmModel>;
+  models: Record<LlmTask, string>;
   /** Injected in tests. */
   client?: Anthropic;
 }

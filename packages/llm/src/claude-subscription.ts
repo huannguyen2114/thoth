@@ -3,7 +3,6 @@ import {
   appError,
   defaultEffortByTask,
   err,
-  type LlmModel,
   type LlmProvider,
   type LlmRequest,
   type LlmStreamEvent,
@@ -16,7 +15,7 @@ import { z } from "zod";
 type QueryFn = typeof agentQuery;
 
 export interface ClaudeSubscriptionOptions {
-  models: Record<LlmTask, LlmModel>;
+  models: Record<LlmTask, string>;
   /** Injected in tests. Defaults to the Agent SDK's query(). */
   query?: QueryFn;
 }
