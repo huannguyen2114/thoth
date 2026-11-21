@@ -1,0 +1,123 @@
+/*
+ * The pdf.js text layer (selectable text over each page canvas) and the annotation overlay
+ * (doc 21). Only the rules the text layer needs, from pdfjs-dist/web/pdf_viewer.css, with
+ * Hearth tokens for the selection colour.
+ */
+.pdf-page {
+  --scale-round-x: 1px;
+  --scale-round-y: 1px;
+}
+
+.pdf-text-layer {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  line-height: 1;
+  text-align: initial;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  caret-color: var(--ink);
+  z-index: 2;
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+}
+
+.pdf-text-layer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+  user-select: text;
+}
+
+.pdf-text-layer > :not(.markedContent),
+.pdf-text-layer .markedContent span:not(.markedContent) {
+  z-index: 1;
+  --font-height: 0;
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+  --scale-x: 1;
+  --rotate: 0deg;
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+
+.pdf-text-layer .markedContent {
+  display: contents;
+}
+
+.pdf-text-layer span[role="img"] {
+  user-select: none;
+  cursor: default;
+}
+
+.pdf-text-layer ::selection {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  color: transparent;
+}
+
+/* pdf.js puts this after the text so a drag past the end does not select the whole page. */
+.pdf-text-layer .endOfContent {
+  display: block;
+  position: absolute;
+  inset: 100% 0 0;
+  z-index: 0;
+  cursor: default;
+  user-select: none;
+}
+.pdf-text-layer.selecting .endOfContent {
+  top: 0;
+}
+
+/* The overlay draws under the text, so text stays selectable over a highlight. */
+.pdf-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.pdf-overlay[data-drawing="true"] {
+  z-index: 3;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: crosshair;
+}
+.pdf-overlay .pdf-highlight {
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+}
+
+/* A jump to an annotation pulses it twice. */
+@keyframes annotation-flash {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+.annotation-flash {
+  animation: annotation-flash 600ms cubic-bezier(0.2, 0, 0, 1) 2;
+}
+.pdf-overlay .pdf-highlight.annotation-flash {
+  animation-name: annotation-flash-highlight;
+}
+@keyframes annotation-flash-highlight {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .annotation-flash {
+    animation: none;
+    outline: 2px solid var(--focus-ring);
+  }
+}

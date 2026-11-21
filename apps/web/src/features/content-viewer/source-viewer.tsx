@@ -35,7 +35,10 @@ export function SourceViewer({
   }
   if (content.kind === "pdf") {
     return content.filePath ? (
-      <PdfViewer url={`/api/content/${encodeURIComponent(content.id)}/file`} />
+      <PdfViewer
+        url={`/api/content/${encodeURIComponent(content.id)}/file`}
+        contentId={content.id}
+      />
     ) : (
       <TextViewer segments={segments} mode="pages" />
     );

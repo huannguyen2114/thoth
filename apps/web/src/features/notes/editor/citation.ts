@@ -5,7 +5,8 @@ import { mergeAttributes, Node, nodeInputRule, nodePasteRule } from "@tiptap/rea
  * times, [§2] paragraphs (1-based, ADR-0019). Kept in step with core by the round-trip tests.
  */
 const TOKEN = String.raw`\[(?:p\.\d+|\d{1,2}(?::\d{2}){1,2}|§\d+)\]`;
-const AT_START = new RegExp(`^${TOKEN}`);
+// Not when a link target follows: `[p.3](thoth:...)` is a link chip (thoth-link.ts).
+const AT_START = new RegExp(`^${TOKEN}(?!\\()`);
 const TYPED = new RegExp(`${TOKEN}$`);
 const PASTED = new RegExp(TOKEN, "g");
 /** Where a token might begin, so the Markdown lexer only tries us at a "[". */
