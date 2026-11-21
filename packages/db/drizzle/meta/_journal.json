@@ -57,6 +57,13 @@
       "when": 1795018113174,
       "tag": "0007_segment_vectors",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1795253979622,
+      "tag": "0008_phase10_contracts",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,5 @@
 import type { Content, Segment } from "../../domain/content";
-import type { Note } from "../../domain/note";
+import type { Note, NoteOwner } from "../../domain/note";
 import type { StudySet } from "../../domain/study-set";
 import type { LlmProvider, LlmRequest, LlmStreamEvent } from "../../ports/llm";
 import type {
@@ -10,6 +10,7 @@ import type {
 } from "../../ports/repositories";
 import {
   type ContentId,
+  type NoteId,
   newId,
   type SegmentId,
   type SpaceId,
@@ -130,8 +131,14 @@ export class FakeNotes implements NoteRepository {
   async get() {
     return this.saved;
   }
-  async save(contentId: ContentId, markdown: string) {
-    this.saved = { contentId, markdown, updatedAt: new Date() };
+  async save(owner: NoteOwner, markdown: string) {
+    this.saved = {
+      id: this.saved?.id ?? newId<NoteId>(),
+      contentId: "contentId" in owner ? owner.contentId : null,
+      spaceId: "spaceId" in owner ? owner.spaceId : null,
+      markdown,
+      updatedAt: new Date(),
+    };
     return this.saved;
   }
   async list() {

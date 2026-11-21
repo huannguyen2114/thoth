@@ -137,6 +137,8 @@ export async function searchEverything(
   }
 
   for (const n of notes) {
+    // Space notes are not searched yet (Lane 4, doc 22).
+    if (!n.contentId) continue;
     const title = titles.get(n.contentId);
     const lower = n.markdown.toLowerCase();
     if (title === undefined || !terms.every((t) => lower.includes(t))) continue;

@@ -12,7 +12,7 @@ import {
   listBoards,
   listSourceAnchors,
   renameBoard,
-  type SourceAnchor,
+  type SourcePlace,
   type Whiteboard,
   type WhiteboardId,
 } from "@thoth/core";
@@ -108,7 +108,7 @@ export async function applyOpsAction(
   return r.ok ? { ok: true, value: toDto(r.value) } : { ok: false, error: r.error.message };
 }
 
-export async function sourceAnchorsAction(contentId: string): Promise<SourceAnchor[]> {
+export async function sourceAnchorsAction(contentId: string): Promise<SourcePlace[]> {
   return listSourceAnchors(await deps(), contentId as ContentId);
 }
 

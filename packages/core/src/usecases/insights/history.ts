@@ -125,7 +125,7 @@ export async function getHistory(
         // Backfilled rows hold the chat id; new rows hold the message id (no lookup for those).
         return once(`chat:${e.ref}`, async () => {
           const chat = await deps.chats.get(e.ref as ChatId);
-          return chat ? contentTarget(chat.contentId) : NONE;
+          return chat?.contentId ? contentTarget(chat.contentId) : NONE;
         });
       case "plan_item_done":
         return { subject: "Study plan", href: "/planner" };

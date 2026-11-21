@@ -1,11 +1,14 @@
 import { z } from "zod";
-import type { Note } from "../../domain/note";
+import { parseLinks } from "../../domain/link";
+import type { Note, NoteOwner } from "../../domain/note";
 import type { LlmProvider } from "../../ports/llm";
 import type {
   ActivityRepository,
   ContentRepository,
+  LinkRepository,
   NoteRepository,
   SegmentRepository,
+  SpaceRepository,
 } from "../../ports/repositories";
 import type { ContentId } from "../../shared/id";
 import { appError, err, ok, type Result } from "../../shared/result";
@@ -20,6 +23,10 @@ export interface NotesDeps {
   notes: NoteRepository;
   llm: () => Promise<LlmProvider>;
   activity?: ActivityRepository;
+  /** Space notes (Phase 10). Required only to save a space's notes. */
+  spaces?: SpaceRepository;
+  /** Backlink index (Phase 10). When present, every save re-indexes the note's links. */
+  links?: LinkRepository;
 }
 
 export const MAX_NOTES_CHARS = 200_000;
@@ -29,28 +36,49 @@ const markdownSchema = z.string().max(MAX_NOTES_CHARS, "These notes are too long
 /** The saved note, or an empty one when none exists yet (nothing is written). */
 export async function getNote(
   deps: Pick<NotesDeps, "notes">,
-  contentId: ContentId,
+  owner: NoteOwner,
 ): Promise<{ markdown: string; updatedAt: Date | null }> {
-  const note: Note | null = await deps.notes.get(contentId);
+  const note: Note | null = await deps.notes.get(owner);
   return note
     ? { markdown: note.markdown, updatedAt: note.updatedAt }
     : { markdown: "", updatedAt: null };
 }
 
 export async function saveNote(
-  deps: Pick<NotesDeps, "contents" | "notes" | "activity">,
-  contentId: ContentId,
+  deps: Pick<NotesDeps, "contents" | "notes" | "activity" | "spaces" | "links">,
+  owner: NoteOwner,
   markdown: string,
 ): Promise<Result<Note>> {
   const parsed = markdownSchema.safeParse(markdown);
   if (!parsed.success) {
     return err(appError("validation", parsed.error.issues[0]?.message ?? "Invalid notes."));
   }
-  if (!(await deps.contents.get(contentId))) {
-    return err(appError("not_found", "This content no longer exists."));
+  if ("contentId" in owner) {
+    if (!(await deps.contents.get(owner.contentId))) {
+      return err(appError("not_found", "This content no longer exists."));
+    }
+  } else if (!deps.spaces || !(await deps.spaces.get(owner.spaceId))) {
+    return err(appError("not_found", "This space no longer exists."));
   }
-  const note = await deps.notes.save(contentId, parsed.data);
-  await recordActivity(deps.activity, "note_edit", contentId);
+  const note = await deps.notes.save(owner, parsed.data);
+  if (deps.links) {
+    const fromContentId = "contentId" in owner ? owner.contentId : null;
+    const fromSpaceId = "spaceId" in owner ? owner.spaceId : null;
+    await deps.links.replaceFrom(
+      "note",
+      note.id,
+      parseLinks(parsed.data).map((l) => ({
+        fromKind: "note",
+        fromId: note.id,
+        fromContentId,
+        fromSpaceId,
+        label: l.label,
+        anchor: l.anchor,
+      })),
+    );
+  }
+  // History links a note edit to its content; space notes are logged by Lane 4 (doc 22).
+  if ("contentId" in owner) await recordActivity(deps.activity, "note_edit", owner.contentId);
   return ok(note);
 }
 

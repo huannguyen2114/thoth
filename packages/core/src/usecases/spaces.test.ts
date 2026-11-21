@@ -18,6 +18,7 @@ class InMemorySpaces implements SpaceRepository {
   async list() {
     return this.rows;
   }
+  async update() {}
 }
 
 describe("createSpace", () => {

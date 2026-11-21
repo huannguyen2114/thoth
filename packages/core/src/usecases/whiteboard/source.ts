@@ -60,7 +60,7 @@ export function linkFor(
 }
 
 /** A place in the source a person can link an element to ("Link to source…"). */
-export interface SourceAnchor {
+export interface SourcePlace {
   token: string;
   /** "Page 3", "03:21", "Paragraph 2". */
   label: string;
@@ -80,13 +80,13 @@ const anchorLabel = (token: string) => {
 export async function listSourceAnchors(
   deps: SourceDeps,
   contentId: ContentId,
-): Promise<SourceAnchor[]> {
+): Promise<SourcePlace[]> {
   const [segments, chapters] = await Promise.all([
     deps.segments.listByContent(contentId),
     deps.chapters.listByContent(contentId),
   ]);
   const seen = new Set<string>();
-  const out: SourceAnchor[] = [];
+  const out: SourcePlace[] = [];
   for (const c of [...chapters].sort((a, b) => a.idx - b.idx)) {
     const token = citationToken(c.locator);
     out.push({ token, label: anchorLabel(token), preview: c.title, chapter: true });

@@ -10,11 +10,12 @@ export const AUTOSAVE_MS = 800;
 export type SaveState = "idle" | "saving" | "saved" | "error";
 
 /**
+ * `ownerKey` is `content:<id>` or `space:<id>` (`noteOwnerKey` in core).
  * Debounced autosave of the editor as Markdown through `saveNoteAction` (core `saveNote`, which
  * records the `note_edit` activity). Saves 800 ms after the last edit, at once on blur, and what
  * is still pending when the panel unmounts. One save at a time; unchanged text is not resent.
  */
-export function useAutosave(contentId: string, editor: Editor | null) {
+export function useAutosave(ownerKey: string, editor: Editor | null) {
   const [state, setState] = useState<SaveState>("idle");
   const [error, setError] = useState<string | null>(null);
   const dirty = useRef(false);
@@ -35,7 +36,7 @@ export function useAutosave(contentId: string, editor: Editor | null) {
     setState("saving");
     const save = (async () => {
       try {
-        const r = await saveNoteAction(contentId, markdown);
+        const r = await saveNoteAction(ownerKey, markdown);
         if (r.ok) {
           lastSaved.current = markdown;
           setError(null);
@@ -54,7 +55,7 @@ export function useAutosave(contentId: string, editor: Editor | null) {
     inFlight.current = save;
     await save;
     inFlight.current = null;
-  }, [contentId, editor]);
+  }, [ownerKey, editor]);
 
   /** Call on every edit. */
   const schedule = useCallback(() => {
@@ -76,10 +77,10 @@ export function useAutosave(contentId: string, editor: Editor | null) {
     () => () => {
       clearTimeout(timer.current);
       if (dirty.current && editor && !editor.isDestroyed) {
-        void saveNoteAction(contentId, serializeNote(editor));
+        void saveNoteAction(ownerKey, serializeNote(editor));
       }
     },
-    [contentId, editor],
+    [ownerKey, editor],
   );
 
   return { state, error, schedule, flush, markSaved };

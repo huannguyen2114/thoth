@@ -1,10 +1,12 @@
-import type { ChatId, ContentId, MessageId } from "../shared/id";
+import type { ChatId, ContentId, MessageId, SpaceId } from "../shared/id";
 import type { CitationRef } from "./citation";
 
-/** One conversation about one content (Phase 3). */
+/** One conversation about one content (Phase 3) or across a space (Phase 10). */
 export interface Chat {
   id: ChatId;
-  contentId: ContentId;
+  /** Exactly one of contentId and spaceId is set. */
+  contentId: ContentId | null;
+  spaceId: SpaceId | null;
   title: string;
   /** Owner's custom chat instructions (YouLearn "Chat instructions"). */
   instructions: string | null;

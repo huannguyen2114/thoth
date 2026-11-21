@@ -25,6 +25,10 @@ Thoth is a single-user, local-first study PWA. It is a personal alternative to Y
    - embeddings and retrieval: `16`
    - study planner: `17`
    - whiteboard and mind maps: `18`
+   - desktop app: `19`
+   - OpenAI-compatible providers and keychain: `20`
+   - annotations, links and backlinks: `21`
+   - spaces (chat, dashboard, notes, tags, bulk add): `22`
 5. `docs/plan/roadmap.md`: what phase we are in and what comes next.
 
 Only then search the code. Most "where is X" questions are answered by `01-architecture.md`.

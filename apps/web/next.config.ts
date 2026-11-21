@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The desktop app (doc 19) bundles the self-contained server; `pnpm dev` and `build` are unchanged.
+  ...(process.env.THOTH_STANDALONE === "1" ? { output: "standalone" as const } : {}),
   cacheComponents: true,
   partialPrefetching: true,
   // Workspace packages ship TypeScript source; Next compiles them.

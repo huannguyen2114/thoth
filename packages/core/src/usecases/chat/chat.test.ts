@@ -107,6 +107,7 @@ class FakeChats implements ChatRepository {
     const chat: Chat = {
       id: newId<ChatId>(),
       contentId,
+      spaceId: null,
       title,
       instructions: null,
       createdAt: now,
@@ -120,6 +121,12 @@ class FakeChats implements ChatRepository {
   }
   async listByContent(contentId: ContentId) {
     return this.chats.filter((c) => c.contentId === contentId);
+  }
+  async createForSpace(): Promise<Chat> {
+    throw new Error("not used");
+  }
+  async listBySpace() {
+    return [];
   }
   async setInstructions(id: ChatId, instructions: string | null) {
     const c = this.chats.find((x) => x.id === id);

@@ -1,4 +1,5 @@
 import type { ActivityDay, ActivityEvent, ActivityKind } from "../domain/activity";
+import type { Annotation, NewAnnotation } from "../domain/annotation";
 import type { Chat, ChatMessage } from "../domain/chat";
 import type { CitationRef } from "../domain/citation";
 import type {
@@ -14,14 +15,17 @@ import type {
 import type { ExamSession } from "../domain/exam";
 import type { Flashcard, FsrsState, NewFlashcard, Review, ReviewRating } from "../domain/flashcard";
 import type { Job, JobKind } from "../domain/job";
+import type { SourceAnchor } from "../domain/link";
 import type { LlmSettings } from "../domain/llm-settings";
-import type { Note } from "../domain/note";
+import type { Note, NoteOwner } from "../domain/note";
 import type { NewPlanItem, NewStudyPlan, PlanItem, StudyPlan } from "../domain/plan";
 import type { NewQuizAttempt, NewQuizQuestion, QuizAttempt, QuizQuestion } from "../domain/quiz";
-import type { NewSpace, Space } from "../domain/space";
+import type { NewSpace, Space, UpdateSpaceInput } from "../domain/space";
 import type { NewStudySet, StudySet, StudySetKind } from "../domain/study-set";
+import type { AccentColor, Tag } from "../domain/tag";
 import type { BoardElement, Whiteboard } from "../domain/whiteboard";
 import type {
+  AnnotationId,
   ChatId,
   ContentId,
   ExamSessionId,
@@ -32,6 +36,7 @@ import type {
   QuizQuestionId,
   SpaceId,
   StudySetId,
+  TagId,
   WhiteboardId,
 } from "../shared/id";
 
@@ -44,6 +49,8 @@ export interface SpaceRepository {
   create(input: NewSpace): Promise<Space>;
   get(id: SpaceId): Promise<Space | null>;
   list(): Promise<Space[]>;
+  /** Changes only the fields given (Phase 10). */
+  update(id: SpaceId, patch: UpdateSpaceInput): Promise<void>;
 }
 
 export interface ContentRepository {
@@ -72,6 +79,9 @@ export interface ChapterRepository {
 
 export interface ChatRepository {
   create(contentId: ContentId, title: string): Promise<Chat>;
+  /** A chat across a whole space (Phase 10). */
+  createForSpace(spaceId: SpaceId, title: string): Promise<Chat>;
+  listBySpace(spaceId: SpaceId): Promise<Chat[]>;
   get(id: ChatId): Promise<Chat | null>;
   listByContent(contentId: ContentId): Promise<Chat[]>;
   setInstructions(id: ChatId, instructions: string | null): Promise<void>;
@@ -97,8 +107,9 @@ export interface StudySetRepository {
 }
 
 export interface NoteRepository {
-  get(contentId: ContentId): Promise<Note | null>;
-  save(contentId: ContentId, markdown: string): Promise<Note>;
+  /** The content's or space's notes (Phase 10 added spaces). */
+  get(owner: NoteOwner): Promise<Note | null>;
+  save(owner: NoteOwner, markdown: string): Promise<Note>;
   /** Every non-empty note, most recently edited first (search, export). */
   list(): Promise<Note[]>;
 }
@@ -207,4 +218,58 @@ export interface WhiteboardRepository {
   ): Promise<Whiteboard | null>;
   rename(id: WhiteboardId, title: string): Promise<void>;
   delete(id: WhiteboardId): Promise<void>;
+}
+
+/** Highlights, ink, shapes and comments on a source (Phase 10, doc 21). */
+export interface AnnotationRepository {
+  create(input: NewAnnotation): Promise<Annotation>;
+  get(id: AnnotationId): Promise<Annotation | null>;
+  /** In reading order: by page (or time / paragraph), then creation time. */
+  listByContent(contentId: ContentId): Promise<Annotation[]>;
+  update(
+    id: AnnotationId,
+    patch: Partial<Pick<Annotation, "color" | "comment" | "payload" | "anchor">>,
+  ): Promise<void>;
+  delete(id: AnnotationId): Promise<void>;
+}
+
+/** Where a link was written: a notes document, a chat message, or a whiteboard. */
+export const linkSourceKinds = ["note", "chat_message", "board"] as const;
+export type LinkSourceKind = (typeof linkSourceKinds)[number];
+
+/** One row of the backlink index: "this note links to that spot". */
+export interface LinkRecord {
+  fromKind: LinkSourceKind;
+  /** NoteId, MessageId or WhiteboardId. */
+  fromId: string;
+  /** Where the link was written, so a backlink can open it (null for a space's notes). */
+  fromContentId: ContentId | null;
+  fromSpaceId: SpaceId | null;
+  label: string;
+  anchor: SourceAnchor;
+}
+
+/**
+ * The backlink index (Phase 10, doc 21). Derived data: the source of truth is the Markdown or
+ * message text, re-parsed with `parseLinks` and written with `replaceFrom` on every save.
+ */
+export interface LinkRepository {
+  /** Replaces every link written by one note, message or board. */
+  replaceFrom(fromKind: LinkSourceKind, fromId: string, links: LinkRecord[]): Promise<void>;
+  /** Links that point into a content: at it, at one of its annotations, or at one of its sets. */
+  backlinksTo(contentId: ContentId): Promise<LinkRecord[]>;
+  backlinksToAnnotation(annotationId: AnnotationId): Promise<LinkRecord[]>;
+}
+
+/** Content tags (Phase 10, doc 22). */
+export interface TagRepository {
+  create(name: string, color: AccentColor): Promise<Tag>;
+  list(): Promise<Tag[]>;
+  rename(id: TagId, name: string, color: AccentColor): Promise<void>;
+  delete(id: TagId): Promise<void>;
+  /** Replaces a content's tags. */
+  setForContent(contentId: ContentId, tagIds: TagId[]): Promise<void>;
+  listForContent(contentId: ContentId): Promise<Tag[]>;
+  /** contentId → its tags, for every tagged content (library filters). */
+  listAssignments(): Promise<{ contentId: ContentId; tagId: TagId }[]>;
 }

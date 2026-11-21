@@ -1,6 +1,6 @@
 # ADR-0013: LLM adapter defaults, structured output and subscription isolation
 
-- Status: Accepted
+- Status: Accepted; one model setting per task amended by ADR-0037 (a provider profile per task)
 - Date: 2026-11-15
 - Supersedes: ADR-0008 (only its structured-output mechanism for both adapters; the rest of ADR-0008 stands)
 

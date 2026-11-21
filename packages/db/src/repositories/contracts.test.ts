@@ -90,9 +90,9 @@ describe("MVP contract repositories", () => {
     expect(msgs[1]?.citations).toEqual([{ type: "page", page: 1 }]);
 
     const notes = new DrizzleNoteRepository(db);
-    await notes.save(c.id, "# One");
-    await notes.save(c.id, "# Two");
-    expect((await notes.get(c.id))?.markdown).toBe("# Two");
+    await notes.save({ contentId: c.id }, "# One");
+    await notes.save({ contentId: c.id }, "# Two");
+    expect((await notes.get({ contentId: c.id }))?.markdown).toBe("# Two");
 
     const sets = new DrizzleStudySetRepository(db);
     const s = await sets.create({
@@ -214,7 +214,12 @@ describe("MVP contract repositories", () => {
 describe("Phase 7 contracts", () => {
   it("contents.setSpace moves a content in and out of a space", async () => {
     const { DrizzleSpaceRepository } = await import("./space-repository");
-    const space = await new DrizzleSpaceRepository(db).create({ name: "Bio", description: null });
+    const space = await new DrizzleSpaceRepository(db).create({
+      name: "Bio",
+      description: null,
+      color: null,
+      icon: null,
+    });
     const repo = new DrizzleContentRepository(db);
     const c = await newContent(db);
     await repo.setSpace(c.id, space.id);
@@ -226,7 +231,12 @@ describe("Phase 7 contracts", () => {
   it("exam sessions: start, list newest first, submit; question keeps its content id", async () => {
     const { DrizzleSpaceRepository } = await import("./space-repository");
     const { DrizzleExamSessionRepository } = await import("./exam-session-repository");
-    const space = await new DrizzleSpaceRepository(db).create({ name: "Bio", description: null });
+    const space = await new DrizzleSpaceRepository(db).create({
+      name: "Bio",
+      description: null,
+      color: null,
+      icon: null,
+    });
     const c = await newContent(db);
     const set = await new DrizzleStudySetRepository(db).create({
       kind: "exam",
@@ -313,8 +323,8 @@ describe("Phase 8 contract additions", () => {
     const notes = new DrizzleNoteRepository(db);
     const a = await newContent(db, "A");
     const b = await newContent(db, "B");
-    await notes.save(a.id, "# A notes");
-    await notes.save(b.id, "   ");
+    await notes.save({ contentId: a.id }, "# A notes");
+    await notes.save({ contentId: b.id }, "   ");
     expect((await notes.list()).map((n) => n.contentId)).toEqual([a.id]);
 
     const { DrizzleActivityRepository } = await import("./activity-repository");

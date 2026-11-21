@@ -21,11 +21,30 @@ const saveLabel: Record<SaveState, string> = {
   error: "Not saved",
 };
 
-/**
- * The Notes panel (ADR-0022, doc 12): one live-preview editor, stored as Markdown.
- * It fills whatever box it is given: the toolbar wraps, and the text scrolls on its own.
- */
+/** The Notes panel on a content page: the editor, owned by that content. */
 function NotesPanel({ contentId, onCite }: LearnToolProps) {
+  return (
+    <NotesEditor ownerKey={`content:${contentId}`} draftContentId={contentId} onCite={onCite} />
+  );
+}
+
+/**
+ * The notes editor (ADR-0022, doc 12): one live-preview editor, stored as Markdown.
+ * It fills whatever box it is given: the toolbar wraps, and the text scrolls on its own.
+ *
+ * `ownerKey` is `content:<id>` or `space:<id>` (core `noteOwnerKey`); space notes use it on the
+ * space page (Phase 10, doc 22). "Draft notes with Claude" needs a source, so it shows only
+ * when `draftContentId` is given.
+ */
+export function NotesEditor({
+  ownerKey,
+  draftContentId,
+  onCite,
+}: {
+  ownerKey: string;
+  draftContentId?: string;
+  onCite?: ((token: string) => void) | undefined;
+}) {
   const [loaded, setLoaded] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
   const [askDraft, setAskDraft] = useState(false);
@@ -59,11 +78,11 @@ function NotesPanel({ contentId, onCite }: LearnToolProps) {
   });
   slash.bind(editor);
 
-  const autosave = useAutosave(contentId, editor);
+  const autosave = useAutosave(ownerKey, editor);
   onBlur.current = () => void autosave.flush();
 
   const draft = useDraft({
-    contentId,
+    contentId: draftContentId ?? "",
     editor,
     // Follow the end of the draft in whichever box scrolls (our panel, or the page).
     onProgress: () => editor?.view.dom.lastElementChild?.scrollIntoView({ block: "nearest" }),
@@ -80,7 +99,7 @@ function NotesPanel({ contentId, onCite }: LearnToolProps) {
     if (!editor) return;
     let cancelled = false;
     setLoaded(false);
-    loadNoteAction(contentId)
+    loadNoteAction(ownerKey)
       .then(({ markdown }) => {
         if (cancelled || editor.isDestroyed) return;
         const doc = editor.schema.nodeFromJSON(parseNote(editor, markdown));
@@ -94,7 +113,7 @@ function NotesPanel({ contentId, onCite }: LearnToolProps) {
     return () => {
       cancelled = true;
     };
-  }, [editor, contentId, markSaved]);
+  }, [editor, ownerKey, markSaved]);
 
   function requestDraft() {
     if (editor && !editor.isEmpty) setAskDraft(true);
@@ -148,11 +167,11 @@ function NotesPanel({ contentId, onCite }: LearnToolProps) {
               >
                 Stop
               </Button>
-            ) : (
+            ) : draftContentId ? (
               <Button size="sm" variant="secondary" onClick={requestDraft} disabled={!loaded}>
                 Draft notes with Claude
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
         {editor && loaded && <Toolbar editor={editor} disabled={draft.busy} />}

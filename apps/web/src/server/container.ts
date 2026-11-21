@@ -2,6 +2,7 @@ import "server-only";
 import { resolve } from "node:path";
 import {
   type ActivityRepository,
+  type AnnotationRepository,
   type ChapterRepository,
   type ChatRepository,
   type ContentRepository,
@@ -10,6 +11,7 @@ import {
   type FlashcardRepository,
   getLlmSettings,
   type JobRepository,
+  type LinkRepository,
   type LlmProvider,
   type NoteRepository,
   type PlanRepository,
@@ -19,18 +21,21 @@ import {
   type SourceParser,
   type SpaceRepository,
   type StudySetRepository,
+  type TagRepository,
   type VectorRepository,
   type WhiteboardRepository,
 } from "@thoth/core";
 import {
   createDb,
   DrizzleActivityRepository,
+  DrizzleAnnotationRepository,
   DrizzleChapterRepository,
   DrizzleChatRepository,
   DrizzleContentRepository,
   DrizzleExamSessionRepository,
   DrizzleFlashcardRepository,
   DrizzleJobRepository,
+  DrizzleLinkRepository,
   DrizzleNoteRepository,
   DrizzlePlanRepository,
   DrizzleQuizRepository,
@@ -38,6 +43,7 @@ import {
   DrizzleSettingsRepository,
   DrizzleSpaceRepository,
   DrizzleStudySetRepository,
+  DrizzleTagRepository,
   DrizzleVectorRepository,
   DrizzleWhiteboardRepository,
   migrateDb,
@@ -68,6 +74,10 @@ export interface Container {
   plans: PlanRepository;
   whiteboards: WhiteboardRepository;
   vectors: VectorRepository;
+  /** Phase 10 (docs 21, 22). */
+  annotations: AnnotationRepository;
+  links: LinkRepository;
+  tags: TagRepository;
   /** Local embeddings (ADR-0029). Phase 9 Lane 2 fills this slot. */
   embeddings?: EmbeddingProvider;
   settings: SettingsRepository;
@@ -83,7 +93,7 @@ const scripted = new ScriptedLlmProvider();
 
 async function build(): Promise<Container> {
   const db = createDb(`file:${resolve(env.THOTH_DATA_DIR, "thoth.db")}`);
-  await migrateDb(db, resolve(process.cwd(), "../../packages/db/drizzle"));
+  await migrateDb(db, env.THOTH_MIGRATIONS_DIR);
   const settings = new DrizzleSettingsRepository(db);
   return {
     spaces: new DrizzleSpaceRepository(db),
@@ -103,6 +113,9 @@ async function build(): Promise<Container> {
     plans: new DrizzlePlanRepository(db),
     whiteboards: new DrizzleWhiteboardRepository(db),
     vectors: new DrizzleVectorRepository(db),
+    annotations: new DrizzleAnnotationRepository(db),
+    links: new DrizzleLinkRepository(db),
+    tags: new DrizzleTagRepository(db),
     // Scripted (browser-test) runs use word-hash vectors: no 135 MB download, same code path.
     embeddings:
       env.THOTH_LLM === "scripted"

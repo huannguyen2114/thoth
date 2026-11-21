@@ -70,7 +70,7 @@ erDiagram
 
 `quiz_questions.content_id` (migration `0003`) links an exam question to its source content and is set to null if that content is deleted. Text segment locators carry a 1-based `paragraph`, filled by the segment repository (ADR-0019).
 
-**Foreign keys** are enforced: `migrateDb` runs `PRAGMA foreign_keys = ON`, so deleting a content removes its children.
+**Foreign keys** are enforced: `migrateDb` runs `PRAGMA foreign_keys = ON` after the migrations, so deleting a content removes its children. Migrations themselves run with foreign keys off, then `PRAGMA foreign_key_check` must come back empty. A table rebuild (`DROP TABLE` + rename) would otherwise cascade-delete its children, because the migrator's transaction ignores the pragma (ADR-0039).
 
 **Seed:** `pnpm --filter @thoth/db seed` adds `sample-lecture` and `sample-pdf` (`packages/db/src/seed.ts`).
 

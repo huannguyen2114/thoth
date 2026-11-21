@@ -1,27 +1,46 @@
-import type { ContentId, Note, NoteRepository } from "@thoth/core";
+import {
+  type ContentId,
+  type Note,
+  type NoteId,
+  type NoteOwner,
+  type NoteRepository,
+  newId,
+  type SpaceId,
+} from "@thoth/core";
 import { desc, eq, sql } from "drizzle-orm";
 import type { Db } from "../client";
 import { notes } from "../schema";
 
 const toDomain = (r: typeof notes.$inferSelect): Note => ({
   ...r,
-  contentId: r.contentId as ContentId,
+  id: r.id as NoteId,
+  contentId: r.contentId as ContentId | null,
+  spaceId: r.spaceId as SpaceId | null,
 });
+
+const whereOwner = (owner: NoteOwner) =>
+  "contentId" in owner ? eq(notes.contentId, owner.contentId) : eq(notes.spaceId, owner.spaceId);
 
 export class DrizzleNoteRepository implements NoteRepository {
   constructor(private readonly db: Db) {}
 
-  async get(contentId: ContentId) {
-    const row = await this.db.query.notes.findFirst({ where: eq(notes.contentId, contentId) });
+  async get(owner: NoteOwner) {
+    const row = await this.db.query.notes.findFirst({ where: whereOwner(owner) });
     return row ? toDomain(row) : null;
   }
 
-  async save(contentId: ContentId, markdown: string) {
+  async save(owner: NoteOwner, markdown: string) {
+    const byContent = "contentId" in owner;
     const [row] = await this.db
       .insert(notes)
-      .values({ contentId, markdown })
+      .values({
+        id: newId<NoteId>(),
+        contentId: byContent ? owner.contentId : null,
+        spaceId: byContent ? null : owner.spaceId,
+        markdown,
+      })
       .onConflictDoUpdate({
-        target: notes.contentId,
+        target: byContent ? notes.contentId : notes.spaceId,
         set: { markdown, updatedAt: sql`(unixepoch('subsec') * 1000)` },
       })
       .returning();

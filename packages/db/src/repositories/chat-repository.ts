@@ -7,6 +7,7 @@ import {
   type ContentId,
   type MessageId,
   newId,
+  type SpaceId,
 } from "@thoth/core";
 import { asc, desc, eq, sql } from "drizzle-orm";
 import type { Db } from "../client";
@@ -15,7 +16,8 @@ import { chatMessages, chats } from "../schema";
 const toChat = (r: typeof chats.$inferSelect): Chat => ({
   ...r,
   id: r.id as ChatId,
-  contentId: r.contentId as ContentId,
+  contentId: r.contentId as ContentId | null,
+  spaceId: r.spaceId as SpaceId | null,
 });
 const toMessage = (r: typeof chatMessages.$inferSelect): ChatMessage => ({
   ...r,
@@ -34,6 +36,24 @@ export class DrizzleChatRepository implements ChatRepository {
       .returning();
     if (!row) throw new Error("Insert into chats returned no row.");
     return toChat(row);
+  }
+
+  async createForSpace(spaceId: SpaceId, title: string) {
+    const [row] = await this.db
+      .insert(chats)
+      .values({ id: newId<ChatId>(), spaceId, title })
+      .returning();
+    if (!row) throw new Error("Insert into chats returned no row.");
+    return toChat(row);
+  }
+
+  async listBySpace(spaceId: SpaceId) {
+    const rows = await this.db
+      .select()
+      .from(chats)
+      .where(eq(chats.spaceId, spaceId))
+      .orderBy(desc(chats.updatedAt));
+    return rows.map(toChat);
   }
 
   async get(id: ChatId) {

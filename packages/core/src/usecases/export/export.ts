@@ -23,7 +23,7 @@ export async function exportContentMarkdown(
   const content = await deps.contents.get(contentId);
   if (!content) return err(appError("not_found", "That content no longer exists."));
   const [note, sets] = await Promise.all([
-    deps.notes.get(contentId),
+    deps.notes.get({ contentId }),
     deps.studySets.listByContent(contentId, "summary"),
   ]);
   const summaries = sets

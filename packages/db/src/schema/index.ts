@@ -1,6 +1,15 @@
 import { activityKinds, jobKinds } from "@thoth/core";
 import { sql } from "drizzle-orm";
-import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+  check,
+  index,
+  integer,
+  primaryKey,
+  real,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 
 const timestamps = {
   createdAt: integer("created_at", { mode: "timestamp_ms" })
@@ -15,6 +24,10 @@ export const spaces = sqliteTable("spaces", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
+  /** Hearth accent name (Phase 10). */
+  color: text("color"),
+  /** Icon name from `spaceIcons` (Phase 10). */
+  icon: text("icon"),
   ...timestamps,
 });
 
@@ -80,14 +93,18 @@ export const chats = sqliteTable(
   "chats",
   {
     id: text("id").primaryKey(),
-    contentId: text("content_id")
-      .notNull()
-      .references(() => contents.id, { onDelete: "cascade" }),
+    // Exactly one of content_id and space_id is set (Phase 10 added space chats).
+    contentId: text("content_id").references(() => contents.id, { onDelete: "cascade" }),
+    spaceId: text("space_id").references(() => spaces.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     instructions: text("instructions"),
     ...timestamps,
   },
-  (t) => [index("chats_content_idx").on(t.contentId)],
+  (t) => [
+    index("chats_content_idx").on(t.contentId),
+    index("chats_space_idx").on(t.spaceId),
+    check("chats_one_owner", sql`(content_id IS NULL) <> (space_id IS NULL)`),
+  ],
 );
 
 export const chatMessages = sqliteTable(
@@ -127,13 +144,22 @@ export const studySets = sqliteTable(
   ],
 );
 
-export const notes = sqliteTable("notes", {
-  contentId: text("content_id")
-    .primaryKey()
-    .references(() => contents.id, { onDelete: "cascade" }),
-  markdown: text("markdown").notNull(),
-  updatedAt: timestamps.updatedAt,
-});
+/** One notes document per content or per space (Phase 10). Exactly one owner is set. */
+export const notes = sqliteTable(
+  "notes",
+  {
+    id: text("id").primaryKey(),
+    contentId: text("content_id").references(() => contents.id, { onDelete: "cascade" }),
+    spaceId: text("space_id").references(() => spaces.id, { onDelete: "cascade" }),
+    markdown: text("markdown").notNull(),
+    updatedAt: timestamps.updatedAt,
+  },
+  (t) => [
+    uniqueIndex("notes_content_uq").on(t.contentId),
+    uniqueIndex("notes_space_uq").on(t.spaceId),
+    check("notes_one_owner", sql`(content_id IS NULL) <> (space_id IS NULL)`),
+  ],
+);
 
 export const quizQuestions = sqliteTable(
   "quiz_questions",
@@ -310,5 +336,81 @@ export const whiteboards = sqliteTable(
   (t) => [
     index("whiteboards_content_idx").on(t.contentId),
     index("whiteboards_space_idx").on(t.spaceId),
+  ],
+);
+
+/* ---------- Annotations and links (Phase 10, doc 21) ---------- */
+export const annotations = sqliteTable(
+  "annotations",
+  {
+    id: text("id").primaryKey(),
+    contentId: text("content_id")
+      .notNull()
+      .references(() => contents.id, { onDelete: "cascade" }),
+    kind: text("kind", { enum: ["highlight", "ink", "shape", "comment"] }).notNull(),
+    /** A `content` SourceAnchor: locator, quote, rects. */
+    anchor: text("anchor", { mode: "json" }).$type<Record<string, unknown>>().notNull(),
+    /** Sort key in reading order: page, start second, or paragraph number. */
+    position: real("position").notNull().default(0),
+    color: text("color").notNull().default("yellow"),
+    comment: text("comment"),
+    payload: text("payload", { mode: "json" }).$type<Record<string, unknown> | null>(),
+    ...timestamps,
+  },
+  (t) => [index("annotations_content_idx").on(t.contentId, t.position)],
+);
+
+/**
+ * Backlink index: one row per `thoth:` link written in a note, chat message or board.
+ * Derived from their text and rebuilt on save, so it holds no foreign keys on the source.
+ */
+export const links = sqliteTable(
+  "links",
+  {
+    id: text("id").primaryKey(),
+    fromKind: text("from_kind", { enum: ["note", "chat_message", "board"] }).notNull(),
+    fromId: text("from_id").notNull(),
+    fromContentId: text("from_content_id"),
+    fromSpaceId: text("from_space_id"),
+    label: text("label").notNull(),
+    /** The content the link points into, resolved on save (null for a space link). */
+    toContentId: text("to_content_id"),
+    toAnnotationId: text("to_annotation_id"),
+    toSetId: text("to_set_id"),
+    anchor: text("anchor", { mode: "json" }).$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [
+    index("links_from_idx").on(t.fromKind, t.fromId),
+    index("links_to_content_idx").on(t.toContentId),
+    index("links_to_annotation_idx").on(t.toAnnotationId),
+  ],
+);
+
+/* ---------- Tags (Phase 10, doc 22) ---------- */
+export const tags = sqliteTable(
+  "tags",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    color: text("color").notNull().default("gray"),
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [uniqueIndex("tags_name_uq").on(t.name)],
+);
+
+export const contentTags = sqliteTable(
+  "content_tags",
+  {
+    contentId: text("content_id")
+      .notNull()
+      .references(() => contents.id, { onDelete: "cascade" }),
+    tagId: text("tag_id")
+      .notNull()
+      .references(() => tags.id, { onDelete: "cascade" }),
+  },
+  (t) => [
+    primaryKey({ columns: [t.contentId, t.tagId] }),
+    index("content_tags_tag_idx").on(t.tagId),
   ],
 );

@@ -287,11 +287,14 @@ describe("progress", () => {
             throw new Error("unused");
           },
           get: async () => null,
+          update: async () => {},
           list: async () => [
             {
               id: SPACE,
               name: "Bio",
               description: null,
+              color: null,
+              icon: null,
               createdAt: new Date(0),
               updatedAt: new Date(0),
             },

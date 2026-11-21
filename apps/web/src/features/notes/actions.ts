@@ -3,7 +3,9 @@
 import {
   type ContentId,
   getNote,
+  type NoteOwner,
   type NotesDraftSnapshot,
+  type SpaceId,
   saveNote,
   streamNotesDraft,
 } from "@thoth/core";
@@ -18,20 +20,31 @@ async function deps() {
     segments: c.segments,
     notes: c.notes,
     activity: c.activity,
+    spaces: c.spaces,
+    links: c.links,
     llm: () => c.llm(),
   };
 }
 
-export async function loadNoteAction(contentId: string): Promise<{ markdown: string }> {
-  const { markdown } = await getNote(await deps(), contentId as ContentId);
+/** `content:<id>` or `space:<id>` (core `noteOwnerKey`) back into an owner. */
+function ownerFrom(key: string): NoteOwner {
+  const at = key.indexOf(":");
+  const kind = key.slice(0, at);
+  const id = key.slice(at + 1);
+  if (at === -1 || !id) throw new Error(`Bad notes owner key: ${key}`);
+  return kind === "space" ? { spaceId: id as SpaceId } : { contentId: id as ContentId };
+}
+
+export async function loadNoteAction(ownerKey: string): Promise<{ markdown: string }> {
+  const { markdown } = await getNote(await deps(), ownerFrom(ownerKey));
   return { markdown };
 }
 
 export type SaveNoteResult = { ok: true; savedAt: number } | { ok: false; error: string };
 
 /** Called by the editor's debounced autosave. `saveNote` records the `note_edit` activity. */
-export async function saveNoteAction(contentId: string, markdown: string): Promise<SaveNoteResult> {
-  const r = await saveNote(await deps(), contentId as ContentId, markdown);
+export async function saveNoteAction(ownerKey: string, markdown: string): Promise<SaveNoteResult> {
+  const r = await saveNote(await deps(), ownerFrom(ownerKey), markdown);
   return r.ok
     ? { ok: true, savedAt: r.value.updatedAt.getTime() }
     : { ok: false, error: r.error.message };

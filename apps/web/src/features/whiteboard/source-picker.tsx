@@ -1,6 +1,6 @@
 "use client";
 
-import type { SourceAnchor } from "@thoth/core";
+import type { SourcePlace } from "@thoth/core";
 import { CancelButton, cx, Dialog } from "@thoth/ui";
 import { useEffect, useMemo, useState } from "react";
 import { sourceAnchorsAction } from "./actions";
@@ -17,7 +17,7 @@ export function SourcePicker({
   onPick: (token: string) => void;
   onClose: () => void;
 }) {
-  const [anchors, setAnchors] = useState<SourceAnchor[] | null>(null);
+  const [anchors, setAnchors] = useState<SourcePlace[] | null>(null);
   const [query, setQuery] = useState("");
   const [failed, setFailed] = useState(false);
 

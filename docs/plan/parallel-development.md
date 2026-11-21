@@ -150,3 +150,42 @@ Same rules as before. Read `docs/technical_design/11-app-shell-and-feel.md` firs
 Lane 1 tests the other lanes' features after merge. Until then it covers everything already on `main`, and adds skipped (`test.fixme`) journeys for the planner and the whiteboard, which the orchestrator enables at merge.
 
 The merge order is 2, 4, 3, 1: tests last, so they run against everything.
+
+---
+
+# Phase 10 lanes (2026-11-21)
+
+Status: **In progress.** Step 0 is on `main`:
+
+- **ADRs 0036–0039.**
+- **Core:**
+  - links and anchors (`domain/link.ts`), annotations, tags, LLM settings v2 (`domain/llm-profiles.ts`);
+  - the `SecretStore` port;
+  - `AnnotationRepository`, `LinkRepository` and `TagRepository`;
+  - owner-aware `NoteRepository` and `ChatRepository`, and `SpaceRepository.update`;
+  - `saveNote` writes the backlink index.
+- **DB:**
+  - migration `0008` (annotations, links, tags, content_tags, notes and chats owned by a content or a space, space colour and icon), with every repository tested and a test that migrates a 0007 database;
+  - `migrateDb` runs with foreign keys off.
+- **Web:**
+  - container slots `annotations`, `links` and `tags`;
+  - `NotesEditor` with `ownerKey`;
+  - `THOTH_MIGRATIONS_DIR` and the `THOTH_STANDALONE` build switch.
+- **Doc stubs** 19–22.
+
+Same rules as before. Read `docs/technical_design/11-app-shell-and-feel.md` and your lane's ADR first. Run `pnpm test:e2e` as well as `pnpm check` before you report done.
+
+| Lane                                            | Model | Owns                                                                                                                                                                                                                                                                                                                                                                                                                                       | Shared files: one-line edits only                                                                                                                                                   |
+| ----------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1: Desktop app** (ADR-0036)                   | Opus  | new `apps/desktop/**`; new `.github/workflows/desktop.yml`; a `GET /api/health` route (`apps/web/src/app/api/health/**`); doc `19-desktop-app.md`                                                                                                                                                                                                                                                                                          | root `package.json` (desktop scripts); `pnpm-workspace.yaml`; `apps/web/next.config.ts` (standalone tracing options only)                                                           |
+| **2: OpenAI-compatible providers** (ADR-0037)   | Opus  | `packages/llm/**` (except `scripted-provider.ts`); `packages/core/src/domain/llm-{settings,profiles}.ts`; `packages/core/src/usecases/llm-settings*`; `packages/db/src/repositories/settings-repository*`; `apps/web/src/features/settings/**`; new `apps/web/src/server/secrets.ts`; doc `20-…` and doc `02`                                                                                                                              | `container.ts` (the `llm` and `secrets` wiring only); `apps/web/package.json` (`@napi-rs/keyring`); `apps/web/src/server/env.ts` (key env vars)                                     |
+| **3: Annotations, links, backlinks** (ADR-0038) | Opus  | `apps/web/src/features/content-viewer/**`; `apps/web/src/features/notes/editor/**`; new `apps/web/src/features/annotations/**`; new `packages/core/src/usecases/annotations/**`; `apps/web/src/app/api/content/[id]/annotated.pdf/**`; the "From highlights" path in `packages/core/src/usecases/flashcards/**`; doc `21-…`, docs `07` and `12`                                                                                            | `features/notes/tool.tsx` (the "Add to notes" hook and backlink scroll); `features/summary/**` (a selection toolbar mount); `apps/web/package.json` (`pdf-lib`, `perfect-freehand`) |
+| **4: Spaces v2** (ADR-0039)                     | Opus  | `apps/web/src/features/spaces/**`; `apps/web/src/app/spaces/**`; new `packages/core/src/usecases/spaces/**` (move the existing `spaces.ts` in); space chat in `packages/core/src/usecases/chat/space-chat*` and `apps/web/src/features/chat/space-*`; `features/library/**` (bulk add, tag filters); `packages/ingest` (YouTube playlist listing); the space-chat case in `packages/llm/src/scripted-provider.ts`; doc `22-…` and doc `10` | `sidebar.tsx` (space colour and icon); `features/whiteboard/tool.tsx` (an owner prop); `usecases/search/**` (space notes); `commands.tsx` ("Move to…")                              |
+
+**How the lanes meet:**
+
+- **The link format.** Both L3 and L4 produce and render `thoth:` links. L3 builds the `ThothLink` chip node and the `[[` / `@` picker in `features/notes/editor/**` and exports them. Until L3 lands, L4 renders links in space chat with its own small chip that calls `parseLink`. The orchestrator swaps that chip for L3's at merge.
+- **`saveNote`** already writes the backlink index, so space notes (L4) and content notes (L3) both show up in backlinks with no extra work.
+- **Space chat answers** are stored with `[label](thoth:c/<id>?at=…)` links (ADR-0039), and their links go into the index as `chat_message` rows.
+
+The merge order is 2, 3, 4, then 1: L2 changes `container.llm`, which everyone calls; L4 builds on L3's link chip; L1 packages everything.
