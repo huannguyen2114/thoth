@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "turbo run dev --filter=@thoth/web",
     "start:lan": "node apps/web/scripts/lan-server.mjs",
+    "desktop:dev": "pnpm --filter @thoth/desktop dev",
+    "desktop:build": "pnpm --filter @thoth/desktop build:app",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",

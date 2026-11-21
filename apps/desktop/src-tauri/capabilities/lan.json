@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "lan",
+  "description": "The bundled Serve on LAN window: start and stop the LAN listener.",
+  "windows": ["lan"],
+  "permissions": ["core:default", "allow-lan-start", "allow-lan-stop", "allow-lan-status"]
+}
