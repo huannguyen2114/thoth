@@ -742,7 +742,7 @@ export function BoardCanvas({
     const el = {
       ...sticky,
       text: body.slice(0, 400) || (token ? `See ${token.slice(1, -1)}` : ""),
-      ...(token ? { source: { contentId, token } } : {}),
+      ...(token && contentId ? { source: { contentId, token } } : {}),
     } as BoardElement;
     change((els) => [...els, el]);
     setSelected([el.id]);

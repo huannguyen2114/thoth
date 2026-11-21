@@ -10,8 +10,15 @@ describe("space boards", () => {
     const whiteboards = new MemWhiteboards();
     const s = await spaces.create({ name: "Bio", description: null, color: null, icon: null });
     const first = await createSpaceBoard({ spaces, whiteboards }, { spaceId: s.id });
-    const second = await createSpaceBoard({ spaces, whiteboards }, { spaceId: s.id, title: " Map " });
-    expect(first.ok && first.value).toMatchObject({ spaceId: s.id, contentId: null, title: "Board 1" });
+    const second = await createSpaceBoard(
+      { spaces, whiteboards },
+      { spaceId: s.id, title: " Map " },
+    );
+    expect(first.ok && first.value).toMatchObject({
+      spaceId: s.id,
+      contentId: null,
+      title: "Board 1",
+    });
     expect(second.ok && second.value.title).toBe("Map");
     expect(await listSpaceBoards({ whiteboards }, s.id)).toHaveLength(2);
     const gone = await createSpaceBoard({ spaces, whiteboards }, { spaceId: "x" as SpaceId });

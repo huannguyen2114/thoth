@@ -155,7 +155,9 @@ export function SpaceDashboardView({
           <ul className="flex flex-col divide-y divide-border-subtle rounded-lg border border-border-subtle bg-surface-200">
             {data.today.items.map((i) => (
               <li key={i.id} className="flex items-center gap-3 px-4 py-2.5">
-                <span className={i.doneAt ? "flex-1 text-ink-muted line-through" : "flex-1 text-ink"}>
+                <span
+                  className={i.doneAt ? "flex-1 text-ink-muted line-through" : "flex-1 text-ink"}
+                >
                   {i.title}
                 </span>
                 <span className="type-caption text-ink-muted">{i.minutes} min</span>
@@ -177,7 +179,10 @@ export function SpaceDashboardView({
                 <span className="type-caption shrink-0 tabular-nums text-ink-muted">
                   {pct(t.score)} · {t.answered}
                 </span>
-                <Link href={`/content/${t.contentId}`} className="btn btn--ghost btn--sm no-underline">
+                <Link
+                  href={`/content/${t.contentId}`}
+                  className="btn btn--ghost btn--sm no-underline"
+                >
                   Study
                 </Link>
               </li>

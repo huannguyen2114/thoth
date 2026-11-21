@@ -582,7 +582,11 @@ function BoardsPanel({
                   Make a mind map
                 </Button>
               )}
-              <Button variant={canMap ? "secondary" : "primary"} onClick={() => void newBoard()} disabled={busy}>
+              <Button
+                variant={canMap ? "secondary" : "primary"}
+                onClick={() => void newBoard()}
+                disabled={busy}
+              >
                 New board
               </Button>
             </div>

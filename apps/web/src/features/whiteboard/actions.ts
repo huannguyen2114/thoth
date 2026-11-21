@@ -11,11 +11,11 @@ import {
   generateMindMap,
   getBoard,
   listBoards,
-  listSpaceBoards,
   listSourceAnchors,
+  listSpaceBoards,
   renameBoard,
-  type SpaceId,
   type SourcePlace,
+  type SpaceId,
   type Whiteboard,
   type WhiteboardId,
 } from "@thoth/core";

@@ -69,7 +69,11 @@ export function useSpaceChat(spaceId: string, initialChats: ChatSummary[]) {
         }
         for await (const e of readSse<SpaceChatStreamEvent>(res.body)) {
           if (e.type === "start") {
-            const summary = { id: e.chat.id, title: e.chat.title, instructions: e.chat.instructions };
+            const summary = {
+              id: e.chat.id,
+              title: e.chat.title,
+              instructions: e.chat.instructions,
+            };
             setChat(summary);
             setChats((list) => [summary, ...list.filter((c) => c.id !== summary.id)]);
             setContext(e.context);

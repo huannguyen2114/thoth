@@ -125,7 +125,9 @@ function Empty({ readyCount, onPick }: { readyCount: number; onPick: (q: string)
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-2 py-8 text-center">
         <h2 className="type-heading-3 text-ink">Nothing to ask about yet</h2>
-        <p className="text-ink-muted">Add a lecture or PDF in Contents, then ask across all of it.</p>
+        <p className="text-ink-muted">
+          Add a lecture or PDF in Contents, then ask across all of it.
+        </p>
       </div>
     );
   }

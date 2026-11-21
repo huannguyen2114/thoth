@@ -1,6 +1,6 @@
 "use client";
 
-import { detectLinkKind } from "@thoth/core";
+import { detectLinkKind, youtubePlaylistId, youtubeVideoId } from "@thoth/core";
 import { Button, cx } from "@thoth/ui";
 import { useRouter } from "next/navigation";
 import {
@@ -12,12 +12,20 @@ import {
   useRef,
   useState,
 } from "react";
-import { type AddContentState, addLinkAction, addTextAction } from "./actions";
+import {
+  type AddContentState,
+  type AddPlaylistState,
+  addLinkAction,
+  addPlaylistAction,
+  addTextAction,
+} from "./actions";
 import {
   AlertIcon,
   ArrowUpIcon,
+  CheckIcon,
   GlobeIcon,
   LinkIcon,
+  SpinnerIcon,
   TextIcon,
   UploadIcon,
   VideoIcon,
@@ -32,12 +40,14 @@ const tabs = [
 type TabId = (typeof tabs)[number]["id"];
 
 const initial: AddContentState = { error: null, addedAt: null };
+const initialPlaylist: AddPlaylistState = { error: null, addedAt: null, notice: null };
 
 /**
- * "What should we learn?" composer: a link (YouTube or web page, detected as you type),
- * a PDF upload, or pasted text. New items appear in Recents below.
+ * "What should we learn?" composer: a link (YouTube video or playlist, or a web page, detected
+ * as you type), PDF uploads (several files or a whole folder), or pasted text. With `spaceId`
+ * (the space page) everything lands in that space (doc 22).
  */
-export function AddContentComposer() {
+export function AddContentComposer({ spaceId }: { spaceId?: string } = {}) {
   const [tab, setTab] = useState<TabId>("link");
   const baseId = useId();
   const tabRefs = useRef<Record<TabId, HTMLButtonElement | null>>({
@@ -79,32 +89,42 @@ export function AddContentComposer() {
         ))}
       </div>
       <div role="tabpanel" id={`${baseId}-panel-${tab}`} aria-labelledby={`${baseId}-tab-${tab}`}>
-        {tab === "link" && <LinkForm />}
-        {tab === "upload" && <UploadForm />}
-        {tab === "paste" && <PasteForm />}
+        {tab === "link" && <LinkForm spaceId={spaceId} />}
+        {tab === "upload" && <UploadForm spaceId={spaceId} />}
+        {tab === "paste" && <PasteForm spaceId={spaceId} />}
       </div>
     </div>
   );
 }
 
-function LinkForm() {
+const SpaceField = ({ spaceId }: { spaceId: string | undefined }) =>
+  spaceId ? <input type="hidden" name="spaceId" value={spaceId} /> : null;
+
+function LinkForm({ spaceId }: { spaceId: string | undefined }) {
   const [state, action, pending] = useActionState(addLinkAction, initial);
+  const [listState, listAction, listPending] = useActionState(addPlaylistAction, initialPlaylist);
   const [url, setUrl] = useState("");
+  const [wholeList, setWholeList] = useState(true);
   const kind = detectLinkKind(url);
+  const listId = youtubePlaylistId(url);
+  const onlyList = listId !== null && youtubeVideoId(url) === null;
+  const asPlaylist = listId !== null && (onlyList || wholeList);
+  const busy = pending || listPending;
 
   useEffect(() => {
-    if (state.addedAt) setUrl("");
-  }, [state.addedAt]);
+    if (state.addedAt || listState.addedAt) setUrl("");
+  }, [state.addedAt, listState.addedAt]);
 
   return (
-    <form action={action} className="flex flex-col gap-2">
+    <form action={asPlaylist ? listAction : action} className="flex flex-col gap-2">
+      <SpaceField spaceId={spaceId} />
       <div className="composer max-w-none">
         <input
           name="url"
           type="url"
           inputMode="url"
           className="composer__input"
-          placeholder="Paste a YouTube or web page link"
+          placeholder="Paste a YouTube, playlist or web page link"
           aria-label="YouTube or web page link"
           aria-describedby="link-help"
           value={url}
@@ -114,19 +134,37 @@ function LinkForm() {
         <button
           type="submit"
           className="composer__send"
-          aria-label="Add link"
-          disabled={pending || url.trim() === ""}
+          aria-label={asPlaylist ? "Add playlist" : "Add link"}
+          disabled={busy || url.trim() === ""}
         >
           <ArrowUpIcon />
         </button>
       </div>
+      {listId && !onlyList && (
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={wholeList}
+            onChange={(e) => setWholeList(e.target.checked)}
+          />
+          <span>Add every video in the playlist</span>
+        </label>
+      )}
       <p
         id="link-help"
         className="flex items-center gap-1 type-caption text-ink-muted"
         aria-live="polite"
       >
-        {pending ? (
-          "Adding…"
+        {busy ? (
+          asPlaylist ? (
+            "Reading the playlist…"
+          ) : (
+            "Adding…"
+          )
+        ) : asPlaylist ? (
+          <>
+            <VideoIcon /> YouTube playlist. We will add each video, using its captions.
+          </>
         ) : kind === "youtube" ? (
           <>
             <VideoIcon /> YouTube video. We will use its captions.
@@ -136,74 +174,156 @@ function LinkForm() {
             <GlobeIcon /> Web page. We will keep the article text.
           </>
         ) : (
-          "YouTube videos and web pages work. Articles behind a login may not."
+          "YouTube videos, playlists and web pages work. Articles behind a login may not."
         )}
       </p>
-      <FormError message={state.error} />
+      {listState.notice && !listState.error && (
+        <p className="type-caption text-ink-muted" role="status">
+          {listState.notice}
+        </p>
+      )}
+      <FormError message={asPlaylist ? listState.error : state.error} />
     </form>
   );
 }
 
-function UploadForm() {
-  const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [status, setStatus] = useState<{ busy: boolean; error: string | null; name?: string }>({
-    busy: false,
-    error: null,
-  });
-  const [dragging, setDragging] = useState(false);
+type UploadStatus = "queued" | "uploading" | "done" | "failed";
+interface UploadRow {
+  key: string;
+  name: string;
+  status: UploadStatus;
+  error?: string;
+}
 
-  async function upload(file: File | undefined) {
-    if (!file) return;
-    if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
-      setStatus({ busy: false, error: "This file is not a PDF. Choose a .pdf file." });
+/** Files to upload from a drop or a picker: PDFs only, keeping folder order (doc 22). */
+function pdfsOf(list: FileList | File[]): { pdfs: File[]; skipped: number } {
+  const files = [...list];
+  const pdfs = files
+    .filter((f) => f.name.toLowerCase().endsWith(".pdf") || f.type === "application/pdf")
+    .sort((a, b) =>
+      (a.webkitRelativePath || a.name).localeCompare(b.webkitRelativePath || b.name, undefined, {
+        numeric: true,
+      }),
+    );
+  return { pdfs, skipped: files.length - pdfs.length };
+}
+
+/** Reads every file of a dropped folder (Chromium and Safari's entry API). */
+async function filesFromDrop(e: DragEvent<HTMLDivElement>): Promise<File[]> {
+  const items = [...e.dataTransfer.items];
+  const entries = items
+    .map((i) => (typeof i.webkitGetAsEntry === "function" ? i.webkitGetAsEntry() : null))
+    .filter((x): x is FileSystemEntry => x !== null);
+  if (entries.length === 0 || entries.every((x) => x.isFile)) return [...e.dataTransfer.files];
+  const out: File[] = [];
+  const walk = async (entry: FileSystemEntry): Promise<void> => {
+    if (entry.isFile) {
+      out.push(
+        await new Promise<File>((res, rej) => (entry as FileSystemFileEntry).file(res, rej)),
+      );
       return;
     }
+    const reader = (entry as FileSystemDirectoryEntry).createReader();
+    for (;;) {
+      const batch = await new Promise<FileSystemEntry[]>((res, rej) =>
+        reader.readEntries(res, rej),
+      );
+      if (batch.length === 0) break;
+      for (const child of batch) await walk(child);
+    }
+  };
+  for (const entry of entries) await walk(entry);
+  return out;
+}
+
+const UPLOAD_CONCURRENCY = 2;
+
+function UploadForm({ spaceId }: { spaceId: string | undefined }) {
+  const router = useRouter();
+  const fileInput = useRef<HTMLInputElement>(null);
+  const folderInput = useRef<HTMLInputElement>(null);
+  const [rows, setRows] = useState<UploadRow[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const busy = rows.some((r) => r.status === "queued" || r.status === "uploading");
+
+  // `webkitdirectory` is not in React's input attributes; set it on the element.
+  useEffect(() => {
+    folderInput.current?.setAttribute("webkitdirectory", "");
+  }, []);
+
+  const patch = (key: string, p: Partial<UploadRow>) =>
+    setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...p } : r)));
+
+  async function uploadOne(file: File, key: string) {
     if (file.size > MAX_UPLOAD_BYTES) {
-      setStatus({
-        busy: false,
-        error: `This file is over ${MAX_UPLOAD_LABEL}. Choose a smaller PDF, or split it first.`,
-      });
+      patch(key, { status: "failed", error: `Over ${MAX_UPLOAD_LABEL}.` });
       return;
     }
-    setStatus({ busy: true, error: null, name: file.name });
+    patch(key, { status: "uploading" });
     const body = new FormData();
     body.set("file", file);
+    if (spaceId) body.set("spaceId", spaceId);
     try {
       const res = await fetch("/api/upload", { method: "POST", body });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        setStatus({ busy: false, error: data.error ?? "Upload failed. Try again." });
-        return;
-      }
-      setStatus({ busy: false, error: null });
-      router.refresh();
+      if (res.ok) patch(key, { status: "done" });
+      else patch(key, { status: "failed", error: data.error ?? "Upload failed." });
     } catch {
-      setStatus({
-        busy: false,
-        error: "Upload failed. Check that Thoth is running, then try again.",
-      });
-    } finally {
-      if (inputRef.current) inputRef.current.value = "";
+      patch(key, { status: "failed", error: "Upload failed. Check that Thoth is running." });
     }
   }
 
-  function onDrop(e: DragEvent<HTMLDivElement>) {
+  async function upload(list: FileList | File[] | null | undefined) {
+    if (!list || list.length === 0) return;
+    const { pdfs, skipped } = pdfsOf(list);
+    if (pdfs.length === 0) {
+      setError("No PDFs there. Choose .pdf files, or a folder that holds some.");
+      return;
+    }
+    setError(skipped > 0 ? `${skipped} files that are not PDFs were skipped.` : null);
+    const stamp = Date.now().toString(36);
+    const fresh = pdfs.map((f, i) => ({
+      key: `${stamp}-${i}`,
+      name: f.webkitRelativePath || f.name,
+      status: "queued" as const,
+    }));
+    setRows((rs) => [...rs.filter((r) => r.status !== "done"), ...fresh]);
+    // Each file is a normal upload and a normal ingest; two at a time keeps the Mac responsive.
+    let next = 0;
+    const worker = async () => {
+      while (next < pdfs.length) {
+        const i = next++;
+        const file = pdfs[i];
+        const row = fresh[i];
+        if (file && row) await uploadOne(file, row.key);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(UPLOAD_CONCURRENCY, pdfs.length) }, worker));
+    if (fileInput.current) fileInput.current.value = "";
+    if (folderInput.current) folderInput.current.value = "";
+    router.refresh();
+  }
+
+  async function onDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setDragging(false);
-    void upload(e.dataTransfer.files[0]);
+    void upload(await filesFromDrop(e));
   }
+
+  const done = rows.filter((r) => r.status === "done").length;
 
   return (
     <div className="flex flex-col gap-2">
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: drop target; the button inside is the accessible control */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: drop target; the buttons inside are the accessible controls */}
       <div
         onDragOver={(e) => {
+          if (!e.dataTransfer.types.includes("Files")) return;
           e.preventDefault();
           setDragging(true);
         }}
         onDragLeave={() => setDragging(false)}
-        onDrop={onDrop}
+        onDrop={(e) => void onDrop(e)}
         className={cx(
           "flex flex-col items-center gap-3 rounded-xl border border-dashed p-8 text-center",
           dragging ? "border-accent bg-accent-tint" : "border-border-control bg-surface-200",
@@ -211,29 +331,84 @@ function UploadForm() {
       >
         <UploadIcon className="text-ink-muted" />
         <p className="type-body text-ink">
-          {status.busy ? `Uploading ${status.name ?? "PDF"}…` : "Drop a PDF here, or choose one."}
+          {busy
+            ? `Uploading ${done + 1} of ${rows.length}…`
+            : "Drop PDFs or a folder here, or choose them."}
         </p>
         <input
-          ref={inputRef}
+          ref={fileInput}
           type="file"
           accept="application/pdf,.pdf"
+          multiple
           className="sr-only"
           id="pdf-upload"
-          onChange={(e) => void upload(e.target.files?.[0])}
+          aria-label="Choose PDFs"
+          onChange={(e) => void upload(e.target.files)}
         />
-        <Button variant="primary" disabled={status.busy} onClick={() => inputRef.current?.click()}>
-          {status.busy ? "Uploading" : "Choose PDF"}
-        </Button>
+        <input
+          ref={folderInput}
+          type="file"
+          multiple
+          className="sr-only"
+          aria-label="Choose a folder of PDFs"
+          onChange={(e) => void upload(e.target.files)}
+        />
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button variant="primary" disabled={busy} onClick={() => fileInput.current?.click()}>
+            {busy ? "Uploading" : "Choose PDFs"}
+          </Button>
+          <Button variant="secondary" disabled={busy} onClick={() => folderInput.current?.click()}>
+            Choose folder
+          </Button>
+        </div>
         <p className="type-caption text-ink-muted">
-          Up to {MAX_UPLOAD_LABEL}. Text PDFs only, not scans.
+          Up to {MAX_UPLOAD_LABEL} each. Text PDFs only, not scans.
         </p>
       </div>
-      <FormError message={status.error} />
+      {rows.length > 0 && (
+        <ul
+          aria-label="Uploads"
+          className="flex flex-col divide-y divide-border-subtle rounded-lg border border-border-subtle bg-surface-200"
+        >
+          {rows.map((r) => (
+            <li key={r.key} className="flex items-center gap-3 px-3 py-2">
+              <span
+                className={cx("shrink-0", r.status === "failed" ? "text-danger" : "text-ink-muted")}
+                aria-hidden="true"
+              >
+                {r.status === "done" ? (
+                  <CheckIcon />
+                ) : r.status === "failed" ? (
+                  <AlertIcon />
+                ) : (
+                  <SpinnerIcon className={r.status === "uploading" ? "animate-spin" : ""} />
+                )}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-ink">{r.name}</span>
+              <span
+                className={cx(
+                  "type-caption shrink-0",
+                  r.status === "failed" ? "text-danger" : "text-ink-muted",
+                )}
+              >
+                {r.status === "done"
+                  ? "Queued"
+                  : r.status === "failed"
+                    ? (r.error ?? "Failed")
+                    : r.status === "uploading"
+                      ? "Uploading"
+                      : "Waiting"}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <FormError message={error} />
     </div>
   );
 }
 
-function PasteForm() {
+function PasteForm({ spaceId }: { spaceId: string | undefined }) {
   const [state, action, pending] = useActionState(addTextAction, initial);
   const [text, setText] = useState("");
 
@@ -243,6 +418,7 @@ function PasteForm() {
 
   return (
     <form action={action} className={cx("field max-w-none", state.error && "field--error")}>
+      <SpaceField spaceId={spaceId} />
       <label htmlFor="paste-text" className="field__label">
         Text to learn from
       </label>

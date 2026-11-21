@@ -92,8 +92,13 @@ button.tag-chip:hover {
   border-radius: 9999px;
   background: var(--accent-fg);
 }
-.accent-swatch[aria-checked="true"] {
+.accent-swatch:has(input:checked) {
   border-color: var(--color-ink);
+}
+.accent-swatch:has(input:focus-visible),
+.icon-choice:has(input:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }
 @media (max-width: 767px) {
   .accent-swatch {

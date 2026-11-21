@@ -25,6 +25,6 @@ This folder describes **how Thoth works today**, plus clearly marked **planned**
 | [19-desktop-app.md](19-desktop-app.md)                                   | The Tauri desktop app and its Node sidecar                                                 | Stub    |
 | [20-openai-compatible-providers.md](20-openai-compatible-providers.md)   | OpenAI-compatible providers, per-task routing, keychain                                    | Stub    |
 | [21-annotations-and-links.md](21-annotations-and-links.md)               | PDF annotations, `thoth:` links, backlinks                                                 | Stub    |
-| [22-spaces.md](22-spaces.md)                                             | Space chat, dashboard, notes, board, tags, bulk import                                     | Stub    |
+| [22-spaces.md](22-spaces.md)                                             | Space chat, dashboard, notes, board, tags, bulk import                                     | Current |
 
 Related: the reasons behind each choice are in [`../decision/`](../decision/README.md), and the phase plan is in [`../plan/roadmap.md`](../plan/roadmap.md).

@@ -5,8 +5,8 @@ import {
   type ContentId,
   createSpace,
   createTag,
-  getSpaceDashboard,
   deleteTag,
+  getSpaceDashboard,
   moveContent,
   type SpaceDashboard,
   type SpaceId,
@@ -65,7 +65,10 @@ export async function updateSpaceAction(
 
 // ---- tags -------------------------------------------------------------------------------
 
-export async function createTagAction(name: string, color: AccentColor): Promise<ActionResult<Tag>> {
+export async function createTagAction(
+  name: string,
+  color: AccentColor,
+): Promise<ActionResult<Tag>> {
   const r = await createTag(await getContainer(), { name, color });
   return r.ok ? { ok: true, value: r.value } : { ok: false, error: r.error.message };
 }
