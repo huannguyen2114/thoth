@@ -68,6 +68,7 @@ export function TextViewer({
   }, [register]);
 
   // A jump that arrived before the highlights loaded is shown once they render.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: items is the re-run trigger
   useEffect(() => onAnnotationFlash((id) => revealMark(root.current, id)), [items]);
 
   // Report the top-most visible page or paragraph so the Text tab can follow along.
@@ -143,7 +144,9 @@ export function TextViewer({
       {segments.map((s) => {
         const n = s.idx + 1;
         const locator =
-          s.locator.type === "offset" ? { ...s.locator, paragraph: s.locator.paragraph ?? n } : s.locator;
+          s.locator.type === "offset"
+            ? { ...s.locator, paragraph: s.locator.paragraph ?? n }
+            : s.locator;
         return (
           <p
             key={s.id}

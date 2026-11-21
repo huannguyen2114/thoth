@@ -12,7 +12,8 @@ const AT_START = /^\[([^[\]\n]*)\]\((thoth:[^)\s]+)\)/;
 
 export const LINK_CHIP_CLASS =
   "badge badge--accent mx-0.5 inline-flex max-w-full cursor-pointer items-center gap-1 align-baseline select-none hover:underline";
-export const BROKEN_CHIP_CLASS = "badge mx-0.5 cursor-pointer align-baseline select-none line-through";
+export const BROKEN_CHIP_CLASS =
+  "badge mx-0.5 cursor-pointer align-baseline select-none line-through";
 
 export interface ThothLinkOptions {
   /**
@@ -32,7 +33,10 @@ declare module "@tiptap/react" {
 
 /** A label safe inside `[...]`: no brackets, no newlines, not empty. */
 export function cleanLabel(label: string): string {
-  const t = label.replace(/[[\]\n\r]+/g, " ").replace(/\s+/g, " ").trim();
+  const t = label
+    .replace(/[[\]\n\r]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   return t || "Link";
 }
 

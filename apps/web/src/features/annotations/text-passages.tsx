@@ -135,10 +135,18 @@ function passageLink(
 ) {
   const quote = { exact: linkQuote(sel.quote.exact), prefix: "", suffix: "" };
   if (setId) {
-    return { href: formatLink({ kind: "set", setId: setId as never, quote }), label: linkLabel(title, "Summary") };
+    return {
+      href: formatLink({ kind: "set", setId: setId as never, quote }),
+      label: linkLabel(title, "Summary"),
+    };
   }
   return {
-    href: formatLink({ kind: "content", contentId: contentId as never, locator: sel.locator, quote }),
+    href: formatLink({
+      kind: "content",
+      contentId: contentId as never,
+      locator: sel.locator,
+      quote,
+    }),
     label: linkLabel(title, placeLabel(sel.locator)),
   };
 }
@@ -169,9 +177,12 @@ export function useTextPassages({
         const sel = readTextSelection(el);
         if (sel) return setPop({ kind: "selection", ...sel });
         if (e.type !== "pointerup" || setId) return;
-        const mark = (e.target as Element | null)?.closest?.<HTMLElement>("mark[data-annotation-id]");
+        const mark = (e.target as Element | null)?.closest?.<HTMLElement>(
+          "mark[data-annotation-id]",
+        );
         const id = mark?.dataset.annotationId;
-        if (mark && id) setPop({ kind: "annotation", id, anchor: rectOf(mark.getBoundingClientRect()) });
+        if (mark && id)
+          setPop({ kind: "annotation", id, anchor: rectOf(mark.getBoundingClientRect()) });
       }, 0);
     };
     const onKey = (e: KeyboardEvent) => e.shiftKey && onUp(e);
@@ -193,7 +204,8 @@ export function useTextPassages({
   }, [pop?.kind]);
 
   const close = useCallback(() => setPop(null), []);
-  const current = pop?.kind === "annotation" ? (ann.items.find((a) => a.id === pop.id) ?? null) : null;
+  const current =
+    pop?.kind === "annotation" ? (ann.items.find((a) => a.id === pop.id) ?? null) : null;
   const quotedIn = useAnnotationBacklinks(contentId, current?.id ?? null);
   const clear = () => window.getSelection()?.removeAllRanges();
 

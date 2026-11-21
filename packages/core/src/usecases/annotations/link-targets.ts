@@ -170,7 +170,11 @@ export async function searchLinkTargets(
     }
   }
   const seen = new Set<string>();
-  return out.filter((t) => (seen.has(t.href) ? false : (seen.add(t.href), true)));
+  return out.filter((t) => {
+    if (seen.has(t.href)) return false;
+    seen.add(t.href);
+    return true;
+  });
 }
 
 /** Where a `thoth:` link lands, so a chip can open it (same content: jump; else: navigate). */

@@ -61,7 +61,9 @@ export function AnnotationToolbar({
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // Above the passage when there is room, else below; never off screen.
+  // Above the passage when there is room, else below; never off screen. Re-measured when the
+  // bar grows (comment box, card menu, status line).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the extra deps change the bar's size
   useLayoutEffect(() => {
     const el = box.current;
     if (!el) return;
@@ -73,7 +75,9 @@ export function AnnotationToolbar({
     );
     const above = anchor.top - h - GAP;
     const top =
-      above >= GAP ? above : Math.min(anchor.top + anchor.height + GAP, window.innerHeight - h - GAP);
+      above >= GAP
+        ? above
+        : Math.min(anchor.top + anchor.height + GAP, window.innerHeight - h - GAP);
     setPos({ left, top });
   }, [anchor, commenting, cardMenu, status, quotedIn?.length]);
 
@@ -105,7 +109,6 @@ export function AnnotationToolbar({
   const hasComment = Boolean(current?.comment);
 
   return createPortal(
-    // biome-ignore lint/a11y/noStaticElementInteractions: Escape closes the bar; the buttons inside carry the actions
     <div
       ref={box}
       role="toolbar"
@@ -124,7 +127,8 @@ export function AnnotationToolbar({
     >
       <div className="flex flex-wrap items-center gap-1">
         {actions.onColor && (
-          <div className="flex items-center gap-0.5" role="group" aria-label="Highlight colour">
+          <fieldset className="m-0 flex items-center gap-0.5 border-0 p-0">
+            <legend className="sr-only">Highlight colour</legend>
             {COLOR_NAMES.map((c) => (
               <button
                 key={c}
@@ -145,9 +149,11 @@ export function AnnotationToolbar({
                 />
               </button>
             ))}
-          </div>
+          </fieldset>
         )}
-        {actions.onColor && <span className="mx-0.5 h-5 w-px bg-border-subtle" aria-hidden="true" />}
+        {actions.onColor && (
+          <span className="mx-0.5 h-5 w-px bg-border-subtle" aria-hidden="true" />
+        )}
         {actions.onComment && (
           <ToolButton
             label={hasComment ? "Edit comment" : "Comment"}
@@ -230,7 +236,12 @@ export function AnnotationToolbar({
             <Button size="sm" variant="ghost" onClick={() => setCommenting(false)}>
               Cancel
             </Button>
-            <Button size="sm" variant="primary" type="submit" disabled={!draft.trim() && !hasComment}>
+            <Button
+              size="sm"
+              variant="primary"
+              type="submit"
+              disabled={!draft.trim() && !hasComment}
+            >
               Save comment
             </Button>
           </div>

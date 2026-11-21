@@ -4,8 +4,8 @@ import type { BacklinkSource, Locator } from "@thoth/core";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { useOptionalViewer } from "@/features/content-viewer/viewer-context";
-import { AUTOSAVE_MS } from "@/features/notes/use-autosave";
 import { sendToNotes } from "@/features/notes/editor/bridge";
+import { AUTOSAVE_MS } from "@/features/notes/use-autosave";
 import { makeFlashcardAction } from "./actions";
 import { annotationStore } from "./store";
 
@@ -49,7 +49,10 @@ export function usePassage(contentId: string) {
             : { contentId, quote: input.quote, locator: input.locator, suggest },
         );
         if (!r.ok) return { ok: false, message: r.error };
-        const how = suggest && !r.value.suggested ? " Claude was not available, so it is a fill-in card." : "";
+        const how =
+          suggest && !r.value.suggested
+            ? " Claude was not available, so it is a fill-in card."
+            : "";
         return { ok: true, message: `Card added to ${r.value.setTitle}.${how}` };
       } catch {
         return { ok: false, message: "Could not reach the server. No card was made." };
@@ -72,5 +75,8 @@ export function usePassage(contentId: string) {
     [contentId, viewer, router],
   );
 
-  return useMemo(() => ({ addToNotes, flashcard, openBacklink }), [addToNotes, flashcard, openBacklink]);
+  return useMemo(
+    () => ({ addToNotes, flashcard, openBacklink }),
+    [addToNotes, flashcard, openBacklink],
+  );
 }

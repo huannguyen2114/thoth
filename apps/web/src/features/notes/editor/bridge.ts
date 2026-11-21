@@ -61,10 +61,7 @@ export function applyNotesRequest(editor: Editor, req: NotesRequest) {
     const from = endsEmpty ? doc.content.size - lastNode.nodeSize : doc.content.size;
     editor
       .chain()
-      .insertContentAt(
-        { from, to: doc.content.size },
-        quoteBlocks(req.text, req.href, req.label),
-      )
+      .insertContentAt({ from, to: doc.content.size }, quoteBlocks(req.text, req.href, req.label))
       .run();
     // The new quote is the second-to-last block.
     const dom = editor.view.dom;

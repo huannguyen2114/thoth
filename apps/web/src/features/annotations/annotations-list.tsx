@@ -59,9 +59,7 @@ export function AnnotationsList({
     );
   }
 
-  const quoted = new Map(
-    (backlinks?.groups ?? []).map((g) => [g.key, g.sources.length] as const),
-  );
+  const quoted = new Map((backlinks?.groups ?? []).map((g) => [g.key, g.sources.length] as const));
   const groups: { name: string; items: AnnotationDto[] }[] = [];
   for (const a of items) {
     const name = groupOf(a);
@@ -71,7 +69,7 @@ export function AnnotationsList({
   }
 
   return (
-    <div className="flex flex-col" aria-label="Annotations">
+    <div className="flex flex-col">
       {groups.map((g) => (
         <section key={g.name} aria-label={g.name} className="flex flex-col">
           <h4 className="type-overline sticky top-0 bg-surface-200 px-3 pt-3 pb-1 text-ink-muted select-none">
@@ -95,7 +93,10 @@ export function AnnotationsList({
                     }}
                   >
                     <span
-                      className={cx("mt-1.5 size-2.5 shrink-0 rounded-pill", COLORS[a.color].swatch)}
+                      className={cx(
+                        "mt-1.5 size-2.5 shrink-0 rounded-pill",
+                        COLORS[a.color].swatch,
+                      )}
                       aria-hidden="true"
                     />
                     <span className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -103,7 +104,9 @@ export function AnnotationsList({
                         {a.anchor.quote?.exact ?? a.comment ?? kindLabel[a.kind]}
                       </span>
                       {a.comment && a.anchor.quote && (
-                        <span className="type-caption line-clamp-2 text-ink-muted">{a.comment}</span>
+                        <span className="type-caption line-clamp-2 text-ink-muted">
+                          {a.comment}
+                        </span>
                       )}
                       <span className="type-caption text-ink-muted">
                         {kindLabel[a.kind]}

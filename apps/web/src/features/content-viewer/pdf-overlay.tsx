@@ -132,9 +132,7 @@ export function PdfOverlay({
       {annotations.map((a) => (
         <AnnotationShape key={a.id} a={a} page={page} ratio={ratio} />
       ))}
-      {draft && (
-        <DraftShape draft={draft} tool={tool} color={color} ratio={ratio} />
-      )}
+      {draft && <DraftShape draft={draft} tool={tool} color={color} ratio={ratio} />}
     </svg>
   );
 }
@@ -177,11 +175,17 @@ function AnnotationShape({ a, page, ratio }: { a: AnnotationDto; page: number; r
           width={r.w * VIEW_W}
           height={r.h * h}
           rx={2}
-          className={cx("pdf-highlight", c.fill, a.kind === "comment" && rects.length === 1 && r.w < 0.03 && "hidden")}
+          className={cx(
+            "pdf-highlight",
+            c.fill,
+            a.kind === "comment" && rects.length === 1 && r.w < 0.03 && "hidden",
+          )}
         />
       ))}
       {a.comment && first && (
-        <g transform={`translate(${Math.min(VIEW_W - COMMENT_PIN, (first.x + (a.kind === "comment" ? 0 : first.w)) * VIEW_W)} ${Math.max(0, first.y * h - COMMENT_PIN / 2)})`}>
+        <g
+          transform={`translate(${Math.min(VIEW_W - COMMENT_PIN, (first.x + (a.kind === "comment" ? 0 : first.w)) * VIEW_W)} ${Math.max(0, first.y * h - COMMENT_PIN / 2)})`}
+        >
           <rect width={COMMENT_PIN} height={COMMENT_PIN} rx={3} className={c.fill} />
           <path
             d="M3.5 4.5h7M3.5 7.5h5"

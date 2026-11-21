@@ -29,7 +29,7 @@ export function locatorIn(a: Locator | null, seg: Locator, segIdx: number): bool
 /** Highlights of `annotations` inside one block of text, sorted and without overlaps. */
 export function marksIn(
   text: string,
-  annotations: Pick<Annotation, "id" | "color" | "comment" | "anchor" | "payload">[],
+  annotations: (Pick<Annotation, "color" | "comment" | "anchor" | "payload"> & { id: string })[],
 ): Mark[] {
   const marks: Mark[] = [];
   for (const a of annotations) {

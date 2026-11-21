@@ -1,9 +1,6 @@
 "use client";
 
 import { type CitationRef, parseCitations } from "@thoth/core";
-import { requestAnnotationFlash } from "@/features/annotations/store";
-import { requestSetQuote } from "@/features/annotations/set-quote";
-import { useRegistry } from "@/app/_components/commands";
 import {
   createContext,
   type ReactNode,
@@ -14,6 +11,9 @@ import {
   useRef,
   useState,
 } from "react";
+import { useRegistry } from "@/app/_components/commands";
+import { requestSetQuote } from "@/features/annotations/set-quote";
+import { requestAnnotationFlash } from "@/features/annotations/store";
 
 /**
  * What a source viewer can do. Each viewer registers one handle; citation chips, chapters

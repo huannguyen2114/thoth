@@ -362,18 +362,27 @@ export function PdfViewer({ url, contentId }: { url: string; contentId: string }
     const x = (e.clientX - pb.left) / pb.width;
     const y = (e.clientY - pb.top) / pb.height;
     if (tool === "note") {
-      setPop({ kind: "note", anchor: { left: e.clientX, top: e.clientY, width: 0, height: 0 }, page, x, y });
+      setPop({
+        kind: "note",
+        anchor: { left: e.clientX, top: e.clientY, width: 0, height: 0 },
+        page,
+        x,
+        y,
+      });
       return;
     }
     if (tool !== "select") return;
-    const hit = [...ann.items]
-      .reverse()
-      .find((a) => {
-        if (!onPage(a, page)) return false;
-        if (!a.payload) return hitRects((a.anchor.rects ?? []).filter((r) => r.page === page), x, y);
-        const b = boxOf(a, page);
-        return b ? hitRects([b], x, y, 0.012) : false;
-      });
+    const hit = [...ann.items].reverse().find((a) => {
+      if (!onPage(a, page)) return false;
+      if (!a.payload)
+        return hitRects(
+          (a.anchor.rects ?? []).filter((r) => r.page === page),
+          x,
+          y,
+        );
+      const b = boxOf(a, page);
+      return b ? hitRects([b], x, y, 0.012) : false;
+    });
     if (!hit) return;
     const b = boxOf(hit, page);
     const anchor = b
@@ -392,7 +401,11 @@ export function PdfViewer({ url, contentId }: { url: string; contentId: string }
   const closePop = useCallback(() => setPop(null), []);
   const clearSelection = () => window.getSelection()?.removeAllRanges();
 
-  const highlightFrom = (sel: PdfSelection, color: AnnotationColor, comment: string | null = null) =>
+  const highlightFrom = (
+    sel: PdfSelection,
+    color: AnnotationColor,
+    comment: string | null = null,
+  ) =>
     add({
       kind: "highlight",
       anchor: {
@@ -426,7 +439,12 @@ export function PdfViewer({ url, contentId }: { url: string; contentId: string }
       },
       onAddToNotes: () => {
         void highlightFrom(sel, "yellow").then((a) => {
-          if (a) passage.addToNotes(sel.quote.exact, `thoth:a/${a.id}`, linkLabel(title, `p.${sel.page}`));
+          if (a)
+            passage.addToNotes(
+              sel.quote.exact,
+              `thoth:a/${a.id}`,
+              linkLabel(title, `p.${sel.page}`),
+            );
         });
         clearSelection();
         setPop(null);
@@ -445,7 +463,9 @@ export function PdfViewer({ url, contentId }: { url: string; contentId: string }
       onComment: (text) => void update(current.id, { comment: text.trim() || null }),
       onAddToNotes: () => {
         passage.addToNotes(
-          current.anchor.quote?.exact ?? current.comment ?? (current.kind === "ink" ? "Drawing" : "Shape"),
+          current.anchor.quote?.exact ??
+            current.comment ??
+            (current.kind === "ink" ? "Drawing" : "Shape"),
           `thoth:a/${current.id}`,
           linkLabel(title, page ? `p.${page}` : null),
         );
@@ -477,7 +497,11 @@ export function PdfViewer({ url, contentId }: { url: string; contentId: string }
         setTool("select");
       },
       onAddToNotes: () => {
-        passage.addToNotes(`Page ${page}`, `thoth:c/${contentId}?at=p.${page}`, linkLabel(title, `p.${page}`));
+        passage.addToNotes(
+          `Page ${page}`,
+          `thoth:c/${contentId}?at=p.${page}`,
+          linkLabel(title, `p.${page}`),
+        );
         setPop(null);
       },
       onFlashcard: async () => ({ ok: false, message: "Select some text to make a card from it." }),
@@ -562,7 +586,8 @@ export function PdfViewer({ url, contentId }: { url: string; contentId: string }
         aria-label="PDF tools"
         className="sticky top-0 z-10 flex flex-wrap items-center gap-1 rounded-lg border border-border-subtle bg-surface-200 p-1 shadow-hearth-sm select-none"
       >
-        <div className="flex items-center gap-0.5" role="group" aria-label="Tool">
+        <fieldset className="m-0 flex items-center gap-0.5 border-0 p-0">
+          <legend className="sr-only">Tool</legend>
           {TOOLS.map((t) => (
             <IconButton
               key={t.id}
@@ -576,9 +601,10 @@ export function PdfViewer({ url, contentId }: { url: string; contentId: string }
               <t.Icon />
             </IconButton>
           ))}
-        </div>
+        </fieldset>
         {(drawing || tool === "note") && (
-          <div className="flex items-center gap-0.5" role="group" aria-label="Pen colour">
+          <fieldset className="m-0 flex items-center gap-0.5 border-0 p-0">
+            <legend className="sr-only">Pen colour</legend>
             {COLOR_NAMES.map((c) => (
               <IconButton
                 key={c}
@@ -589,7 +615,7 @@ export function PdfViewer({ url, contentId }: { url: string; contentId: string }
                 <span className={cx("size-3.5 rounded-pill", COLORS[c].swatch)} />
               </IconButton>
             ))}
-          </div>
+          </fieldset>
         )}
         <span className="mx-0.5 h-5 w-px bg-border-subtle" aria-hidden="true" />
         <IconButton label="Undo" onClick={undo} disabled={undoStack.current.length === 0}>
@@ -612,7 +638,13 @@ export function PdfViewer({ url, contentId }: { url: string; contentId: string }
               <span className="badge badge--neutral tabular-nums">{ann.items.length}</span>
             )}
           </button>
-          <a className="btn btn--ghost btn--sm" href={exportHref} download aria-label="Download annotated PDF" title="Download annotated PDF">
+          <a
+            className="btn btn--ghost btn--sm"
+            href={exportHref}
+            download
+            aria-label="Download annotated PDF"
+            title="Download annotated PDF"
+          >
             <DownloadIcon />
           </a>
         </div>
@@ -636,8 +668,7 @@ export function PdfViewer({ url, contentId }: { url: string; contentId: string }
         </div>
       )}
 
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: clicking a mark opens its toolbar; every mark is also in the Annotations list */}
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: see above */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: clicking a mark opens its toolbar; every mark is also in the Annotations list */}
       <div
         className="flex flex-col gap-4"
         onPointerUp={tool === "select" ? showSelectionBar : undefined}
@@ -747,7 +778,7 @@ function PdfPage({
   color: AnnotationColor;
   onDraw: (payload: AnnotationPayload) => void;
 }) {
-  const box = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const textLayer = useRef<HTMLDivElement>(null);
   const [near, setNear] = useState(false);
@@ -791,7 +822,8 @@ function PdfPage({
       el.style.setProperty("--total-scale-factor", String(el.clientWidth / baseWidth));
     });
     const ro = new ResizeObserver(() => {
-      if (baseWidth) el.style.setProperty("--total-scale-factor", String(el.clientWidth / baseWidth));
+      if (baseWidth)
+        el.style.setProperty("--total-scale-factor", String(el.clientWidth / baseWidth));
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -838,16 +870,15 @@ function PdfPage({
   }, [near, doc, page, pdfjs]);
 
   return (
-    <div
+    <section
       ref={box}
       id={pageAnchor(page)}
       data-pdf-page={page}
       className="pdf-page relative w-full scroll-mt-4 overflow-hidden rounded-lg border border-border-subtle bg-surface-200 shadow-hearth-sm transition-colors"
       style={{ aspectRatio: ratio }}
       aria-label={`Page ${page}`}
-      role="region"
     >
-      <canvas ref={canvas} className="block h-full w-full" aria-hidden="true" />
+      <canvas ref={canvas} className="block h-full w-full" />
       <PdfOverlay
         page={page}
         ratio={ratio}
@@ -862,6 +893,6 @@ function PdfPage({
         onPointerDown={(e) => e.currentTarget.classList.add("selecting")}
         onPointerUp={(e) => e.currentTarget.classList.remove("selecting")}
       />
-    </div>
+    </section>
   );
 }

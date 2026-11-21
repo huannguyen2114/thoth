@@ -15,9 +15,7 @@ export function quoteBlocks(text: string, href: string, label: string): JSONCont
         type: "paragraph",
         content: [
           { type: "text", text: i === last ? `${p} ` : p },
-          ...(i === last
-            ? [{ type: "thothLink", attrs: { href, label: cleanLabel(label) } }]
-            : []),
+          ...(i === last ? [{ type: "thothLink", attrs: { href, label: cleanLabel(label) } }] : []),
         ],
       })),
     },

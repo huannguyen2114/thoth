@@ -99,7 +99,11 @@ export async function makeFlashcardAction(
   return r.ok
     ? {
         ok: true,
-        value: { setTitle: r.value.set.title, front: r.value.card.front, suggested: r.value.suggested },
+        value: {
+          setTitle: r.value.set.title,
+          front: r.value.card.front,
+          suggested: r.value.suggested,
+        },
       }
     : { ok: false, error: r.error.message };
 }

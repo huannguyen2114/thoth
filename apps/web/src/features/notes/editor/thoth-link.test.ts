@@ -1,9 +1,9 @@
 import { Editor } from "@tiptap/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { quoteBlocks } from "./quote";
 import { notesExtensions } from "./extensions";
 import { findLinkTrigger } from "./link-trigger";
 import { EMPTY_DOC, parseNote, serializeNote } from "./markdown";
+import { quoteBlocks } from "./quote";
 import { canonicalHref, cleanLabel } from "./thoth-link";
 
 const editors: Editor[] = [];
@@ -92,7 +92,9 @@ describe("thoth link chips (doc 21)", () => {
       editor.state.doc.content.size,
       quoteBlocks("Entropy never\n decreases.", "thoth:a/ann9", "Thermo · p.2"),
     );
-    expect(serializeNote(editor)).toBe("# Notes\n\n> Entropy never decreases. [Thermo · p.2](thoth:a/ann9)");
+    expect(serializeNote(editor)).toBe(
+      "# Notes\n\n> Entropy never decreases. [Thermo · p.2](thoth:a/ann9)",
+    );
   });
 
   it("canonicalises hrefs and labels", () => {
