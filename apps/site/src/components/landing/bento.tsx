@@ -20,17 +20,20 @@ export function Bento() {
       <Tile className="tone-sage md:col-span-3" title="Quizzes that explain" hint="Pick an answer">
         <Quiz />
       </Tile>
+      <Tile className="tone-peach md:col-span-3" title="Notes that link back" hint="Add a passage">
+        <Notes />
+      </Tile>
       <Tile
-        className="tone-lilac md:col-span-3"
-        title="Mind maps you can move"
-        hint="Drag the ideas around"
+        className="tone-lilac md:col-span-6"
+        title="A whiteboard for the big picture"
+        hint="Make a map, add stickies, drag anything"
       >
-        <MindMap />
+        <Whiteboard />
       </Tile>
       <Tile className="tone-butter md:col-span-4" title="A model for each task" hint="Switch them">
         <Models />
       </Tile>
-      <Tile className="tone-peach md:col-span-2" title="Private by default">
+      <Tile className="tone-sage md:col-span-2" title="Private by default">
         <Privacy />
       </Tile>
     </div>
@@ -189,75 +192,6 @@ function Quiz() {
   );
 }
 
-function Node({
-  x,
-  y,
-  label,
-  onMove,
-  bounds,
-}: {
-  x: number;
-  y: number;
-  label: string;
-  onMove: (x: number, y: number) => void;
-  bounds: React.RefObject<HTMLDivElement | null>;
-}) {
-  return (
-    <motion.div
-      drag
-      dragConstraints={bounds}
-      dragElastic={0.2}
-      dragMomentum={false}
-      whileDrag={{ scale: 1.1, zIndex: 10 }}
-      whileTap={{ scale: 1.05 }}
-      onDrag={(_, info) => onMove(info.offset.x, info.offset.y)}
-      onDragEnd={() => onMove(0, 0)}
-      style={{ left: x, top: y }}
-      className="absolute -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none rounded-pill bg-surface-100 px-3 py-1.5 type-label text-ink shadow-hearth-sm active:cursor-grabbing"
-    >
-      {label}
-    </motion.div>
-  );
-}
-
-function MindMap() {
-  const bounds = useRef<HTMLDivElement>(null);
-  const base = [
-    { label: landing.mindmap[0] ?? "", x: 160, y: 90 },
-    { label: landing.mindmap[1] ?? "", x: 60, y: 28 },
-    { label: landing.mindmap[2] ?? "", x: 262, y: 34 },
-    { label: landing.mindmap[3] ?? "", x: 262, y: 150 },
-  ];
-  const [offsets, setOffsets] = useState(base.map(() => ({ x: 0, y: 0 })));
-  const move = (i: number) => (x: number, y: number) =>
-    setOffsets((o) => o.map((v, j) => (j === i ? { x, y } : v)));
-  const pos = base.map((n, i) => ({
-    x: n.x + (offsets[i]?.x ?? 0),
-    y: n.y + (offsets[i]?.y ?? 0),
-  }));
-  const root = pos[0] ?? { x: 0, y: 0 };
-  return (
-    <div ref={bounds} className="relative h-44 w-80">
-      <svg className="absolute inset-0 size-full overflow-visible text-current" aria-hidden="true">
-        {pos.slice(1).map((p, i) => (
-          <motion.line
-            // biome-ignore lint/suspicious/noArrayIndexKey: fixed node list
-            key={i}
-            animate={{ x1: root.x, y1: root.y, x2: p.x, y2: p.y }}
-            transition={spring.snappy}
-            stroke="currentColor"
-            strokeOpacity={0.5}
-            strokeWidth={2}
-          />
-        ))}
-      </svg>
-      {base.map((n, i) => (
-        <Node key={n.label} x={n.x} y={n.y} label={n.label} onMove={move(i)} bounds={bounds} />
-      ))}
-    </div>
-  );
-}
-
 function Models() {
   const [choice, setChoice] = useState(landing.models.map(() => 0));
   return (
@@ -319,6 +253,252 @@ function Privacy() {
           <span className="type-label opacity-80">{l}</span>
         </div>
       ))}
+    </div>
+  );
+}
+
+/** Notes: send a passage from the example chapter to your notes, or type your own line. */
+function Notes() {
+  const book = landing.samples.find((x) => x.kind === "pdf");
+  const passages = [
+    { page: 2, text: book?.pages?.[1]?.text[0] ?? "" },
+    { page: 4, text: book?.pages?.[3]?.text[1] ?? "" },
+  ];
+  const [notes, setNotes] = useState<{ id: number; text: string; page?: number }[]>([]);
+  const [draft, setDraft] = useState("");
+  const next = useRef(1);
+  const added = new Set(notes.map((n) => n.text));
+  const add = (text: string, page?: number) =>
+    setNotes((n) => [...n, { id: next.current++, text, ...(page ? { page } : {}) }]);
+  return (
+    <div className="grid w-full gap-3 sm:grid-cols-2">
+      <div className="flex flex-col gap-2">
+        {passages.map((p) => (
+          <div
+            key={p.page}
+            className="flex flex-col gap-2 rounded-lg bg-surface-100/80 p-3 text-ink"
+          >
+            <span className="type-caption text-ink-muted">Example chapter · p. {p.page}</span>
+            <span className="type-caption">{p.text}</span>
+            <motion.button
+              type="button"
+              disabled={added.has(p.text)}
+              whileTap={{ scale: 0.94 }}
+              transition={spring.snappy}
+              onClick={() => add(p.text, p.page)}
+              className="btn btn--secondary btn--sm self-start disabled:opacity-50"
+            >
+              {added.has(p.text) ? "Added" : "Add to notes"}
+            </motion.button>
+          </div>
+        ))}
+      </div>
+      <div className="flex min-h-48 flex-col gap-2 rounded-lg bg-surface-100 p-3 text-ink shadow-hearth-sm">
+        <span className="type-label">My notes</span>
+        <AnimatePresence initial={false}>
+          {notes.map((n) => (
+            <motion.div
+              key={n.id}
+              layout
+              initial={{ opacity: 0, x: -40, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={spring.bouncy}
+              className={cx(
+                "type-caption",
+                n.page !== undefined && "border-l-2 border-accent pl-2 italic text-ink-muted",
+              )}
+            >
+              {n.text}{" "}
+              {n.page !== undefined && (
+                <span className="badge badge--neutral not-italic">p. {n.page}</span>
+              )}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        {notes.length === 0 && (
+          <span className="type-caption text-ink-subtle">Nothing yet. Add a passage, or type.</span>
+        )}
+        <form
+          className="mt-auto"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (draft.trim()) add(draft.trim());
+            setDraft("");
+          }}
+        >
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Type a note and press Enter"
+            aria-label="Type a note"
+            className="w-full rounded-md border border-border-control bg-surface-100 px-2 py-1.5 type-caption text-ink"
+          />
+        </form>
+      </div>
+    </div>
+  );
+}
+
+type El = {
+  id: string;
+  kind: "node" | "sticky";
+  label: string;
+  x: number;
+  y: number;
+  tone: string;
+};
+
+const STICKY_TONES = ["tone-butter", "tone-peach", "tone-sky", "tone-sage"];
+
+/** Whiteboard: grow a mind map from the source, add stickies, drag anything; lines follow. */
+function Whiteboard() {
+  const box = useRef<HTMLDivElement>(null);
+  const [els, setEls] = useState<El[]>([
+    { id: "root", kind: "node", label: landing.mindmap[0] ?? "", x: 50, y: 50, tone: "tone-peach" },
+  ]);
+  const stickies = useRef(0);
+  const root = els.find((e) => e.id === "root");
+  const hasMap = els.some((e) => e.kind === "node" && e.id !== "root");
+
+  function makeMap() {
+    if (hasMap) return;
+    const spots = [
+      [22, 22],
+      [78, 22],
+      [78, 78],
+    ];
+    const tones = ["tone-sky", "tone-sage", "tone-butter"];
+    setEls((es) => [
+      ...es,
+      ...landing.mindmap.slice(1).map((label, i) => ({
+        id: `n${i}`,
+        kind: "node" as const,
+        label,
+        x: spots[i]?.[0] ?? 50,
+        y: spots[i]?.[1] ?? 50,
+        tone: tones[i] ?? "tone-sky",
+      })),
+    ]);
+  }
+
+  function addSticky() {
+    const n = stickies.current++;
+    setEls((es) => [
+      ...es,
+      {
+        id: `s${n}`,
+        kind: "sticky",
+        label:
+          ["Ask: what is a quorum?", "Review terms", "Exam: Friday", "FLP = no guarantee"][n % 4] ??
+          "",
+        x: 12 + ((n * 23) % 70),
+        y: 70 - ((n * 17) % 40),
+        tone: STICKY_TONES[n % STICKY_TONES.length] ?? "tone-butter",
+      },
+    ]);
+  }
+
+  function drag(id: string, e: React.PointerEvent) {
+    const el = box.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const target = e.currentTarget as HTMLElement;
+    target.setPointerCapture(e.pointerId);
+    const move = (ev: PointerEvent) => {
+      const x = Math.min(95, Math.max(5, ((ev.clientX - r.left) / r.width) * 100));
+      const y = Math.min(92, Math.max(8, ((ev.clientY - r.top) / r.height) * 100));
+      setEls((es) => es.map((x_) => (x_.id === id ? { ...x_, x, y } : x_)));
+    };
+    const up = () => {
+      target.removeEventListener("pointermove", move);
+      target.removeEventListener("pointerup", up);
+    };
+    target.addEventListener("pointermove", move);
+    target.addEventListener("pointerup", up);
+  }
+
+  return (
+    <div className="flex w-full flex-col gap-3">
+      <div className="flex flex-wrap gap-2">
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.94 }}
+          transition={spring.snappy}
+          onClick={makeMap}
+          disabled={hasMap}
+          className="btn btn--primary btn--sm disabled:opacity-50"
+        >
+          Make a mind map
+        </motion.button>
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.94 }}
+          transition={spring.snappy}
+          onClick={addSticky}
+          className="btn btn--secondary btn--sm"
+        >
+          Add sticky
+        </motion.button>
+        <button
+          type="button"
+          onClick={() => setEls((es) => es.filter((e) => e.id === "root"))}
+          className="btn btn--ghost btn--sm"
+        >
+          Clear
+        </button>
+      </div>
+      <div
+        ref={box}
+        className="dot-grid-board relative h-72 w-full touch-none overflow-hidden rounded-lg bg-surface-100/70"
+      >
+        <svg className="pointer-events-none absolute inset-0 size-full" aria-hidden="true">
+          {root &&
+            els
+              .filter((e) => e.kind === "node" && e.id !== "root")
+              .map((e) => (
+                <motion.line
+                  key={e.id}
+                  initial={{ pathLength: 0 }}
+                  animate={{
+                    pathLength: 1,
+                    x1: `${root.x}%`,
+                    y1: `${root.y}%`,
+                    x2: `${e.x}%`,
+                    y2: `${e.y}%`,
+                  }}
+                  transition={spring.snappy}
+                  stroke="currentColor"
+                  strokeOpacity={0.5}
+                  strokeWidth={2}
+                />
+              ))}
+        </svg>
+        <AnimatePresence>
+          {els.map((e, i) => (
+            <motion.div
+              key={e.id}
+              onPointerDown={(ev) => drag(e.id, ev)}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1, rotate: e.kind === "sticky" ? (i % 2 ? 2 : -2) : 0 }}
+              exit={{ scale: 0, opacity: 0 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 1.08, zIndex: 10 }}
+              transition={{ ...spring.bouncy, delay: e.kind === "node" ? i * 0.06 : 0 }}
+              style={{ left: `${e.x}%`, top: `${e.y}%` }}
+              className={cx(
+                "absolute -translate-x-1/2 -translate-y-1/2 cursor-grab select-none shadow-hearth-sm active:cursor-grabbing",
+                e.kind === "node"
+                  ? "rounded-pill px-4 py-2 type-label"
+                  : "w-36 rounded-md p-3 type-caption",
+                e.tone,
+              )}
+            >
+              {e.label}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

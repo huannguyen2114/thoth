@@ -126,3 +126,17 @@
     color: var(--color-ink);
   }
 }
+
+/* Screenshot frames: exactly the 1440x900 capture, so recorded hotspots line up. */
+@utility aspect-shot {
+  aspect-ratio: 1440 / 900;
+}
+
+/* The whiteboard widget's faint dotted board. */
+.dot-grid-board {
+  background-image: radial-gradient(
+    color-mix(in oklab, var(--color-ink) 14%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 18px 18px;
+}

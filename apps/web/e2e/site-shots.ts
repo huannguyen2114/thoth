@@ -1,6 +1,6 @@
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 import { makePdf } from "../../../packages/ingest/src/__fixtures__/make-pdf";
 import { addFlashcards, addPastedText, goto, runCommand } from "./support";
 
@@ -57,6 +57,27 @@ const NOTES = [
   "A leader takes the writes and sends them to followers. Followers that lag behind serve stale reads.",
   "Consensus lets the nodes agree on one value. Raft needs votes from a majority to elect a leader.",
 ];
+
+/**
+ * Where things are on each screenshot, in 0..1 of the 1440x900 frame. The landing page's
+ * walkthroughs move their cursor to these, so it always lands on the real button.
+ * Written to apps/site/content/hotspots.json after the run.
+ */
+const HOTSPOTS: Record<string, Record<string, { x: number; y: number; w: number; h: number }>> = {};
+const HOTSPOTS_FILE = join(import.meta.dirname, "../../site/content/hotspots.json");
+
+async function hot(shotId: string, name: string, target: Locator) {
+  const box = await target.first().boundingBox();
+  if (!box) throw new Error(`No box for ${shotId}.${name}`);
+  const r = (n: number) => Math.round(n * 1000) / 1000;
+  HOTSPOTS[shotId] ??= {};
+  HOTSPOTS[shotId][name] = {
+    x: r(box.x / 1440),
+    y: r(box.y / 900),
+    w: r(box.width / 1440),
+    h: r(box.height / 900),
+  };
+}
 
 async function shot(page: Page, id: string) {
   await mkdir(OUT, { recursive: true });
@@ -119,12 +140,35 @@ test.describe
   .serial("landing page screenshots", () => {
     let pdf = "";
 
+    test.afterAll(async () => {
+      await writeFile(HOTSPOTS_FILE, `${JSON.stringify(HOTSPOTS, null, 2)}\n`);
+    });
+
+    test("adding a source", async ({ page }) => {
+      await goto(page, "/");
+      const link = page.getByRole("tab", { name: "Link" });
+      await hot("home", "linkTab", link);
+      await shot(page, "home");
+      await link.click();
+      const url = page.getByRole("textbox", { name: "YouTube or web page link" });
+      await url.fill("https://www.youtube.com/watch?v=rN6ma561tak");
+      await hot("home-link", "urlField", url);
+      await hot("home-link", "addButton", page.getByRole("button", { name: "Add link" }));
+      await shot(page, "home-link");
+    });
+
     test("workspace, chat, pdf and notes", async ({ page }) => {
       pdf = await uploadPdf(page);
       await goto(page, pdf);
       await expect(page.locator(".pdf-text-layer[data-ready='true']").first()).toBeAttached({
         timeout: 20_000,
       });
+      await hot(
+        "workspace",
+        "chatInput",
+        page.getByRole("textbox", { name: "Ask a question about this source" }),
+      );
+      await hot("workspace", "send", page.getByRole("button", { name: "Send question" }));
       await shot(page, "workspace");
 
       await page
@@ -135,15 +179,19 @@ test.describe
       await expect(
         chat.getByRole("button", { name: /Go to page|Show page|p\.\d/ }).first(),
       ).toBeVisible();
+      await hot("chat", "chip", chat.getByRole("button", { name: /Go to page|Show page|p\.\d/ }));
       await shot(page, "chat");
 
       await runCommand(page, "Workspace: Quiz layout");
       const bar = await selectInPdf(page, PASSAGE);
+      await hot("pdf-select", "addToNotes", bar.getByRole("button", { name: "Add to notes" }));
+      await shot(page, "pdf-select");
       await bar.getByRole("button", { name: "Add to notes" }).click();
       const notes = page.getByRole("tabpanel", { name: "Notes" });
       await expect(notes.locator("blockquote")).toContainText("single copy");
       await expect(notes.getByRole("status")).toHaveText("Saved");
       await page.keyboard.press("Escape");
+      await hot("notes", "quote", notes.locator("blockquote"));
       await shot(page, "notes");
 
       // The PDF with its annotations list open beside the highlight.
@@ -162,9 +210,14 @@ test.describe
       await dialog.getByRole("spinbutton", { name: "Questions per topic" }).fill("4");
       await dialog.getByRole("button", { name: "Generate quiz" }).click();
       await quiz.getByRole("button", { name: "Start" }).first().click();
-      await quiz.getByRole("radio", { name: "The claim the source supports" }).check();
+      const right = quiz.getByRole("radio", { name: "The claim the source supports" });
+      await hot("quiz-q", "answer", right.locator("xpath=ancestor::label[1]"));
+      await hot("quiz-q", "check", quiz.getByRole("button", { name: "Check answer" }));
+      await shot(page, "quiz-q");
+      await right.check();
       await quiz.getByRole("button", { name: "Check answer" }).click();
       await expect(quiz.getByRole("status")).toContainText("Correct");
+      await hot("quiz", "feedback", quiz.getByRole("status"));
       await shot(page, "quiz");
 
       await addFlashcards(page, path, 6);
@@ -229,6 +282,13 @@ test.describe
         .getByRole("button", { name: "Maximise panel" })
         .click();
       const board = page.getByRole("tabpanel", { name: "Whiteboard" });
+      await page.mouse.move(0, 0);
+      await hot(
+        "whiteboard-empty",
+        "makeMap",
+        board.getByRole("button", { name: "Make a mind map" }),
+      );
+      await shot(page, "whiteboard-empty");
       await board.getByRole("button", { name: "Make a mind map" }).click();
       await page
         .getByRole("dialog", { name: "Make a mind map" })
@@ -245,6 +305,11 @@ test.describe
         .click({ position: { x: 40, y: 600 } });
       await page.keyboard.press("Escape");
       await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+      await hot(
+        "whiteboard",
+        "root",
+        board.getByRole("application", { name: "Whiteboard canvas" }).getByText("Source overview"),
+      );
       await shot(page, "whiteboard");
     });
 

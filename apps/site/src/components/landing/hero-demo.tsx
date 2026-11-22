@@ -85,18 +85,35 @@ export function HeroDemo() {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
   }, [shown, total]);
 
-  // The lecture plays slowly on its own, so the demo feels alive.
+  // The real lecture, embedded from YouTube only after the visitor asks for it (click to play,
+  // or a citation). Until then nothing loads from YouTube. Its playhead drives the chapters.
+  const [embedAt, setEmbedAt] = useState<number | null>(null);
+  const iframe = useRef<HTMLIFrameElement>(null);
   useEffect(() => {
-    if (sample.kind !== "video") return;
-    const t = setInterval(() => setPos((p) => (p + 1) % sample.length), 1000);
-    return () => clearInterval(t);
-  }, [sample]);
+    if (embedAt === null) return;
+    const onMessage = (e: MessageEvent) => {
+      if (!e.origin.endsWith("youtube-nocookie.com") || typeof e.data !== "string") return;
+      try {
+        const msg = JSON.parse(e.data) as { event?: string; info?: { currentTime?: number } };
+        const t = msg.info?.currentTime;
+        if (msg.event === "infoDelivery" && typeof t === "number") setPos(Math.floor(t));
+      } catch {}
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [embedAt]);
+  const tell = (msg: object) =>
+    iframe.current?.contentWindow?.postMessage(
+      JSON.stringify(msg),
+      "https://www.youtube-nocookie.com",
+    );
 
   function pick(id: DemoSample["id"]) {
     const s = samples.find((x) => x.id === id);
     if (!s || s.id === sampleId) return;
     setSampleId(id);
     setPos(s.kind === "video" ? 0 : 1);
+    setEmbedAt(null);
     setTurns([]);
     setShown(0);
   }
@@ -111,6 +128,12 @@ export function HeroDemo() {
   function jump(at: number) {
     setPos(at);
     setFlash((f) => f + 1);
+    if (sample.kind !== "video") return;
+    if (embedAt === null) setEmbedAt(at);
+    else {
+      tell({ event: "command", func: "seekTo", args: [at, true] });
+      tell({ event: "command", func: "playVideo", args: [] });
+    }
   }
 
   const active = useMemo(
@@ -196,18 +219,18 @@ export function HeroDemo() {
                     >
                       {sample.kind === "video" ? (
                         <VideoViewer
+                          sample={sample}
                           pos={pos}
-                          length={sample.length}
                           flash={flash}
-                          title={sample.title}
+                          embedAt={embedAt}
+                          iframe={iframe}
+                          onPlay={() => setEmbedAt(pos)}
+                          onLoad={() =>
+                            tell({ event: "listening", id: "thoth-demo", channel: "widget" })
+                          }
                         />
                       ) : (
-                        <PdfViewer
-                          page={pos}
-                          pages={sample.length}
-                          flash={flash}
-                          chapters={sample.chapters}
-                        />
+                        <PdfViewer sample={sample} page={pos} flash={flash} />
                       )}
                     </motion.div>
                   </AnimatePresence>
@@ -463,26 +486,59 @@ function Sidebar() {
 }
 
 function VideoViewer({
+  sample,
   pos,
-  length,
   flash,
-  title,
+  embedAt,
+  iframe,
+  onPlay,
+  onLoad,
 }: {
+  sample: DemoSample;
   pos: number;
-  length: number;
   flash: number;
-  title: string;
+  embedAt: number | null;
+  iframe: React.RefObject<HTMLIFrameElement | null>;
+  onPlay: () => void;
+  onLoad: () => void;
 }) {
-  const pct = (pos / length) * 100;
+  const pct = (pos / sample.length) * 100;
+  if (embedAt !== null && sample.youtubeId) {
+    const src = `https://www.youtube-nocookie.com/embed/${sample.youtubeId}?enablejsapi=1&autoplay=1&rel=0&playsinline=1&start=${embedAt}&origin=${encodeURIComponent(window.location.origin)}`;
+    return (
+      <iframe
+        ref={iframe}
+        src={src}
+        title={sample.title}
+        onLoad={onLoad}
+        className="aspect-video w-full rounded-md"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        referrerPolicy="strict-origin-when-cross-origin"
+        allowFullScreen
+      />
+    );
+  }
   return (
     <div className="player flex aspect-video flex-col justify-between rounded-md p-3">
-      <span className="type-caption opacity-80">{title}</span>
-      <div className="flex flex-1 items-center justify-center">
-        <span className="flex size-12 items-center justify-center rounded-pill bg-danger text-on-accent">
-          <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true">
+      <div className="flex flex-col">
+        <span className="type-label">{sample.title}</span>
+        <span className="type-caption opacity-70">{sample.by}</span>
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <motion.button
+          type="button"
+          onClick={onPlay}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
+          transition={spring.snappy}
+          className="flex size-14 items-center justify-center rounded-pill bg-danger text-on-accent shadow-hearth-md"
+          aria-label="Play the lecture (loads from YouTube)"
+        >
+          <svg width="22" height="22" viewBox="0 0 16 16" aria-hidden="true">
             <path d="M5 3.5v9l7-4.5z" fill="currentColor" />
           </svg>
-        </span>
+        </motion.button>
+        <span className="type-caption opacity-70">Plays from YouTube when you click</span>
       </div>
       <div className="flex flex-col gap-1.5">
         <div className="relative h-1.5 rounded-pill bg-current/25">
@@ -500,25 +556,15 @@ function VideoViewer({
           />
         </div>
         <span className="type-caption tabular-nums opacity-80">
-          {clock(pos)} / {clock(length)}
+          {clock(pos)} / {clock(sample.length)}
         </span>
       </div>
     </div>
   );
 }
 
-function PdfViewer({
-  page,
-  pages,
-  flash,
-  chapters,
-}: {
-  page: number;
-  pages: number;
-  flash: number;
-  chapters: DemoSample["chapters"];
-}) {
-  const heading = [...chapters].reverse().find((c) => c.at <= page)?.title ?? "";
+function PdfViewer({ sample, page, flash }: { sample: DemoSample; page: number; flash: number }) {
+  const content = sample.pages?.[page - 1];
   const tools = [
     ["select", PointerIcon],
     ["pen", PenIcon],
@@ -536,7 +582,16 @@ function PdfViewer({
         <span className="ml-auto flex items-center gap-1 type-caption text-ink">
           <ListIcon /> Annotations
         </span>
-        <DownloadIcon />
+        {sample.pdf && (
+          <a
+            href={sample.pdf}
+            download
+            className="flex items-center gap-1 rounded-sm p-1 type-caption text-ink hover:bg-neutral-tint"
+            title="Download this example PDF and try it in Thoth"
+          >
+            <DownloadIcon /> <span className="hidden sm:inline">Example PDF</span>
+          </a>
+        )}
       </div>
       <div className="relative aspect-video overflow-hidden">
         <AnimatePresence mode="popLayout" initial={false}>
@@ -546,23 +601,23 @@ function PdfViewer({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
             transition={spring.smooth}
-            className="absolute inset-x-4 inset-y-0 flex flex-col gap-2 bg-surface-100 p-4 shadow-hearth-sm"
+            className="absolute inset-x-4 inset-y-0 flex flex-col gap-2 overflow-hidden bg-surface-100 p-5 shadow-hearth-sm"
           >
             <span className="type-caption text-ink-muted">
-              Page {page} of {pages}
+              Page {page} of {sample.length}
             </span>
-            <span className="type-label text-ink">{heading}</span>
-            <span className="h-1.5 w-full rounded-sm bg-neutral-tint" />
-            <span className="h-1.5 w-11/12 rounded-sm bg-neutral-tint" />
-            <motion.span
-              key={flash}
-              initial={{ backgroundColor: "var(--color-accent-muted)" }}
-              animate={{ backgroundColor: "var(--color-warning-tint)" }}
-              transition={{ duration: 1.2 }}
-              className="h-1.5 w-4/5 rounded-sm"
-            />
-            <span className="h-1.5 w-full rounded-sm bg-neutral-tint" />
-            <span className="h-1.5 w-2/3 rounded-sm bg-neutral-tint" />
+            <span className="type-body-strong text-ink">{content?.heading}</span>
+            {content?.text.map((line, i) => (
+              <motion.span
+                key={line}
+                initial={flash ? { backgroundColor: "var(--color-warning-tint)" } : false}
+                animate={{ backgroundColor: "var(--color-surface-100)" }}
+                transition={{ duration: 1.6, delay: i * 0.1 }}
+                className="rounded-sm type-caption text-ink"
+              >
+                {line}
+              </motion.span>
+            ))}
           </motion.div>
         </AnimatePresence>
       </div>

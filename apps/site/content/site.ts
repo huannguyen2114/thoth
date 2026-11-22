@@ -26,6 +26,12 @@ export const shotIds = [
   "planner",
   "whiteboard",
   "settings",
+  // Walkthrough frames for the landing page story (before-states).
+  "home",
+  "home-link",
+  "pdf-select",
+  "quiz-q",
+  "whiteboard-empty",
 ] as const;
 export type ShotId = (typeof shotIds)[number];
 
