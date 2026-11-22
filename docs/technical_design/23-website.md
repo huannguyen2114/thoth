@@ -88,6 +88,8 @@ Before it takes a screenshot, `site-shots.ts` calls `hot("<shot>", "<name>", loc
 
 Download links point to `https://github.com/<owner>/thoth/releases/latest/download/<asset>`. The `release` job in `desktop.yml` publishes the installers under the stable names in `site.ts` when a `v*` tag is pushed (ADR-0045). Until the first release exists, the links return 404.
 
+The header's GitHub link shows the live star count (`github-stars.tsx`): one call to GitHub's public API per session, kept in `sessionStorage`; the plain link shows until it answers or if it fails.
+
 On a Mac, the download section also shows the Homebrew command (`BREW_INSTALL` in `site.ts`, ADR-0049), copied in one click.
 
 ## Rules

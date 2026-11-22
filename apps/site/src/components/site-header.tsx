@@ -1,6 +1,6 @@
 "use client";
 
-import { REPO_URL, site } from "@content/site";
+import { site } from "@content/site";
 import { cx, ThothIcon } from "@thoth/ui";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { spring } from "@/motion/tokens";
 import { Download } from "./download";
+import { GitHubStars } from "./github-stars";
 
 const LINKS = [
   ["Features", "/features/"],
@@ -60,9 +61,7 @@ export function SiteHeader() {
               </Link>
             );
           })}
-          <a href={REPO_URL} className="rounded-pill px-3 py-1.5 type-label text-ink no-underline">
-            GitHub
-          </a>
+          <GitHubStars />
         </nav>
         <div className="ml-auto md:ml-2">
           <Download compact />
