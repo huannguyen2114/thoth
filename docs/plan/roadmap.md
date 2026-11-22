@@ -250,6 +250,18 @@ Each phase ends with something that runs. After each phase I check it in the bro
 - The app picks up the landing page's look: tinted tiles that count up, kind-tinted recents, coloured spaces and sidebar icons, a 3D flashcard flip with tinted ratings, springy quiz feedback, and score rings.
 - Spring motion through `motion`, and a light touch of glass on the sidebar, palette, dialogs and composer. Reading surfaces stay calm.
 
+### Phase 14: Finishing touches, updates and Homebrew — DONE 2026-11-22
+
+- **The app:**
+  - the frame moves into a shared layout, so the sidebar pill slides between pages (ADR-0048);
+  - the dock's tab underline slides;
+  - the source pulses where a citation lands;
+  - planner, history, settings and exam pages get their colour.
+- **The desktop app** updates itself from GitHub Releases, with signed bundles. It also installs with Homebrew; this repository is the tap (ADR-0049).
+- **The landing page:**
+  - "Drop anything" shows real tool views (notes, quiz, flashcards, mind map, exam) right away;
+  - the demo has the app's new look and its Watch + notes and Quiz layouts, and keeps one size.
+
 ### Later phases (after the MVP)
 
 - **9:** Podcast. A two-host script from the LLM, then TTS (OpenAI TTS, ElevenLabs, or local Kokoro), then merged audio with ffmpeg. Then Voice tutor mode and Dictate (Web Speech API or whisper).

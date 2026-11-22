@@ -17,7 +17,9 @@ flowchart LR
 
 | Piece                                                        | File                                               |
 | ------------------------------------------------------------ | -------------------------------------------------- |
-| Frame, `bleed` option for full-screen pages                  | `apps/web/src/app/_components/app-shell.tsx`       |
+| Frame (`AppFrame`), rendered once by the `(shell)` layout    | `apps/web/src/app/(shell)/layout.tsx`              |
+| Page body (`AppPage`, `bleed` for full-screen pages)         | `apps/web/src/app/_components/app-shell.tsx`       |
+| Page title with the page's tone (`PageHeader`)               | `apps/web/src/app/_components/page-header.tsx`     |
 | Sidebar (collapse, drawer, theme)                            | `apps/web/src/app/_components/sidebar.tsx`         |
 | Commands, shortcuts, search providers                        | `apps/web/src/app/_components/commands.tsx`        |
 | Palette                                                      | `apps/web/src/app/_components/command-palette.tsx` |
@@ -26,7 +28,8 @@ flowchart LR
 
 ## Rules
 
-1. **Never scroll the page.** Pages render inside `.app-main`, which scrolls. Full-screen tools (the content workspace) use `<AppShell bleed>` and manage their own panel scrolling.
+1. **Never scroll the page.** Pages render inside `.app-main`, which scrolls. Full-screen tools (the content workspace, a space) use `<AppPage bleed>` and manage their own panel scrolling.
+   - Pages with the sidebar live in the `app/(shell)/` route group (ADR-0048). Its layout renders the frame once, so the sidebar stays mounted between pages and its current-page pill slides. A new page goes in `(shell)/` and wraps its body in `AppPage`.
 2. **Keyboard first.**
    - Every app-level action is a `Command` in the registry, registered with `useCommands`. That puts it in the palette with its shortcut.
    - Never add your own `window` keydown listener for global shortcuts.

@@ -1,6 +1,8 @@
 import { listRecentContents } from "@thoth/core";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { AppPage } from "@/app/_components/app-shell";
+import { Reveal } from "@/app/_components/motion/primitives";
 import { Habits } from "@/features/habits/heatmap";
 import { TodayStrip } from "@/features/home/today-strip";
 import { AddContentComposer } from "@/features/library/add-content-composer";
@@ -9,8 +11,6 @@ import { TodayCard } from "@/features/planner/today-card";
 import { CreateSpaceForm } from "@/features/spaces/create-space-form";
 import { SpacesList, SpacesListSkeleton } from "@/features/spaces/spaces-list";
 import { getContainer } from "@/server/container";
-import { AppShell } from "./_components/app-shell";
-import { Reveal } from "./_components/motion/primitives";
 
 /** The newest ready content, for the strip's Continue tile. */
 async function Strip() {
@@ -24,7 +24,7 @@ async function Strip() {
 /** Home (ADR-0047): a warm greeting with the composer, today at a glance, then your library. */
 export default function HomePage() {
   return (
-    <AppShell>
+    <AppPage>
       <div className="mx-auto flex max-w-4xl flex-col gap-12">
         <section className="relative flex flex-col items-center gap-6 pt-6 text-center">
           <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 -top-10 h-72">
@@ -76,6 +76,6 @@ export default function HomePage() {
           </section>
         </Reveal>
       </div>
-    </AppShell>
+    </AppPage>
   );
 }

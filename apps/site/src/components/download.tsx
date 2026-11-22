@@ -1,6 +1,6 @@
 "use client";
 
-import { downloadUrl, type Platform, REPO_URL, site } from "@content/site";
+import { BREW_INSTALL, downloadUrl, type Platform, REPO_URL, site } from "@content/site";
 import { useEffect, useState } from "react";
 
 type Detected = Platform["id"];
@@ -62,6 +62,30 @@ export function Download({ compact = false }: { compact?: boolean }) {
           ))}
         .
       </p>
+      {main.id.startsWith("mac") && <Brew />}
     </div>
+  );
+}
+
+/** The Homebrew install (ADR-0049), copyable in one click. */
+function Brew() {
+  const [copied, setCopied] = useState(false);
+  const text = BREW_INSTALL.join(" && ");
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        void navigator.clipboard?.writeText(text).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1600);
+        });
+      }}
+      title="Copy the Homebrew command"
+      className="flex max-w-full items-center gap-2 rounded-md border border-border-subtle bg-surface-200 px-3 py-1.5 text-left type-caption text-ink-muted hover:text-ink"
+    >
+      <span className="type-label text-ink">Homebrew</span>
+      <code className="truncate font-mono">{text}</code>
+      <span className="shrink-0 text-accent-text">{copied ? "Copied" : "Copy"}</span>
+    </button>
   );
 }

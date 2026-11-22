@@ -53,6 +53,13 @@
       "desktop": {
         "schemes": ["thoth"]
       }
+    },
+    "updater": {
+      "endpoints": ["https://github.com/huannguyen2114/thoth/releases/latest/download/latest.json"],
+      "pubkey": "",
+      "windows": {
+        "installMode": "passive"
+      }
     }
   }
 }

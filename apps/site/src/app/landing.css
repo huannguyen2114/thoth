@@ -28,3 +28,18 @@
   );
   background-size: 18px 18px;
 }
+
+/* The hero's rotating word on a tinted, tilted tile (hero.tsx). Sized in em, like the type. */
+.word-tile {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18em;
+  padding: 0 0.28em 0.04em 0.22em;
+  border-radius: 0.22em;
+  box-shadow: var(--shadow-md);
+}
+.word-tile__glyph {
+  width: 0.62em;
+  height: 0.62em;
+  flex-shrink: 0;
+}

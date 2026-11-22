@@ -97,5 +97,7 @@ What becomes easier, what becomes harder, and the follow-ups.
 | [0045](0045-open-source-agpl-and-releases.md)                 | Open source under AGPL-3.0, with releases under stable names                                    | Accepted                         |
 | [0046](0046-playful-landing-page.md)                          | A playful landing page: spring motion, live demos and guided walkthroughs (amends 0044)         | Accepted                         |
 | [0047](0047-app-redesign-icon-expressive-layer.md)            | The app gets an icon, an expressive layer, spring motion and a little glass (amends 0009, 0020) | Accepted                         |
+| [0048](0048-shared-app-frame-layout.md)                       | The app frame moves into a shared layout                                                        | Accepted                         |
+| [0049](0049-desktop-updates-and-homebrew.md)                  | The desktop app updates itself, and installs with Homebrew                                      | Accepted                         |
 
 Add a new row when you add an ADR. When you supersede one, change its status here as well.

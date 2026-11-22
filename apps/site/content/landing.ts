@@ -208,73 +208,128 @@ export const landing = {
     },
   ] as DemoSample[],
 
+  /**
+   * "Drop anything": pick a source, see what Thoth makes from it. Every output below cites
+   * `spots`: the same four ideas, found in each source (a page, a moment, a paragraph).
+   */
   sources: [
-    { id: "pdf", label: "PDF" },
-    { id: "youtube", label: "YouTube" },
-    { id: "web", label: "Web page" },
+    {
+      id: "pdf",
+      label: "PDF",
+      title: "Consistency and consensus",
+      meta: "Example chapter · 4 pages",
+      spots: ["p. 4", "p. 4", "p. 2", "p. 3"],
+    },
+    {
+      id: "youtube",
+      label: "YouTube",
+      title: "Distributed Systems 6.1: Consensus",
+      meta: "Lecture · 18 min",
+      spots: ["03:13", "05:02", "05:02", "05:52"],
+    },
+    {
+      id: "web",
+      label: "Web page",
+      title: "How Raft elects a leader",
+      meta: "Article · 6 min read",
+      spots: ["¶ 1", "¶ 3", "¶ 5", "¶ 8"],
+    },
   ],
 
   outputs: [
-    {
-      id: "notes",
-      title: "Notes",
-      tone: "tone-peach",
-      blurb: "A tidy draft with links back to every page.",
-      preview: [
-        "# Consensus",
-        "Nodes agree on one value, even when some crash. [p. 7]",
-        "- Raft elects one leader per term [04:10]",
-        "- Two majorities always overlap",
-      ],
-    },
-    {
-      id: "quiz",
-      title: "Quiz",
-      tone: "tone-sage",
-      blurb: "Questions by topic, graded with feedback.",
-      preview: [
-        "Q1. Why does Raft need votes from a majority?",
-        "(●) Any two majorities overlap",
-        "( ) It makes elections faster",
-        "✓ Correct. So two leaders can't win one term [04:10]",
-      ],
-    },
-    {
-      id: "cards",
-      title: "Flashcards",
-      tone: "tone-sky",
-      blurb: "Spaced repetition that comes back on time.",
-      preview: [
-        "Front: What does linearizability guarantee?",
-        "Back: Every read sees the latest write, as if there were one copy.",
-        "Next review: in 3 days",
-      ],
-    },
-    {
-      id: "map",
-      title: "Mind map",
-      tone: "tone-lilac",
-      blurb: "The whole source on one board.",
-      preview: [
-        "Distributed systems",
-        "├─ Replication",
-        "├─ Partitioning",
-        "├─ Transactions",
-        "└─ Consensus",
-      ],
-    },
-    {
-      id: "exam",
-      title: "Exam",
-      tone: "tone-butter",
-      blurb: "Timed, across your whole course.",
-      preview: [
-        "Distributed systems · 20 questions · 30 min",
-        "Score 84%",
-        "Weak spot: two-phase commit",
-      ],
-    },
+    { id: "notes", title: "Notes", tone: "tone-peach", blurb: "A draft with links back." },
+    { id: "quiz", title: "Quiz", tone: "tone-sage", blurb: "Graded, with feedback." },
+    { id: "cards", title: "Flashcards", tone: "tone-sky", blurb: "Back on time." },
+    { id: "map", title: "Mind map", tone: "tone-lilac", blurb: "The source on a board." },
+    { id: "exam", title: "Exam", tone: "tone-butter", blurb: "Timed, across a course." },
   ],
+
+  /** What each tool shows for the example sources. `spot` indexes a source's `spots`. */
+  tools: {
+    notes: {
+      title: "Consensus",
+      blocks: [
+        { kind: "p", text: "Nodes agree on one value, even when some of them crash.", spot: 0 },
+        {
+          kind: "quote",
+          text: "Any two majorities of the same cluster share at least one node.",
+          spot: 2,
+        },
+        { kind: "li", text: "One leader is elected for each term.", spot: 1 },
+        { kind: "li", text: "An entry commits once a majority has it.", spot: 2 },
+        { kind: "li", text: "A timeout is how a follower suspects the leader.", spot: 3 },
+      ],
+    },
+    quiz: [
+      {
+        q: "A Raft candidate becomes leader when it gets votes from…",
+        choices: ["any one other node", "a majority of the nodes", "every node in the cluster"],
+        correct: 1,
+        why: "Two majorities always overlap, so two leaders can't win the same term.",
+        spot: 1,
+      },
+      {
+        q: "Why can't a consensus algorithm rely on exact timing?",
+        choices: [
+          "Networks can delay messages for any length of time",
+          "Clocks are always perfectly in sync",
+          "Nodes never crash",
+        ],
+        correct: 0,
+        why: "Under partial synchrony a slow node looks like a dead one; timeouts are a guess.",
+        spot: 3,
+      },
+      {
+        q: "What does consensus let a group of nodes do?",
+        choices: [
+          "Run faster than a single node",
+          "Decide on one value, even if some crash",
+          "Avoid using a network",
+        ],
+        correct: 1,
+        why: "Every node that decides picks the same value, and the value was proposed by someone.",
+        spot: 0,
+      },
+    ],
+    cards: [
+      {
+        front: "What does linearizability guarantee?",
+        back: "Every read sees the latest write, as if there were a single copy of the data.",
+        spot: 2,
+      },
+      {
+        front: "What is a term in Raft?",
+        back: "A numbered period with at most one leader; a new election starts a new term.",
+        spot: 1,
+      },
+      {
+        front: "Why use a quorum of a majority?",
+        back: "Any two majorities overlap, so a decision can't be lost or contradicted.",
+        spot: 2,
+      },
+    ],
+    map: {
+      root: "Consensus",
+      children: [
+        { label: "Leader election", spot: 1 },
+        { label: "Log replication", spot: 2 },
+        { label: "Quorums", spot: 2 },
+        { label: "Failure detection", spot: 3 },
+      ],
+    },
+    exam: {
+      title: "Distributed systems",
+      questions: 20,
+      minutes: 30,
+      score: 0.84,
+      topics: [
+        { name: "Replication", score: 0.95 },
+        { name: "Consensus", score: 0.9 },
+        { name: "Linearizability", score: 0.8 },
+        { name: "Two-phase commit", score: 0.55 },
+      ],
+    },
+  },
 
   /**
    * The scroll story: one beat per step of studying, each a short walkthrough over real

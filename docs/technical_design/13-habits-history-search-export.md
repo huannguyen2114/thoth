@@ -73,11 +73,11 @@ Responses carry `Content-Disposition: attachment` and `Cache-Control: no-store`.
 
 ## Files
 
-| Area                            | Files                                                                                                                                                             |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Core                            | `packages/core/src/usecases/{insights,search,export}/` (tests beside them)                                                                                        |
-| Web                             | `apps/web/src/features/{habits,history,search,export}/`, `app/history/page.tsx`, `app/api/{search,export}/`                                                       |
-| Shared edits (one section each) | `app/page.tsx` (heatmap), `app/progress/page.tsx` (heatmap), `app/_components/app-shell.tsx` (`<SearchProvider />`), `app/_components/sidebar.tsx` (History item) |
+| Area                            | Files                                                                                                                                                                                      |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Core                            | `packages/core/src/usecases/{insights,search,export}/` (tests beside them)                                                                                                                 |
+| Web                             | `apps/web/src/features/{habits,history,search,export}/`, `app/history/page.tsx`, `app/api/{search,export}/`                                                                                |
+| Shared edits (one section each) | `app/page.tsx` (heatmap), `app/progress/page.tsx` (heatmap), `app/_components/app-shell.tsx` (`<SearchProvider />`, in its own `<Suspense>`), `app/_components/sidebar.tsx` (History item) |
 
 ## Known limits
 

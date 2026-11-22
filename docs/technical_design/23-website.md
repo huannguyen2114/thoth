@@ -33,7 +33,12 @@ The public page that introduces Thoth and offers the downloads. It is a static s
 - **Hero demo** (`hero-demo.tsx`): a recreation of the content workspace with the app's Hearth classes and icons (`app-icons.tsx` copies the app's icons). It has two examples:
   - **Lecture video**: Kleppmann's _Distributed Systems 6.1: Consensus_, embedded from `youtube-nocookie.com` only after a click (Play or a citation). Citations seek the real player through the IFrame API messages, and its playhead drives the chapter highlight. The chapter times come from the lecture's transcript; keep them in step if the example changes.
   - **Book chapter (PDF)**: a short chapter we wrote, not book text. `scripts/make-example-pdf.ts` turns the same text into `public/examples/consistency-and-consensus.pdf` before every build.
+  - **Layouts**, as in the app: Study (chat), Watch + notes (the source with its transcript, Notes beside it at full height) and Quiz (Notes above a quiz). A picker over the window and the Layout menu both switch them. In Watch + notes and Quiz, each chapter has **+ Notes**.
   - "Add panel" opens Notes, Summary, Quiz or Flashcards beside the chat. Drag a group's tabs, or use Layout → Swap sides, to move it.
+  - The window keeps one size (from `md` up), and its panels scroll inside it, so nothing on the page jumps. The sidebar matches the app (ADR-0047): glass, tinted icon tiles.
+- **App tools** (`app-tools.tsx`): small, working copies of Notes, Quiz, Flashcards, the mind map and an exam result, drawn like the app's panels. The hero demo and "Drop anything" share them; their example content is `landing.tools`.
+- **Drop anything** (`drop-anything.tsx`): pick PDF, YouTube or a web page, and the example is already there. The output tabs open the app tools; a citation lights up the spot in the source card. The panel keeps one height across tabs.
+- **Headline**: the rotating word sits in a slot sized to the longest word, so the line never reflows.
 - **Walkthrough story** (`scroll-story.tsx`): scrolling moves between five beats. Each beat plays steps over real screenshots: the cursor goes to a recorded hotspot, clicks, and shows a tip. The beats and steps are in `landing.story`.
 - **Try-it widgets** (`bento.tsx`): flashcard, quiz, notes, whiteboard (mind map, stickies, drag), model switch and privacy counters.
 
@@ -82,6 +87,8 @@ Before it takes a screenshot, `site-shots.ts` calls `hot("<shot>", "<name>", loc
 ## Downloads
 
 Download links point to `https://github.com/<owner>/thoth/releases/latest/download/<asset>`. The `release` job in `desktop.yml` publishes the installers under the stable names in `site.ts` when a `v*` tag is pushed (ADR-0045). Until the first release exists, the links return 404.
+
+On a Mac, the download section also shows the Homebrew command (`BREW_INSTALL` in `site.ts`, ADR-0049), copied in one click.
 
 ## Rules
 

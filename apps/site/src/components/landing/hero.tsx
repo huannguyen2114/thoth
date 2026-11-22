@@ -8,6 +8,55 @@ import { spring } from "@/motion/tokens";
 import { HeroDemo } from "./hero-demo";
 
 const WORD_COUNT = landing.rotatingWords.length;
+/** The longest rotating word: it sizes the slot, so swapping words never reflows the line. */
+const LONGEST = landing.rotatingWords.reduce((a, w) => (w.length > a.length ? w : a), "");
+
+type Glyph = "play" | "book" | "page";
+/** Each rotating word's tile: a tone, an icon, and which way it leans. */
+const LOOK: Record<string, { tone: string; glyph: Glyph }> = {
+  lecture: { tone: "tone-peach", glyph: "play" },
+  textbook: { tone: "tone-butter", glyph: "book" },
+  paper: { tone: "tone-sky", glyph: "page" },
+  PDF: { tone: "tone-sage", glyph: "page" },
+  video: { tone: "tone-lilac", glyph: "play" },
+};
+
+/** A small icon in the word's tile, sized to the headline (em units). */
+function WordGlyph({ glyph }: { glyph: Glyph }) {
+  return (
+    <svg viewBox="0 0 16 16" className="word-tile__glyph" aria-hidden="true">
+      {glyph === "play" ? (
+        <path d="M5 3.5v9l7-4.5z" fill="currentColor" />
+      ) : glyph === "book" ? (
+        <path
+          d="M2.5 3.5c2-.8 3.8-.6 5.5.6 1.7-1.2 3.5-1.4 5.5-.6v9c-2-.8-3.8-.6-5.5.6-1.7-1.2-3.5-1.4-5.5-.6zM8 4.1v9"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinejoin="round"
+        />
+      ) : (
+        <path
+          d="M4 2h5.5L12.5 5v9H4zM9.5 2v3h3M6 8h4.5M6 10.5h4.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinejoin="round"
+        />
+      )}
+    </svg>
+  );
+}
+
+/** The word on its tile. The invisible copy sizes the slot; the visible one animates. */
+function WordTile({ word, tone, glyph }: { word: string; tone: string; glyph: Glyph }) {
+  return (
+    <span className={`word-tile ${tone}`}>
+      <WordGlyph glyph={glyph} />
+      {word}
+    </span>
+  );
+}
 
 /** The landing hero: a headline with a rotating word, stickers, and the live demo. */
 export function Hero() {
@@ -19,7 +68,7 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative overflow-hidden px-4 pt-14 pb-24 md:px-6 md:pt-20">
+    <section className="relative overflow-clip px-4 pt-14 pb-24 md:px-6 md:pt-20">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <div className="glow glow--accent -top-24 left-1/4 size-96" />
         <div className="glow glow--peach top-10 right-10 size-80" />
@@ -57,17 +106,24 @@ export function Hero() {
         >
           <span aria-hidden="true">
             {landing.headline.before}{" "}
-            <span className="relative inline-flex justify-center whitespace-nowrap text-accent-text">
-              <AnimatePresence mode="popLayout" initial={false}>
+            <span className="relative inline-flex justify-center whitespace-nowrap">
+              <span className="invisible">
+                <WordTile word={LONGEST} tone="" glyph="book" />
+              </span>
+              <AnimatePresence initial={false}>
                 <motion.span
                   key={words[i]}
-                  initial={{ y: "60%", opacity: 0, filter: "blur(6px)" }}
-                  animate={{ y: "0%", opacity: 1, filter: "blur(0px)" }}
-                  exit={{ y: "-60%", opacity: 0, filter: "blur(6px)" }}
-                  transition={spring.smooth}
-                  className="inline-block"
+                  initial={{ y: "70%", opacity: 0, rotate: 0, scale: 0.8 }}
+                  animate={{ y: "0%", opacity: 1, rotate: i % 2 ? 3 : -3, scale: 1 }}
+                  exit={{ y: "-70%", opacity: 0, rotate: 0, scale: 0.8 }}
+                  transition={spring.bouncy}
+                  className="absolute inset-0 flex items-center justify-center"
                 >
-                  {words[i]}
+                  <WordTile
+                    word={words[i] ?? ""}
+                    tone={LOOK[words[i] ?? ""]?.tone ?? "tone-peach"}
+                    glyph={LOOK[words[i] ?? ""]?.glyph ?? "page"}
+                  />
                 </motion.span>
               </AnimatePresence>
             </span>{" "}

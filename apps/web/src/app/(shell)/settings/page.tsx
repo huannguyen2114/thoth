@@ -2,30 +2,34 @@ import { envKeyVarFor, getLlmSettings, getProviderKeyStatus, isBuiltInProfile } 
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { AppPage } from "@/app/_components/app-shell";
+import { GearIcon } from "@/app/_components/icons";
+import { PageHeader } from "@/app/_components/page-header";
 import { SearchIndexStatus } from "@/features/search-index/search-index-status";
 import { ConnectionCheck } from "@/features/settings/connection-check";
 import { type ProfileView, ProvidersSection } from "@/features/settings/providers";
 import { TaskRouting } from "@/features/settings/task-routing";
 import { getContainer } from "@/server/container";
-import { AppShell } from "../_components/app-shell";
 
 export const metadata: Metadata = { title: "Settings" };
 
 export default function SettingsPage() {
   return (
-    <AppShell>
+    <AppPage>
       <div className="mx-auto flex max-w-3xl flex-col gap-12">
-        <header className="flex flex-col gap-2">
-          <h1 className="type-display-lg text-ink">Settings</h1>
-          <p className="text-ink-muted">Choose which models Thoth uses, and for what.</p>
-        </header>
+        <PageHeader
+          icon={<GearIcon />}
+          tone="bg-neutral-tint text-ink-muted"
+          title="Settings"
+          sub="Choose which models Thoth uses, and for what."
+        />
         <Suspense fallback={<div className="h-96 animate-pulse rounded-lg bg-surface-300" />}>
           <LlmSettings />
         </Suspense>
         <ConnectionCheck />
         <SearchIndexStatus />
       </div>
-    </AppShell>
+    </AppPage>
   );
 }
 
