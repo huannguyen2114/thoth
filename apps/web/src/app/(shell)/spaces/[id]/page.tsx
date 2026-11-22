@@ -10,7 +10,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { AppShell } from "@/app/_components/app-shell";
+import { AppPage } from "@/app/_components/app-shell";
 import { SpaceChat } from "@/features/chat/space-chat-view";
 import { RefreshWhileBusy } from "@/features/library/refresh-while-busy";
 import { NotesEditor } from "@/features/notes/tool";
@@ -32,11 +32,11 @@ export const metadata: Metadata = { title: "Space" };
 export default function SpacePage({ params, searchParams }: PageProps<"/spaces/[id]">) {
   return (
     <Suspense fallback={<SpaceSkeleton />}>
-      <AppShell bleed>
+      <AppPage bleed>
         <div className="h-full contain-inline-size">
           <Space params={params} searchParams={searchParams} />
         </div>
-      </AppShell>
+      </AppPage>
     </Suspense>
   );
 }

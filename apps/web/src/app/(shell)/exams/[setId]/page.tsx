@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { AppShell } from "@/app/_components/app-shell";
+import { AppPage } from "@/app/_components/app-shell";
 import { ExamScreen } from "@/features/quiz/exam/exam-screen";
 import { getContainer } from "@/server/container";
 
@@ -14,11 +14,11 @@ export const metadata: Metadata = { title: "Exam" };
 export default function ExamPage({ params }: PageProps<"/exams/[setId]">) {
   return (
     <Suspense fallback={<div className="h-dvh animate-pulse bg-surface-100" />}>
-      <AppShell>
+      <AppPage>
         <div className="mx-auto flex max-w-3xl flex-col gap-6">
           <Exam params={params} />
         </div>
-      </AppShell>
+      </AppPage>
     </Suspense>
   );
 }

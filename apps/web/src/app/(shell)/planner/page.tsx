@@ -2,15 +2,15 @@ import { listRecentContents, listSpaces } from "@thoth/core";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { AppPage } from "@/app/_components/app-shell";
 import { PlannerApp } from "@/features/planner/planner-app";
 import { getContainer } from "@/server/container";
-import { AppShell } from "../_components/app-shell";
 
 export const metadata: Metadata = { title: "Planner" };
 
 export default function PlannerPage() {
   return (
-    <AppShell>
+    <AppPage>
       <Suspense
         fallback={
           <div className="mx-auto h-64 max-w-5xl animate-pulse rounded-lg bg-surface-300" />
@@ -18,7 +18,7 @@ export default function PlannerPage() {
       >
         <Planner />
       </Suspense>
-    </AppShell>
+    </AppPage>
   );
 }
 

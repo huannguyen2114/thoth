@@ -1,19 +1,23 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { AppPage } from "@/app/_components/app-shell";
+import { ChartIcon } from "@/app/_components/icons";
+import { PageHeader } from "@/app/_components/page-header";
 import { Habits } from "@/features/habits/heatmap";
 import { ProgressView } from "@/features/progress/progress-view";
-import { AppShell } from "../_components/app-shell";
 
 export const metadata: Metadata = { title: "Progress" };
 
 export default function ProgressPage() {
   return (
-    <AppShell>
+    <AppPage>
       <div className="mx-auto flex max-w-3xl flex-col gap-10">
-        <header className="flex flex-col gap-2">
-          <h1 className="type-display-lg text-ink">Progress</h1>
-          <p className="text-ink-muted">Your quiz and exam results by topic, weakest first.</p>
-        </header>
+        <PageHeader
+          icon={<ChartIcon />}
+          tone="tone-sage"
+          title="Progress"
+          sub="Your quiz and exam results by topic, weakest first."
+        />
         <section className="flex flex-col gap-4" aria-labelledby="habits-heading">
           <h2 id="habits-heading" className="type-heading-2 text-ink">
             Study habits
@@ -24,6 +28,6 @@ export default function ProgressPage() {
           <ProgressView />
         </Suspense>
       </div>
-    </AppShell>
+    </AppPage>
   );
 }

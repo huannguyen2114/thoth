@@ -1,5 +1,4 @@
 import { listSpaces } from "@thoth/core";
-import { cx } from "@thoth/ui";
 import { connection } from "next/server";
 import { type ReactNode, Suspense } from "react";
 import { SearchProvider } from "@/features/search/search-provider";
@@ -25,28 +24,47 @@ async function ShellData() {
   );
 }
 
+/** The sidebar's place while spaces load. It reads no pathname, so it prerenders anywhere. */
+function SidebarSkeleton() {
+  return (
+    <>
+      <div className="app-topbar" aria-hidden="true" />
+      <aside className="app-sidebar" aria-hidden="true" />
+    </>
+  );
+}
+
 /**
- * The app frame (ADR-0020): fills the viewport and never scrolls itself; the sidebar and the
- * main area scroll on their own. `bleed` removes the main padding for full-screen pages such
- * as the content workspace.
+ * The app frame (ADR-0020, ADR-0048): fills the viewport and never scrolls itself; the sidebar
+ * and the main area scroll on their own. It is rendered once by the `(shell)` layout, so the
+ * sidebar stays mounted across pages and its current-page pill slides between items.
  */
-export function AppShell({ children, bleed = false }: { children: ReactNode; bleed?: boolean }) {
+export function AppFrame({ children }: { children: ReactNode }) {
   return (
     <div className="app-frame">
-      <Suspense
-        fallback={
-          <>
-            <Sidebar spaces={[]} />
-            <CommandPalette spaces={[]} />
-          </>
-        }
-      >
+      <Suspense fallback={<SidebarSkeleton />}>
         <ShellData />
       </Suspense>
-      <SearchProvider />
-      <main id="main" className={cx("app-main", !bleed && "app-main--padded")}>
-        {bleed ? children : <PageEnter>{children}</PageEnter>}
+      {/* Its commands read the pathname: runtime data on dynamic routes, so it streams in. */}
+      <Suspense>
+        <SearchProvider />
+      </Suspense>
+      <main id="main" className="app-main">
+        {children}
       </main>
+    </div>
+  );
+}
+
+/**
+ * A page's body inside the frame. Padded pages fade and rise in as they open; `bleed` pages
+ * (the content workspace, a space) fill the main area edge to edge.
+ */
+export function AppPage({ children, bleed = false }: { children: ReactNode; bleed?: boolean }) {
+  if (bleed) return <div className="h-full">{children}</div>;
+  return (
+    <div className="app-main--padded">
+      <PageEnter>{children}</PageEnter>
     </div>
   );
 }

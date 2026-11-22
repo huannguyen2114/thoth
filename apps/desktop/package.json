@@ -9,7 +9,9 @@
     "dev": "node scripts/prepare-sidecar.mjs --if-missing && node scripts/tauri.mjs dev",
     "build:app": "node scripts/prepare-sidecar.mjs && node scripts/tauri.mjs build",
     "smoke": "node scripts/smoke.mjs",
-    "tauri": "node scripts/tauri.mjs"
+    "tauri": "node scripts/tauri.mjs",
+    "test": "node --test scripts/*.test.mjs",
+    "release-files": "node scripts/release-files.mjs"
   },
   "devDependencies": {
     "@tauri-apps/cli": "2.12.6"

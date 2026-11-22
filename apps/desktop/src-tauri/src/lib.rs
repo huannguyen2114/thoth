@@ -6,6 +6,7 @@
 
 mod http;
 mod links;
+mod updates;
 
 use std::collections::HashMap;
 use std::ffi::OsString;
@@ -95,11 +96,14 @@ pub fn run() {
         )
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(updater_plugin())
+        .plugin(tauri_plugin_process::init())
         .manage(state.clone())
         .menu(build_menu)
         .on_menu_event(|app, event| match event.id().as_ref() {
             "settings" => navigate(app, "/settings"),
             "lan" => open_lan_window(app),
+            "check_updates" => updates::check(app, true),
             "open_pdf" => pick_pdf(app),
             "reload" => {
                 if let Some(w) = app.get_webview_window("main") {
@@ -156,6 +160,17 @@ pub fn run() {
         });
 }
 
+/// The updater, with the build's public key (ADR-0049). A build without one keeps the plugin
+/// (its config needs a key) but never checks; see `updates::enabled`.
+fn updater_plugin() -> tauri::plugin::TauriPlugin<tauri::Wry, tauri_plugin_updater::Config> {
+    let builder = tauri_plugin_updater::Builder::new();
+    if updates::enabled() {
+        builder.pubkey(updates::PUBKEY).build()
+    } else {
+        builder.build()
+    }
+}
+
 // ---- Menu ----------------------------------------------------------------------------------
 
 fn build_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
@@ -163,6 +178,8 @@ fn build_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
         .accelerator("CmdOrCtrl+,")
         .build(app)?;
     let lan = MenuItemBuilder::with_id("lan", "Serve on LAN…").build(app)?;
+    let check_updates =
+        MenuItemBuilder::with_id("check_updates", "Check for Updates…").build(app)?;
     let open_pdf = MenuItemBuilder::with_id("open_pdf", "Open PDF…")
         .accelerator("CmdOrCtrl+O")
         .build(app)?;
@@ -176,6 +193,7 @@ fn build_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     {
         let app_menu = SubmenuBuilder::new(app, "Thoth")
             .item(&PredefinedMenuItem::about(app, Some("About Thoth"), None)?)
+            .item(&check_updates)
             .separator()
             .item(&settings)
             .item(&lan)
@@ -202,6 +220,7 @@ fn build_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
             .item(&open_pdf)
             .item(&settings)
             .item(&lan)
+            .item(&check_updates)
             .separator()
             .item(&PredefinedMenuItem::quit(app, None)?)
             .build()?;
@@ -391,6 +410,7 @@ fn start_server(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         for p in queued {
             dispatch(&ready_app, p);
         }
+        updates::check(&ready_app, false);
     });
     Ok(())
 }

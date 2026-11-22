@@ -2,25 +2,25 @@ import { type ContentId, listChats } from "@thoth/core";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { AppShell } from "@/app/_components/app-shell";
+import { AppPage } from "@/app/_components/app-shell";
 import { ContentWorkspace } from "@/features/workspace/content-workspace";
 import { getContainer } from "@/server/container";
 
 /**
- * /content/[id]: the content page. Sidebar (AppShell), source viewer with Chapters and
+ * /content/[id]: the content page. Sidebar (the shell layout), source viewer with Chapters and
  * Transcript, and the Learn panel with chat. See docs/technical_design/07-content-page-and-chat.md.
  */
 export default function ContentPage({ params, searchParams }: PageProps<"/content/[id]">) {
-  // The Suspense boundary wraps AppShell too: its NavLink reads the pathname, which is
+  // The Suspense boundary wraps the page body; the workspace reads search params, which are
   // runtime data on a dynamic route and must not block the prerendered shell.
   return (
     <Suspense fallback={<WorkspaceSkeleton />}>
-      <AppShell bleed>
+      <AppPage bleed>
         {/* contain-inline-size stops long nowrap content (the title) from widening the main column. */}
         <div className="h-full contain-inline-size">
           <Workspace params={params} searchParams={searchParams} />
         </div>
-      </AppShell>
+      </AppPage>
     </Suspense>
   );
 }

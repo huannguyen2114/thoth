@@ -28,6 +28,28 @@ import {
   SidebarIcon,
   XIcon,
 } from "./app-icons";
+import {
+  type Cites,
+  FlashcardsTool,
+  type NoteBlock,
+  NotesTool,
+  QuizTool,
+  startingNotes,
+} from "./app-tools";
+
+/** The workspace layouts, as in the app's Layout menu (ADR-0021). */
+const PRESETS = [
+  { id: "study", label: "Study" },
+  { id: "watch", label: "Watch + notes" },
+  { id: "quiz", label: "Quiz" },
+] as const;
+type PresetId = (typeof PRESETS)[number]["id"];
+
+/** Where the tools' four example ideas sit in each sample (landing.tools `spot`). */
+const SPOT_AT: Record<DemoSample["id"], number[]> = {
+  lecture: [193, 302, 302, 352],
+  book: [4, 4, 2, 3],
+};
 
 type Token = { word: string; n: number } | { cite: string; at: number; n: number };
 interface Turn {
@@ -163,6 +185,32 @@ export function HeroDemo() {
   };
   const viewerTab = sample.kind === "video" ? "Video" : "PDF";
 
+  // Layout presets, like the app: Study (chat), Watch + notes, Quiz.
+  const [preset, setPreset] = useState<PresetId>("study");
+  const [notes, setNotes] = useState<NoteBlock[]>(startingNotes);
+  const spotsAt = [...SPOT_AT[sample.id], ...sample.chapters.map((c) => c.at)];
+  const where = (at: number) => (sample.kind === "video" ? clock(at) : `p. ${at}`);
+  const cites: Cites = {
+    source: sample.title,
+    label: (i) => where(spotsAt[i] ?? 0),
+    onCite: (i) => jump(spotsAt[i] ?? 0),
+  };
+  const noted = new Set(notes.map((b) => b.id));
+  function noteChapter(i: number) {
+    const c = sample.chapters[i];
+    if (!c) return;
+    const id = `${sample.id}-c${i}`;
+    setNotes((b) =>
+      b.some((x) => x.id === id)
+        ? b
+        : [...b, { id, kind: "quote", text: `${c.title}. ${c.summary}`, spot: 4 + i }],
+    );
+  }
+  function choosePreset(p: PresetId) {
+    setPreset(p);
+    setMenu(null);
+  }
+
   return (
     <div className="flex flex-col gap-3">
       {/* Sample picker, outside the app frame */}
@@ -193,13 +241,40 @@ export function HeroDemo() {
             </button>
           ))}
         </div>
+        <span className="ml-2 type-label text-ink-muted">Layout</span>
+        <div
+          role="tablist"
+          aria-label="Workspace layout"
+          className="flex rounded-pill bg-surface-200 p-1 shadow-hearth-sm"
+        >
+          {PRESETS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              role="tab"
+              aria-selected={p.id === preset}
+              onClick={() => choosePreset(p.id)}
+              className="relative rounded-pill px-4 py-1.5 type-label text-ink-muted aria-selected:text-ink"
+            >
+              {p.id === preset && (
+                <motion.span
+                  layoutId="preset-pill"
+                  transition={spring.snappy}
+                  className="absolute inset-0 rounded-pill bg-surface-100 shadow-hearth-sm"
+                />
+              )}
+              <span className="relative">{p.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* The app window */}
-      <div className="overflow-hidden rounded-xl border border-border-subtle bg-surface-100 text-left shadow-hearth-lg">
-        <div className="flex">
+      <div className="relative overflow-hidden rounded-xl border border-border-subtle bg-surface-100 text-left shadow-hearth-lg md:h-160">
+        <div aria-hidden="true" className="glow glow--peach -top-24 -left-24 size-72" />
+        <div className="flex md:h-full">
           <Sidebar />
-          <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             {/* Content header */}
             <div className="flex items-center gap-3 border-b border-border-subtle px-4 py-2.5">
               <AnimatePresence mode="wait" initial={false}>
@@ -252,6 +327,19 @@ export function HeroDemo() {
                         ))
                       ) : (
                         <>
+                          {PRESETS.map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              role="menuitemradio"
+                              aria-checked={p.id === preset}
+                              className="menu__item flex w-full items-center justify-between text-left"
+                              onClick={() => choosePreset(p.id)}
+                            >
+                              {p.label}
+                              {p.id === preset && <span aria-hidden="true">✓</span>}
+                            </button>
+                          ))}
                           <button
                             type="button"
                             role="menuitem"
@@ -271,6 +359,7 @@ export function HeroDemo() {
                               setSwapped(false);
                               setExtra([]);
                               setTab("chat");
+                              setPreset("study");
                               setMenu(null);
                             }}
                           >
@@ -284,14 +373,14 @@ export function HeroDemo() {
               </span>
             </div>
 
-            <div className="flex min-h-0 flex-col md:flex-row">
+            <div className="flex min-h-0 flex-1 flex-col md:flex-row">
               {/* Source group: viewer, then chapters. Drag its tabs to move it. */}
               <motion.div
-                layout
+                layout="position"
                 transition={spring.smooth}
                 style={{ order: swapped ? 2 : 1 }}
                 className={cx(
-                  "flex min-w-0 flex-col border-border-subtle md:w-3/5",
+                  "flex min-h-0 min-w-0 flex-col border-border-subtle md:w-3/5",
                   swapped ? "md:border-l" : "md:border-r",
                 )}
               >
@@ -333,12 +422,28 @@ export function HeroDemo() {
                   </AnimatePresence>
                 </div>
                 <PanelTabs
-                  tabs={["Chapters", sample.kind === "video" ? "Transcript" : "Text"]}
+                  tabs={
+                    preset === "study"
+                      ? ["Chapters", sample.kind === "video" ? "Transcript" : "Text"]
+                      : [sample.kind === "video" ? "Transcript" : "Text", "Chapters"]
+                  }
                   extra="Auto scroll"
                 />
-                <ol className="flex max-h-52 flex-col overflow-y-auto px-2 py-2">
+                <ol className="flex max-h-52 flex-col overflow-y-auto px-2 py-2 md:max-h-none md:min-h-0 md:flex-1">
                   {sample.chapters.map((c, i) => (
-                    <li key={c.at}>
+                    <li key={c.at} className="group relative">
+                      {preset !== "study" && (
+                        <motion.button
+                          type="button"
+                          whileTap={{ scale: 0.9 }}
+                          transition={spring.snappy}
+                          disabled={noted.has(`${sample.id}-c${i}`)}
+                          onClick={() => noteChapter(i)}
+                          className="btn btn--secondary btn--sm absolute top-2 right-2 z-10 disabled:opacity-50"
+                        >
+                          {noted.has(`${sample.id}-c${i}`) ? "In notes" : "+ Notes"}
+                        </motion.button>
+                      )}
                       <button
                         type="button"
                         onClick={() => jump(c.at)}
@@ -364,10 +469,10 @@ export function HeroDemo() {
 
               {/* Tools group: chat plus any panels added. Drag its tabs to move it. */}
               <motion.div
-                layout
+                layout="position"
                 transition={spring.smooth}
                 style={{ order: swapped ? 1 : 2 }}
-                className="flex min-h-96 min-w-0 flex-col md:w-2/5"
+                className="flex h-112 min-h-0 min-w-0 flex-col md:h-auto md:w-2/5"
               >
                 <motion.div
                   drag="x"
@@ -377,15 +482,40 @@ export function HeroDemo() {
                   whileDrag={{ scale: 1.02, opacity: 0.85 }}
                   className="cursor-grab touch-pan-y active:cursor-grabbing"
                 >
-                  <GroupTabs
-                    tabs={["chat", ...extra]}
-                    active={tab}
-                    onPick={setTab}
-                    onClose={closePanel}
-                  />
+                  {preset === "study" ? (
+                    <GroupTabs
+                      tabs={["chat", ...extra]}
+                      active={tab}
+                      onPick={setTab}
+                      onClose={closePanel}
+                    />
+                  ) : (
+                    <PanelTabs tabs={["Notes"]} />
+                  )}
                 </motion.div>
-                {tab !== "chat" ? (
-                  <ExtraPanelView panel={tab} sample={sample} onCite={jump} />
+                {preset === "watch" ? (
+                  <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
+                    <NotesTool cites={cites} blocks={notes} setBlocks={setNotes} />
+                  </div>
+                ) : preset === "quiz" ? (
+                  <div className="flex min-h-0 flex-1 flex-col">
+                    <div className="h-48 shrink-0 overflow-y-auto p-4">
+                      <NotesTool cites={cites} blocks={notes} setBlocks={setNotes} />
+                    </div>
+                    <PanelTabs tabs={["Quiz"]} />
+                    <div className="min-h-0 flex-1 overflow-y-auto p-4">
+                      <QuizTool cites={cites} />
+                    </div>
+                  </div>
+                ) : tab !== "chat" ? (
+                  <ExtraPanelView
+                    panel={tab}
+                    sample={sample}
+                    cites={cites}
+                    notes={notes}
+                    setNotes={setNotes}
+                    onCite={jump}
+                  />
                 ) : (
                   <>
                     <div className="flex items-center gap-4 border-b border-border-subtle px-4 py-2 type-caption text-ink">
@@ -395,7 +525,7 @@ export function HeroDemo() {
                     </div>
                     <div
                       ref={scroller}
-                      className="flex max-h-80 flex-1 flex-col gap-3 overflow-y-auto p-4"
+                      className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4"
                     >
                       {turns.length === 0 ? (
                         <div className="flex flex-1 flex-col items-center justify-center gap-3 py-4 text-center">
@@ -565,7 +695,7 @@ function GroupTabs({
             <motion.span
               layoutId="tools-tab"
               transition={spring.snappy}
-              className="absolute inset-x-0 bottom-0 h-0.5 bg-ink"
+              className="absolute inset-x-0 -bottom-px h-0.5 rounded-pill bg-accent"
             />
           )}
         </motion.span>
@@ -581,14 +711,18 @@ function GroupTabs({
 function ExtraPanelView({
   panel,
   sample,
+  cites,
+  notes,
+  setNotes,
   onCite,
 }: {
   panel: ExtraPanel;
   sample: DemoSample;
+  cites: Cites;
+  notes: NoteBlock[];
+  setNotes: (f: (b: NoteBlock[]) => NoteBlock[]) => void;
   onCite: (at: number) => void;
 }) {
-  const [flipped, setFlipped] = useState(false);
-  const [picked, setPicked] = useState<number | null>(null);
   const chip = (c: DemoSample["chapters"][number]) => (
     <button
       type="button"
@@ -604,18 +738,9 @@ function ExtraPanelView({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={spring.smooth}
-      className="flex max-h-96 flex-1 flex-col gap-3 overflow-y-auto p-4 text-ink"
+      className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4 text-ink"
     >
-      {panel === "Notes" && (
-        <>
-          <p className="type-heading-3">Notes</p>
-          {sample.chapters.slice(0, 3).map((c) => (
-            <p key={c.at} className="type-body">
-              <span className="type-body-strong">{c.title}.</span> {c.summary} {chip(c)}
-            </p>
-          ))}
-        </>
-      )}
+      {panel === "Notes" && <NotesTool cites={cites} blocks={notes} setBlocks={setNotes} />}
       {panel === "Summary" && (
         <>
           <p className="type-heading-3">Summary</p>
@@ -628,52 +753,8 @@ function ExtraPanelView({
           </ul>
         </>
       )}
-      {panel === "Quiz" && (
-        <>
-          <p className="type-overline text-ink-muted">Question 1 of 4</p>
-          <p className="type-body-strong">{landing.quiz.q}</p>
-          {landing.quiz.choices.map((c, i) => (
-            <motion.button
-              key={c}
-              type="button"
-              onClick={() => setPicked(i)}
-              whileTap={{ scale: 0.97 }}
-              animate={
-                picked === i && i !== landing.quiz.correct ? { x: [0, -6, 6, -4, 4, 0] } : { x: 0 }
-              }
-              className={cx(
-                "rounded-md border px-3 py-2 text-left type-label",
-                picked !== null && i === landing.quiz.correct
-                  ? "border-success"
-                  : picked === i
-                    ? "border-danger"
-                    : "border-border-control",
-              )}
-            >
-              {c}
-            </motion.button>
-          ))}
-          {picked !== null && (
-            <p className="type-caption text-ink-muted">
-              {picked === landing.quiz.correct ? landing.quiz.right : landing.quiz.wrong}
-            </p>
-          )}
-        </>
-      )}
-      {panel === "Flashcards" && (
-        <>
-          <p className="type-overline text-ink-muted">1 card due · tap to flip</p>
-          <motion.button
-            type="button"
-            onClick={() => setFlipped((f) => !f)}
-            animate={{ rotateX: flipped ? 360 : 0 }}
-            transition={spring.smooth}
-            className="flex min-h-36 items-center justify-center rounded-lg border border-border-subtle bg-surface-200 p-4 text-center type-heading-3"
-          >
-            {flipped ? landing.flashcard.back : landing.flashcard.front}
-          </motion.button>
-        </>
-      )}
+      {panel === "Quiz" && <QuizTool cites={cites} />}
+      {panel === "Flashcards" && <FlashcardsTool cites={cites} />}
     </motion.div>
   );
 }
@@ -724,7 +805,7 @@ function PanelTabs({ tabs, extra }: { tabs: string[]; extra?: string }) {
           key={t}
           className={cx(
             "flex items-center gap-1.5 py-2 type-label",
-            i === 0 ? "border-b-2 border-ink text-ink" : "text-ink-muted",
+            i === 0 ? "border-b-2 border-accent text-ink" : "text-ink-muted",
           )}
         >
           {t}
@@ -750,46 +831,57 @@ function PanelTabs({ tabs, extra }: { tabs: string[]; extra?: string }) {
   );
 }
 
+/** The app's sidebar as it looks now (ADR-0047): glass, tinted icon tiles, the current space. */
 function Sidebar() {
-  const nav: [ReactNode, string][] = [
-    [<PlusIcon key="a" />, "Add content"],
-    [<CardsIcon key="b" />, "Review"],
-    [<CalendarIcon key="c" />, "Planner"],
-    [<ClockIcon key="d" />, "History"],
-    [<ChartIcon key="e" />, "Progress"],
+  const nav: [ReactNode, string, string][] = [
+    [<PlusIcon key="a" />, "Add content", "tone-peach"],
+    [<CardsIcon key="b" />, "Review", "tone-sky"],
+    [<CalendarIcon key="c" />, "Planner", "tone-butter"],
+    [<ClockIcon key="d" />, "History", "tone-lilac"],
+    [<ChartIcon key="e" />, "Progress", "tone-sage"],
   ];
+  const tile = "grid size-6 shrink-0 place-items-center rounded-md";
   return (
-    <aside className="hidden w-52 shrink-0 flex-col gap-3 border-r border-border-subtle bg-surface-200 p-3 lg:flex">
+    <aside className="hidden w-52 shrink-0 flex-col gap-3 border-r border-border-subtle bg-surface-300/60 p-3 backdrop-blur-xl lg:flex">
       <div className="flex items-center gap-2">
-        <ThothIcon size={24} className="rounded-sm ring-1 ring-border-subtle" />
+        <ThothIcon size={26} className="rounded-md shadow-hearth-sm" />
         <span className="type-heading-3 text-ink">Thoth</span>
         <span className="ml-auto text-ink-muted">
           <SidebarIcon />
         </span>
       </div>
-      <div className="flex items-center gap-2 rounded-md border border-border-subtle bg-surface-100 px-2.5 py-1.5 type-caption text-ink-muted">
+      <div className="flex items-center gap-2 rounded-md border border-border-subtle bg-surface-100/80 px-2.5 py-1.5 type-caption text-ink-muted">
         <SearchIcon /> Search <kbd className="ml-auto type-caption">⌘K</kbd>
       </div>
       <nav className="flex flex-col gap-0.5">
-        {nav.map(([icon, label]) => (
+        {nav.map(([icon, label, tone]) => (
           <span
             key={label}
-            className="flex items-center gap-2 rounded-md px-2 py-1.5 type-caption text-ink"
+            className="flex items-center gap-2 rounded-md px-1.5 py-1 type-caption text-ink"
           >
-            {icon}
+            <span className={cx(tile, tone)}>{icon}</span>
             {label}
           </span>
         ))}
       </nav>
-      <p className="mt-2 type-overline text-ink-muted">Spaces</p>
-      <span className="flex items-center gap-2 rounded-md bg-accent-tint px-2 py-1.5 type-caption text-ink">
-        <FolderIcon /> Distributed systems
+      <p className="mt-2 px-1.5 type-overline text-ink-muted">Spaces</p>
+      <span className="flex items-center gap-2 rounded-md bg-accent-tint px-1.5 py-1 type-caption text-ink">
+        <span className={cx(tile, "tone-sky")}>
+          <FolderIcon />
+        </span>
+        Distributed systems
       </span>
-      <span className="mt-auto flex items-center gap-2 px-2 py-1 type-caption text-ink">
-        <MonitorIcon /> System theme
+      <span className="mt-auto flex items-center gap-2 px-1.5 py-1 type-caption text-ink">
+        <span className={cx(tile, "bg-neutral-tint text-ink-muted")}>
+          <MonitorIcon />
+        </span>
+        System theme
       </span>
-      <span className="flex items-center gap-2 px-2 py-1 type-caption text-ink">
-        <GearIcon /> Settings
+      <span className="flex items-center gap-2 px-1.5 py-1 type-caption text-ink">
+        <span className={cx(tile, "bg-neutral-tint text-ink-muted")}>
+          <GearIcon />
+        </span>
+        Settings
       </span>
     </aside>
   );

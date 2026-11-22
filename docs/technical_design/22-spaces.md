@@ -8,7 +8,7 @@ A space is a place to study, not just a folder. Its page is a workspace with six
 
 ```mermaid
 flowchart TD
-  page["app/spaces/[id]/page.tsx<br/>Server Component, AppShell bleed"] --> ws["SpaceWorkspace (client)<br/>Hearth tabs, ?tab= in the URL"]
+  page["app/(shell)/spaces/[id]/page.tsx<br/>Server Component, AppPage bleed"] --> ws["SpaceWorkspace (client)<br/>Hearth tabs, ?tab= in the URL"]
   ws --> ov["Overview: SpaceDashboardView<br/>loadSpaceDashboardAction(tz)"]
   ws --> chat["Chat: SpaceChat<br/>POST /api/spaces/[id]/chat (SSE)"]
   ws --> notes["Notes: NotesEditor ownerKey=space:id"]

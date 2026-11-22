@@ -191,11 +191,16 @@ export function useViewerPosition(): ViewerPosition {
   return useContext(PositionContext);
 }
 
-/** Briefly tints an element so the reader sees where a jump landed. */
+/**
+ * Shows the reader where a jump landed (ADR-0048): a tint (rows, paragraphs) or a ring (pages,
+ * the video) that pulses out once. Restarted when the same element is jumped to again.
+ */
 export function flash(el: Element, style: "tint" | "ring" = "tint") {
-  const classes = style === "tint" ? ["bg-accent-tint"] : ["ring-2", "ring-accent"];
-  el.classList.add(...classes);
-  window.setTimeout(() => el.classList.remove(...classes), 1200);
+  const cls = style === "tint" ? "source-pulse" : "source-pulse--ring";
+  el.classList.remove("source-pulse", "source-pulse--ring");
+  void (el as HTMLElement).offsetWidth;
+  el.classList.add(cls);
+  window.setTimeout(() => el.classList.remove(cls), 1400);
 }
 
 /** The viewer when there is one (the content page), or null (a space's notes). */

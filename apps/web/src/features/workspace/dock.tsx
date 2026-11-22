@@ -14,6 +14,7 @@ import "./workspace.css";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { isWorkspacePanelId, type WorkspacePanelId } from "./panel-ids";
+import { syncTabInk } from "./tab-ink";
 
 /**
  * Hearth theme for dockview: every `--dv-*` colour is mapped to a Hearth token in
@@ -114,7 +115,29 @@ export function Dock({
     setApi(dock);
     const cleanup = onReadyRef.current(dock);
 
+    // The sliding tab underline follows the active tab of every group.
+    let frame = 0;
+    const ink = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => syncTabInk(el));
+    };
+    const subs = [
+      dock.onDidActivePanelChange(ink),
+      dock.onDidActiveGroupChange(ink),
+      dock.onDidLayoutChange(ink),
+      dock.onDidAddPanel(ink),
+      dock.onDidRemovePanel(ink),
+    ];
+    el.addEventListener("scroll", ink, true);
+    const resize = new ResizeObserver(ink);
+    resize.observe(el);
+    ink();
+
     return () => {
+      for (const s of subs) s.dispose();
+      el.removeEventListener("scroll", ink, true);
+      resize.disconnect();
+      cancelAnimationFrame(frame);
       cleanup?.();
       setApi(null);
       dock.dispose();

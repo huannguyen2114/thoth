@@ -1,14 +1,17 @@
 "use client";
 
 import type { PlanId, PlanOverview } from "@thoth/core";
-import { Button, cx } from "@thoth/ui";
+import { Button, cx, spring } from "@thoth/ui";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { PageHeader } from "@/app/_components/page-header";
 import { loadPlansAction } from "./actions";
 import { formatDay, tzOffset } from "./format";
 import { NewPlanDialog, type PlannerContent, type PlannerSpace } from "./new-plan-dialog";
 import { PlanDetail } from "./plan-detail";
+import { PlannerIcon } from "./planner-icon";
 
 /**
  * The planner page: plans on the left, the chosen plan on the right (one at a time on a
@@ -38,22 +41,24 @@ export function PlannerApp({
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-col gap-2">
-          <h1 className="type-display-lg text-ink">Planner</h1>
-          <p className="text-ink-muted">A study schedule that adapts to your progress.</p>
-        </div>
-        <Button variant="primary" onClick={() => router.replace("/planner?new=1")}>
-          New plan
-        </Button>
-      </header>
+      <PageHeader
+        icon={<PlannerIcon />}
+        tone="tone-butter"
+        title="Planner"
+        sub="A study schedule that adapts to your progress."
+        action={
+          <Button variant="primary" onClick={() => router.replace("/planner?new=1")}>
+            New plan
+          </Button>
+        }
+      />
 
       {plans === null ? (
         <div className="h-64 animate-pulse rounded-lg bg-surface-300" aria-hidden="true" />
       ) : plans.length === 0 ? (
-        <div className="flex flex-col items-start gap-3 rounded-lg border border-border-subtle bg-surface-200 p-6">
-          <h2 className="type-heading-3 text-ink">No study plans yet</h2>
-          <p className="text-ink-muted">
+        <div className="flex flex-col items-start gap-3 rounded-xl tone-butter p-6">
+          <h2 className="type-heading-2">No study plans yet</h2>
+          <p className="opacity-80">
             Pick a goal date and Thoth schedules chapters, quizzes, reviews and a mock exam around
             it.
           </p>
@@ -76,12 +81,12 @@ export function PlannerApp({
                       className={cx(
                         "flex min-h-11 flex-col gap-2 rounded-lg border p-3 transition-colors duration-150",
                         o.plan.id === activeId
-                          ? "border-accent bg-accent-tint"
-                          : "border-border-subtle bg-surface-200",
+                          ? "border-transparent tone-butter shadow-hearth-sm"
+                          : "border-border-subtle bg-surface-200 hover:bg-surface-300",
                       )}
                     >
-                      <span className="type-body-strong truncate text-ink">{o.plan.title}</span>
-                      <span className="type-caption text-ink-muted">
+                      <span className="type-body-strong truncate">{o.plan.title}</span>
+                      <span className="type-caption opacity-75">
                         {o.daysLeft > 0
                           ? `${o.daysLeft} ${o.daysLeft === 1 ? "day" : "days"} left`
                           : o.daysLeft === 0
@@ -89,10 +94,12 @@ export function PlannerApp({
                             : `Ended ${formatDay(o.plan.goalDate)}`}{" "}
                         · {pct}% done
                       </span>
-                      <span className="h-1 rounded-pill bg-neutral-tint" aria-hidden="true">
-                        <span
-                          className="block h-1 rounded-pill bg-accent"
-                          style={{ width: `${pct}%` }}
+                      <span className="h-1.5 rounded-pill bg-neutral-tint" aria-hidden="true">
+                        <motion.span
+                          className="block h-1.5 rounded-pill bg-accent"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={spring.smooth}
                         />
                       </span>
                     </Link>

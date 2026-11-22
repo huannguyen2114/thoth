@@ -180,9 +180,10 @@ export const site: Site = siteSchema.parse({
       id: "everywhere",
       kicker: "On your desk and in your pocket",
       title: "A desktop app, with your phone as a second screen.",
-      body: "Install Thoth on macOS, Windows or Linux. It feels like a native app: a sidebar, a command palette, panels you can dock. Open it on your phone over Wi-Fi, behind a passcode.",
+      body: "Install Thoth on macOS, Windows or Linux, or with Homebrew on a Mac. It feels like a native app: a sidebar, a command palette, panels you can dock, and it updates itself. Open it on your phone over Wi-Fi, behind a passcode.",
       points: [
         "Keyboard first, with ⌘K for everything",
+        "Updates itself, or with brew upgrade",
         "Light and dark themes",
         "Phone access only when you turn it on",
       ],
@@ -296,11 +297,21 @@ export const site: Site = siteSchema.parse({
       a: "The installers are not code-signed yet. On macOS, right-click the app and choose Open once. On Windows, choose More info, then Run anyway.",
     },
     {
+      q: "How do I install it with Homebrew, and how does it update?",
+      a: "On a Mac, run: brew tap huannguyen2114/thoth https://github.com/huannguyen2114/thoth, then brew install --cask thoth. The app checks for a new version when it starts (or choose Check for Updates… in the menu) and installs it when you say so; brew upgrade --greedy works too.",
+    },
+    {
       q: "Where is my data?",
       a: "In one folder: the app's data folder on your computer. Back it up or move it like any other folder.",
     },
   ],
 });
+
+/** The two Homebrew commands (ADR-0049): the tap is this repository, then the cask. */
+export const BREW_INSTALL = [
+  `brew tap huannguyen2114/thoth ${REPO_URL}`,
+  "brew install --cask thoth",
+] as const;
 
 export const downloadUrl = (p: Platform): string =>
   `${REPO_URL}/releases/latest/download/${p.asset}`;

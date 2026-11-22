@@ -1,6 +1,8 @@
 # Desktop app builds (ADR-0036, docs/technical_design/19-desktop-app.md).
 # Each target builds on its own runner, because the server's native modules (libSQL, ONNX Runtime,
-# sharp) come from that runner's install. Builds are unsigned for now.
+# sharp) come from that runner's install. Builds are not code-signed yet, but when the updater
+# key is set up (ADR-0049) their update bundles are signed, a latest.json is published for the
+# in-app updater, and the Homebrew cask in Casks/ is bumped.
 name: Desktop
 
 on:
@@ -76,9 +78,25 @@ jobs:
       - name: Smoke test the bundled server (headless)
         run: pnpm --filter @thoth/desktop smoke
 
+      # Update signing (ADR-0049): the private key signs the update bundles; the public key is
+      # compiled into the app. Without them the build still works, without in-app updates.
       - name: Build the app
         working-directory: apps/desktop
-        run: node scripts/tauri.mjs build --target ${{ matrix.target }}
+        env:
+          TAURI_UPDATER_PUBKEY: ${{ vars.TAURI_UPDATER_PUBKEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ] && [ -n "$TAURI_UPDATER_PUBKEY" ]; then
+            node scripts/tauri.mjs build --target ${{ matrix.target }} \
+              --config '{"bundle":{"createUpdaterArtifacts":true}}'
+          elif [ -n "$TAURI_SIGNING_PRIVATE_KEY$TAURI_UPDATER_PUBKEY" ]; then
+            echo "::error::Set both the TAURI_SIGNING_PRIVATE_KEY secret and the TAURI_UPDATER_PUBKEY variable, or neither."
+            exit 1
+          else
+            echo "::warning::No updater key: this build cannot update itself (ADR-0049)."
+            node scripts/tauri.mjs build --target ${{ matrix.target }}
+          fi
 
       - name: Smoke test the server inside the built .app
         if: runner.os == 'macOS'
@@ -91,14 +109,25 @@ jobs:
           BUNDLE: apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle
         run: |
           mkdir -p dist
+          # An update bundle's signature, when the build was signed.
+          sig() { if [ -f "$1.sig" ]; then cp "$1.sig" "dist/$2.sig"; fi; }
           case "${{ matrix.target }}" in
-            aarch64-apple-darwin) cp "$BUNDLE"/dmg/*.dmg dist/Thoth-macOS-arm64.dmg ;;
-            x86_64-apple-darwin) cp "$BUNDLE"/dmg/*.dmg dist/Thoth-macOS-x64.dmg ;;
+            aarch64-apple-darwin | x86_64-apple-darwin)
+              arch=$([ "${{ matrix.target }}" = aarch64-apple-darwin ] && echo arm64 || echo x64)
+              cp "$BUNDLE"/dmg/*.dmg "dist/Thoth-macOS-$arch.dmg"
+              if [ -f "$BUNDLE/macos/Thoth.app.tar.gz" ]; then
+                cp "$BUNDLE/macos/Thoth.app.tar.gz" "dist/Thoth-macOS-$arch.app.tar.gz"
+                sig "$BUNDLE/macos/Thoth.app.tar.gz" "Thoth-macOS-$arch.app.tar.gz"
+              fi ;;
             x86_64-pc-windows-msvc)
               cp "$BUNDLE"/msi/*.msi dist/Thoth-Windows-x64.msi
-              cp "$BUNDLE"/nsis/*.exe dist/Thoth-Windows-x64-setup.exe ;;
+              exe=$(ls "$BUNDLE"/nsis/*.exe | head -1)
+              cp "$exe" dist/Thoth-Windows-x64-setup.exe
+              sig "$exe" Thoth-Windows-x64-setup.exe ;;
             x86_64-unknown-linux-gnu)
-              cp "$BUNDLE"/appimage/*.AppImage dist/Thoth-Linux-x86_64.AppImage
+              img=$(ls "$BUNDLE"/appimage/*.AppImage | head -1)
+              cp "$img" dist/Thoth-Linux-x86_64.AppImage
+              sig "$img" Thoth-Linux-x86_64.AppImage
               cp "$BUNDLE"/deb/*.deb dist/Thoth-Linux-amd64.deb ;;
           esac
           ls -la dist
@@ -114,16 +143,35 @@ jobs:
     name: GitHub release
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
+      # latest.json for the in-app updater, and the Homebrew cask (ADR-0049).
+      - name: Updater manifest and Homebrew cask
+        run: |
+          node apps/desktop/scripts/release-files.mjs --dir dist \
+            --version "${GITHUB_REF_NAME#v}" --repo "${{ github.repository }}" \
+            --notes "See https://github.com/${{ github.repository }}/releases/tag/${GITHUB_REF_NAME}"
+          brew style --cask Casks/thoth.rb || echo "::warning::brew style found issues in Casks/thoth.rb"
       - name: Publish the release
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
           generate_release_notes: true
+      # Homebrew reads the cask from main, so the new version and checksums are committed there.
+      - name: Bump the Homebrew cask on main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/thoth.rb
+          if git diff --cached --quiet; then echo "Cask unchanged."; exit 0; fi
+          git commit -m "chore(brew): thoth ${GITHUB_REF_NAME#v}"
+          git push origin HEAD:main

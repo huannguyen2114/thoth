@@ -32,6 +32,15 @@ Download the installer for your system from the [latest release](https://github.
 | Windows               | `Thoth-Windows-x64.msi`                                  |
 | Linux                 | `Thoth-Linux-x86_64.AppImage` or `Thoth-Linux-amd64.deb` |
 
+On a Mac you can also use Homebrew:
+
+```bash
+brew tap huannguyen2114/thoth https://github.com/huannguyen2114/thoth
+brew install --cask thoth
+```
+
+The app updates itself: it checks for a new version when it starts, and from **Check for Updates…** in the menu.
+
 The installers are not code-signed yet. On macOS, right-click the app and choose **Open** the first time. On Windows, choose **More info**, then **Run anyway**.
 
 To use your Claude subscription, install [Claude Code](https://claude.com/claude-code) and sign in once.

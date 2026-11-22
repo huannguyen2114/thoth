@@ -10,6 +10,7 @@ import {
 import { Button, cx } from "@thoth/ui";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { Ring } from "@/app/_components/motion/ring";
 import { type Draft, isAnswered, QuestionInput } from "../question-input";
 import { startExamAction, submitExamAction } from "./actions";
 
@@ -58,20 +59,22 @@ export function ExamScreen({
     return <ExamResults result={phase.result} onRetake={begin} retaking={pending} />;
 
   return (
-    <div className="flex flex-col gap-6 rounded-lg border border-border-subtle bg-surface-200 p-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="type-heading-1 text-ink">{title}</h1>
-        <p className="text-ink-muted">
+    <div className="relative flex flex-col gap-6 overflow-hidden rounded-xl tone-sage p-8">
+      <div aria-hidden="true" className="glow glow--peach -top-24 -right-16 size-72" />
+      <div className="relative flex flex-col gap-2">
+        <p className="type-overline opacity-75">Timed exam</p>
+        <h1 className="type-hero-sm text-balance">{title}</h1>
+        <p className="max-w-xl opacity-80">
           {questionCount} questions · {durationMin} minutes. The timer starts when you press Start
           and keeps running if you leave. When time is up, your answers are submitted.
         </p>
       </div>
       {error && (
-        <div className="callout callout--danger max-w-none" role="alert">
+        <div className="callout callout--danger relative max-w-none" role="alert">
           <p className="m-0">{error}</p>
         </div>
       )}
-      <div>
+      <div className="relative">
         <Button variant="primary" size="lg" onClick={begin} disabled={pending}>
           {pending ? "Starting" : "Start exam"}
         </Button>
@@ -247,14 +250,17 @@ function ExamResults({
   const pct = Math.round((result.session.score ?? 0) * 100);
   return (
     <div className="flex flex-col gap-10">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <p className="type-overline text-ink-muted">{result.set.title}</p>
-          <h1 className="type-display-lg text-ink">{pct}%</h1>
-          <p className="text-ink-muted">
-            Submitted {new Date(result.session.submittedAt ?? 0).toLocaleString("en")}
-            {result.late && " · after the time limit"}
-          </p>
+      <header className="flex flex-wrap items-center justify-between gap-6 rounded-xl tone-sage p-6">
+        <div className="flex items-center gap-5">
+          <Ring value={pct / 100} size={88} />
+          <div className="flex flex-col gap-1">
+            <p className="type-overline opacity-75">{result.set.title}</p>
+            <h1 className="type-hero-sm">{pct}%</h1>
+            <p className="opacity-80">
+              Submitted {new Date(result.session.submittedAt ?? 0).toLocaleString("en")}
+              {result.late && " · after the time limit"}
+            </p>
+          </div>
         </div>
         <Button variant="primary" onClick={onRetake} disabled={retaking}>
           {retaking ? "Starting" : "Retake exam"}

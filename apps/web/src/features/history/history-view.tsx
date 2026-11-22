@@ -3,7 +3,9 @@
 import { type HistoryDay, type HistoryItem, localDay } from "@thoth/core";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Reveal } from "@/app/_components/motion/primitives";
 import { loadHistoryAction } from "./actions";
+import { activityTone } from "./activity-tone";
 
 const time = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
 
@@ -41,12 +43,12 @@ export function HistoryView() {
   if (!days) return <HistorySkeleton />;
   if (days.length === 0) {
     return (
-      <div className="flex flex-col gap-2 rounded-lg border border-border-subtle bg-surface-200 p-6">
-        <h2 className="type-heading-3 text-ink">Nothing studied yet</h2>
-        <p className="text-ink-muted">
+      <div className="flex flex-col gap-2 rounded-xl tone-lilac p-6">
+        <h2 className="type-heading-2">Nothing studied yet</h2>
+        <p className="opacity-80">
           Answer a quiz question, review a card or ask the chat something, and it shows up here.
         </p>
-        <Link href="/" className="type-label text-accent-text">
+        <Link href="/" className="type-label underline-offset-4 hover:underline">
           Add content
         </Link>
       </div>
@@ -57,16 +59,18 @@ export function HistoryView() {
   return (
     <div className="flex flex-col gap-8">
       {days.map((d) => (
-        <section key={d.day} aria-labelledby={`h-${d.day}`} className="flex flex-col gap-2">
-          <h2 id={`h-${d.day}`} className="type-overline text-ink-muted">
-            {dayLabel(d.day, today)} · {d.items.length}
-          </h2>
-          <ul className="flex flex-col divide-y divide-border-subtle rounded-lg border border-border-subtle bg-surface-200">
-            {d.items.map((it) => (
-              <Row key={it.id} item={it} />
-            ))}
-          </ul>
-        </section>
+        <Reveal key={d.day}>
+          <section aria-labelledby={`h-${d.day}`} className="flex flex-col gap-2">
+            <h2 id={`h-${d.day}`} className="type-overline text-ink-muted">
+              {dayLabel(d.day, today)} · {d.items.length}
+            </h2>
+            <ul className="flex flex-col divide-y divide-border-subtle overflow-hidden rounded-xl border border-border-subtle bg-surface-200">
+              {d.items.map((it) => (
+                <Row key={it.id} item={it} />
+              ))}
+            </ul>
+          </section>
+        </Reveal>
       ))}
     </div>
   );
@@ -75,6 +79,12 @@ export function HistoryView() {
 function Row({ item }: { item: HistoryItem }) {
   const body = (
     <>
+      <span
+        className={`grid size-7 shrink-0 place-items-center rounded-md ${activityTone(item.kind)}`}
+        aria-hidden="true"
+      >
+        <span className="size-2 rounded-pill bg-current" />
+      </span>
       <span className="type-caption w-16 shrink-0 text-ink-muted tabular-nums">
         {time.format(item.at)}
       </span>

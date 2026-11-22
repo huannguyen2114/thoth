@@ -147,6 +147,23 @@ Native modules come from the machine's own install, so the target must match the
 
 Sizes on macOS arm64: server about 225 MB, Node about 110 MB, `.app` about 320 MB.
 
+## Updates and Homebrew (ADR-0049)
+
+- **In the app.** `src-tauri/src/updates.rs` checks `releases/latest/download/latest.json` a few seconds after the window opens, and from **Check for Updates…** in the menu. A newer version is offered in a native dialog: **Install and restart** downloads the bundle, checks its signature, stops the server, installs and restarts.
+- **The key.** The public key is compiled in from the `TAURI_UPDATER_PUBKEY` repository variable. A build without it (any local build) never checks, and the menu item says updates are off. The private key and its password are the `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` secrets. To set them up once:
+
+  ```bash
+  pnpm --filter @thoth/desktop tauri signer generate -w ~/.tauri/thoth.key
+  gh secret set TAURI_SIGNING_PRIVATE_KEY < ~/.tauri/thoth.key
+  gh secret set TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+  gh variable set TAURI_UPDATER_PUBKEY < ~/.tauri/thoth.key.pub
+  ```
+
+  Back up `~/.tauri/thoth.key`. Without it, installed copies can never verify another update.
+- **Release files.** `scripts/release-files.mjs` (tested by `scripts/release-files.test.mjs`) writes `latest.json` from the `.sig` files, and `Casks/thoth.rb` with the new version and DMG checksums.
+- **Homebrew.** This repository is the tap: `brew tap <owner>/thoth https://github.com/<owner>/thoth`, then `brew install --cask thoth`. The cask is `auto_updates true` and clears the quarantine flag, because the app is not notarised.
+- Both need the repository to be public, so release downloads work without a login.
+
 ## CI (`.github/workflows/desktop.yml`)
 
 - **Triggers:** `workflow_dispatch` and tags `v*`.
@@ -157,7 +174,8 @@ Sizes on macOS arm64: server about 225 MB, Node about 110 MB, `.app` about 320 M
   4. `tauri build`;
   5. on macOS, the smoke test again inside the built `.app`.
 
-  It then uploads the `.dmg`, `.msi`, NSIS `.exe`, `.AppImage` and `.deb` as artifacts.
+  It then uploads the `.dmg`, `.msi`, NSIS `.exe`, `.AppImage` and `.deb` as artifacts, plus each update bundle and its `.sig` when the build was signed.
+- **Release job** (tags only, on `macos-15`): writes `latest.json` and the cask, lints the cask with `brew style`, publishes the release, and commits the cask to `main`.
 
 The smoke test (`scripts/smoke.mjs`) checks the following:
 
@@ -171,6 +189,6 @@ The smoke test (`scripts/smoke.mjs`) checks the following:
 
 ## Known limits
 
-- Unsigned: Gatekeeper ("unidentified developer": right-click → Open) and SmartScreen warn. Signing, notarisation and the updater are a later ADR.
+- Not code-signed: Gatekeeper ("unidentified developer": right-click → Open) and SmartScreen warn. Update bundles are signed (ADR-0049); code signing and notarisation are later.
 - Intel Macs have no local embeddings (above).
 - The app's data is not shared with a checkout's `data/`.

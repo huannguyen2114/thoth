@@ -2,7 +2,7 @@
 
 import { cx } from "@thoth/ui";
 import { useEffect, useRef, useState } from "react";
-import { useViewer } from "./viewer-context";
+import { flash, useViewer } from "./viewer-context";
 
 /** The few parts of the YouTube IFrame Player API we use. */
 interface YtPlayer {
@@ -87,6 +87,7 @@ export function YouTubePlayer({
         }
         player.seekTo(sec, true);
         player.playVideo();
+        if (host.current) flash(host.current, "ring");
         setPosition({ type: "time", sec });
       },
     });
