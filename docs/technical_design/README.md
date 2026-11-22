@@ -26,5 +26,6 @@ This folder describes **how Thoth works today**, plus clearly marked **planned**
 | [20-openai-compatible-providers.md](20-openai-compatible-providers.md)   | OpenAI-compatible providers, per-task routing, keychain                                    | Current |
 | [21-annotations-and-links.md](21-annotations-and-links.md)               | PDF annotations, `thoth:` links, backlinks                                                 | Current |
 | [22-spaces.md](22-spaces.md)                                             | Space chat, dashboard, notes, board, tags, bulk import                                     | Current |
+| [23-website.md](23-website.md)                                           | The landing page, its screenshots, the freshness gate and the deploy                       | Current |
 
 Related: the reasons behind each choice are in [`../decision/`](../decision/README.md), and the phase plan is in [`../plan/roadmap.md`](../plan/roadmap.md).

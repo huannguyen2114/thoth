@@ -232,6 +232,12 @@ Each phase ends with something that runs. After each phase I check it in the bro
 - PDF highlights, comments, pen and shapes, annotated PDF export, passages sent to notes with `thoth:` links back, `[[` / `@` link chips, backlinks, highlight to flashcard (ADRs 0038, 0041; doc 21).
 - Spaces with a dashboard, chat across sources, space notes and board, tags, colour and icon, moving contents, bulk add of PDFs, folders and YouTube playlists (ADRs 0039, 0042; doc 22).
 
+### Phase 11: Landing page, open source — DONE 2026-11-22
+
+- A static landing page in the app's own design, with real screenshots retaken from the current app on every build (ADR-0044; doc 23).
+- A freshness gate in CI: a new feature area cannot ship without a place on the page.
+- Thoth is free software under the AGPL-3.0, with installers published to GitHub releases under stable names (ADR-0045).
+
 ### Later phases (after the MVP)
 
 - **9:** Podcast. A two-host script from the LLM, then TTS (OpenAI TTS, ElevenLabs, or local Kokoro), then merged audio with ffmpeg. Then Voice tutor mode and Dictate (Web Speech API or whisper).

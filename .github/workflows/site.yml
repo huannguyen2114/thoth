@@ -1,0 +1,74 @@
+# The landing page (ADR-0044, docs/technical_design/23-website.md).
+# Every run retakes the app screenshots from the current UI, so the page never shows an old app.
+# Pushes to main deploy to Cloudflare Pages when the two Cloudflare secrets are set.
+name: Site
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Cache the Playwright browser
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - name: Install Chromium and its system libraries
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter @thoth/web exec playwright install --with-deps chromium
+      - name: Install the system libraries only (browser restored from cache)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter @thoth/web exec playwright install-deps chromium
+
+      - name: Build the app for the screenshots
+        run: pnpm --filter @thoth/web build
+      - name: Take the screenshots from the current app
+        run: pnpm site:shots
+        env:
+          E2E_SERVER: start
+      - name: The page covers every feature (freshness gate)
+        run: pnpm site:check
+      - name: Build the site
+        run: pnpm site:build
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://thoth.pages.dev' }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: apps/site/out
+
+      - name: Deploy to Cloudflare Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::notice::Cloudflare secrets are not set; skipping the deploy. The built site is in the 'site' artifact."
+            exit 0
+          fi
+          npx --yes wrangler@4 pages project create thoth --production-branch main 2>/dev/null || true
+          npx --yes wrangler@4 pages deploy apps/site/out --project-name thoth --branch main

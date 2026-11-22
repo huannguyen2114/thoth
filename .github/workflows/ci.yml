@@ -19,6 +19,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      - name: Landing page is up to date (ADR-0044)
+        run: pnpm site:check
       - run: pnpm build
       - name: ADR append-only (ADR-0001)
         if: github.event_name == 'pull_request'

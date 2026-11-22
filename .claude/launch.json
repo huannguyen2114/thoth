@@ -12,6 +12,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@thoth/web", "start", "--port", "3101"],
       "port": 3101
+    },
+    {
+      "name": "thoth-site",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@thoth/site", "dev"],
+      "port": 3300
     }
   ]
 }

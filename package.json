@@ -1,6 +1,7 @@
 {
   "name": "thoth",
   "private": true,
+  "license": "AGPL-3.0-only",
   "packageManager": "pnpm@12.21.0",
   "engines": {
     "node": ">=22"
@@ -10,6 +11,10 @@
     "start:lan": "node apps/web/scripts/lan-server.mjs",
     "desktop:dev": "pnpm --filter @thoth/desktop dev",
     "desktop:build": "pnpm --filter @thoth/desktop build:app",
+    "site:dev": "pnpm --filter @thoth/site dev",
+    "site:build": "pnpm --filter @thoth/site build",
+    "site:shots": "pnpm --filter @thoth/web exec playwright test --config playwright.shots.config.ts",
+    "site:check": "pnpm --filter @thoth/site check",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",

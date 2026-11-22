@@ -29,6 +29,7 @@ Thoth is a single-user, local-first study PWA. It is a personal alternative to Y
    - OpenAI-compatible providers and keychain: `20`
    - annotations, links and backlinks: `21`
    - spaces (chat, dashboard, notes, tags, bulk add): `22`
+   - website (landing page): `23`
 5. `docs/plan/roadmap.md`: what phase we are in and what comes next.
 
 Only then search the code. Most "where is X" questions are answered by `01-architecture.md`.
@@ -50,6 +51,7 @@ Only then search the code. Most "where is X" questions are answered by `01-archi
   - `design/hearth/` and `packages/ui/src/styles/{tokens,theme,components}.css` are generated or vendored. Do not hand-edit them.
 - **Next.js 16 (ADR-0011).** APIs differ from older versions. Read `apps/web/node_modules/next/dist/docs/` before using an unfamiliar API. DB reads go inside `<Suspense>`, after `await connection()`.
 - **Docs stay current.** When you change behaviour, update the matching `docs/technical_design/*.md` in the same change.
+- **The website stays current (ADR-0044).** A user-visible change updates `apps/site/content/site.ts` in the same change, plus its scene in `apps/web/e2e/site-shots.ts` when a screen changed. A new `docs/technical_design/` doc needs a site entry or a place in `notUserFacing`. Run `pnpm site:check`; CI fails when the page is stale. See doc `23`.
 
 ## Commands (repo root)
 
@@ -60,6 +62,7 @@ Only then search the code. Most "where is X" questions are answered by `01-archi
 - `pnpm format`: Biome auto-fix.
 - `pnpm build`: production build.
 - `pnpm desktop:dev` and `pnpm desktop:build`: run or package the Tauri desktop app (doc 19). Building needs the Rust toolchain; the web app does not.
+- `pnpm site:dev`, `pnpm site:build`, `pnpm site:shots`, `pnpm site:check`: the landing page (doc 23). `site:shots` retakes the app screenshots; `site:check` is the freshness gate.
 - `pnpm --filter @thoth/db db:generate`: create a migration after a schema change.
 - `pnpm --filter @thoth/ui tokens`: regenerate the Hearth CSS.
 
