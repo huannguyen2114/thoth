@@ -2,7 +2,7 @@
  * Generates CSS from the Hearth design system. Source of truth: design/hearth/tokens.json.
  * Run: pnpm --filter @thoth/ui tokens   (never edit the generated files by hand)
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const root = (p: string) => fileURLToPath(new URL(`../../../${p}`, import.meta.url));
@@ -42,6 +42,8 @@ let css = HEADER;
 css += block(':root, [data-theme="light"]', vars(light));
 css += `@media (prefers-color-scheme: dark) {\n${block(':root:not([data-theme="light"])', vars(dark))}}\n`;
 css += block('[data-theme="dark"]', vars(dark));
+// A small preview of Hearth (Settings › Appearance) keeps its own colours under any theme.
+css += block('[data-skin-preview="hearth"]', vars(light));
 css += block(":root", [
   ...[...t.spacing.tokens, ...t.radius.tokens].map((k) => `  --${k.name}: ${k.value as string};`),
   ...Object.entries(t.type.families).map(([k, v]) => `  --font-${k}: ${v};`),
@@ -59,7 +61,8 @@ for (const [f, v] of Object.entries(t.type.families)) theme += `  --font-${f}: $
 theme += "  --spacing: 4px;\n}\n";
 for (const g of t.type.groups) {
   for (const s of g.styles) {
-    theme += `@utility type-${s.name} {\n  font-family: var(--font-${g.family});\n  font-size: ${s.fontSize};\n  line-height: ${s.lineHeight};\n  font-weight: ${s.fontWeight};\n  letter-spacing: ${s.letterSpacing ?? "0"};\n${s.name === "overline" ? "  text-transform: uppercase;\n" : ""}}\n`;
+    // Each property reads a variable first, so a theme (design/skins) can restyle the type.
+    theme += `@utility type-${s.name} {\n  font-family: var(--ff-${g.family}, var(--font-${g.family}));\n  font-size: var(--fs-${s.name}, ${s.fontSize});\n  line-height: var(--lh-${s.name}, ${s.lineHeight});\n  font-weight: var(--fw-${s.name}, ${s.fontWeight});\n  letter-spacing: var(--ls-${s.name}, ${s.letterSpacing ?? "0"});\n${s.name === "overline" ? "  text-transform: uppercase;\n" : ""}}\n`;
   }
 }
 writeFileSync(out("theme.css"), theme);
@@ -70,4 +73,61 @@ const bundle = readFileSync(root("design/hearth/components/bundle.css"), "utf8")
   "",
 );
 writeFileSync(out("components.css"), HEADER + bundle);
-console.log("Wrote tokens.css, theme.css, components.css");
+// 4. skins.css: the other themes (ADR-0050). Each design/skins/<id>/tokens.json overrides Hearth's
+// tokens by name under :root[data-skin="<id>"], in light and dark, plus optional accents.
+interface Skin {
+  id: string;
+  color: Record<"light" | "dark", Record<string, string>>;
+  shadow?: Record<"light" | "dark", Record<string, string>>;
+  type?: {
+    families?: Record<string, string>;
+    styles?: Record<string, Partial<Omit<TypeStyle, "name">>>;
+  };
+  accents?: Record<string, Record<"light" | "dark", Record<string, string>>>;
+}
+const decl = (m: Record<string, string>) => Object.entries(m).map(([k, v]) => `  --${k}: ${v};`);
+const modes = (sel: string, light: string[], dark: string[]) =>
+  block(sel, light) +
+  `@media (prefers-color-scheme: dark) {\n${block(`${sel}:not([data-theme="light"])`, dark)}}\n` +
+  block(`${sel}[data-theme="dark"]`, dark);
+let skins = HEADER;
+for (const dir of readdirSync(root("design/skins")).sort()) {
+  const k = JSON.parse(readFileSync(root(`design/skins/${dir}/tokens.json`), "utf8")) as Skin;
+  const sel = `:root[data-skin="${k.id}"]`;
+  skins += `/* ${k.id} */\n`;
+  skins += modes(
+    sel,
+    decl({ ...k.color.light, ...k.shadow?.light }),
+    decl({ ...k.color.dark, ...k.shadow?.dark }),
+  );
+  const typeVars: string[] = [];
+  for (const [fam, v] of Object.entries(k.type?.families ?? {}))
+    typeVars.push(`  --ff-${fam}: ${v};`);
+  for (const [name, st] of Object.entries(k.type?.styles ?? {})) {
+    if (st.fontSize) typeVars.push(`  --fs-${name}: ${st.fontSize};`);
+    if (st.lineHeight) typeVars.push(`  --lh-${name}: ${st.lineHeight};`);
+    if (st.fontWeight) typeVars.push(`  --fw-${name}: ${st.fontWeight};`);
+    if (st.letterSpacing) typeVars.push(`  --ls-${name}: ${st.letterSpacing};`);
+  }
+  if (typeVars.length) skins += block(sel, typeVars);
+  // Its preview card in Settings › Appearance, light, under any theme.
+  skins += block(`[data-skin-preview="${k.id}"]`, [
+    ...decl({ ...k.color.light, ...k.shadow?.light }),
+    ...typeVars,
+  ]);
+  // Accent swatches show each accent's own colour, in the current mode.
+  const swatches = Object.entries({
+    graphite: { light: k.color.light, dark: k.color.dark },
+    ...k.accents,
+  });
+  for (const [name, a] of swatches) {
+    const bg = (m: Record<string, string>) => [`  background: ${m.accent};`];
+    skins += block(`[data-swatch="${name}"]`, bg(a.light));
+    skins += `@media (prefers-color-scheme: dark) {\n${block(`:root:not([data-theme="light"]) [data-swatch="${name}"]`, bg(a.dark))}}\n`;
+    skins += block(`[data-theme="dark"] [data-swatch="${name}"]`, bg(a.dark));
+  }
+  for (const [name, a] of Object.entries(k.accents ?? {}))
+    skins += modes(`${sel}[data-accent="${name}"]`, decl(a.light), decl(a.dark));
+}
+writeFileSync(out("skins.css"), skins);
+console.log("Wrote tokens.css, theme.css, components.css, skins.css");

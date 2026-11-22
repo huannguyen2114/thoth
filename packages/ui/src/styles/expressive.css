@@ -32,19 +32,20 @@
 }
 
 /* Display sizes larger than Hearth's display-xl, for heroes and big numbers. */
+/* Like the generated type styles, each property reads a theme variable first (ADR-0050). */
 @utility type-hero {
-  font-family: var(--font-serif);
-  font-size: 88px;
-  line-height: 92px;
-  font-weight: 400;
-  letter-spacing: -0.03em;
+  font-family: var(--ff-serif, var(--font-serif));
+  font-size: var(--fs-hero, 88px);
+  line-height: var(--lh-hero, 92px);
+  font-weight: var(--fw-hero, 400);
+  letter-spacing: var(--ls-hero, -0.03em);
 }
 @utility type-hero-sm {
-  font-family: var(--font-serif);
-  font-size: 52px;
-  line-height: 56px;
-  font-weight: 400;
-  letter-spacing: -0.025em;
+  font-family: var(--ff-serif, var(--font-serif));
+  font-size: var(--fs-hero-sm, 52px);
+  line-height: var(--lh-hero-sm, 56px);
+  font-weight: var(--fw-hero-sm, 400);
+  letter-spacing: var(--ls-hero-sm, -0.025em);
 }
 
 /* Soft drifting glows behind the hero. */

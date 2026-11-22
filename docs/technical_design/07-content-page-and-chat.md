@@ -39,6 +39,7 @@ flowchart TD
 ```
 
 - **Server read.** The page wraps its body in one `<Suspense>`, because the workspace reads runtime data. It uses `<AppPage bleed>` inside the `(shell)` layout (ADR-0048), so the workspace fills the main area and each panel scrolls on its own.
+- **The Modern look** (ADR-0050): on desktop, `split-workspace.tsx` replaces the dock. The source is on the left with Chapters or Transcript under it, and the tools are on the right behind pill tabs. The Study, Watch + notes and Quiz presets pick the tabs; the choice is saved as `thoth.workspace.split`. Phones use the one-panel layout in both looks.
 - **Where a jump lands.** `flash()` in `viewer-context.tsx` plays a one-time pulse at the target: a tint for transcript rows and paragraphs, a ring for a PDF page or the video. The dock's tabs have a sliding underline (`features/workspace/tab-ink.ts`). Both are ADR-0048.
 - **Header.** The title, a processing or failed callout, and on desktop two Hearth menus: **Layout** (the presets and Reset layout) and **Add panel** (every panel; open ones are marked "Open" and get focus, closed ones come back).
 - **Before hydration** the dock area shows a skeleton. The mode (dock or phone) is read from `matchMedia` with `useSyncExternalStore`, so the server and the first client render agree.

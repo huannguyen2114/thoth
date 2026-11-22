@@ -5,6 +5,9 @@
 @import "./components.css" layer(components);
 /* Hearth, turned up: tones, glows, display type (ADR-0047). */
 @import "./expressive.css";
+/* Other themes (ADR-0050): generated token overrides, then their hand-written touches. */
+@import "./skins.css";
+@import "./modern.css";
 
 @layer base {
   html {

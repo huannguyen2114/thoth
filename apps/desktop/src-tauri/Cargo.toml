@@ -1,6 +1,6 @@
 [package]
 name = "thoth-desktop"
-version = "0.1.1"
+version = "0.2.0"
 description = "Thoth desktop shell: runs the local server and shows it in a native window"
 edition = "2021"
 publish = false

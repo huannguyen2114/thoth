@@ -262,6 +262,18 @@ Each phase ends with something that runs. After each phase I check it in the bro
   - "Drop anything" shows real tool views (notes, quiz, flashcards, mind map, exam) right away;
   - the demo has the app's new look and its Watch + notes and Quiz layouts, and keeps one size.
 
+### Phase 15: Two looks — DONE 2026-11-22
+
+- A second look, Modern, beside Hearth, picked in Settings › Appearance (ADR-0050):
+  - neutral greys, Geist headings, a graphite accent or one of four colours;
+  - Apple-style glass on the floating sidebar, capsule tabs and the composer.
+- In Modern:
+  - recent sources fill the sidebar;
+  - home leads with the composer;
+  - the content page is a fixed split, the source beside tabbed tools.
+- Themes are tokens (`design/skins/`), with a contrast test for every theme, mode and accent.
+- The first desktop release, v0.1.1, with signed in-app updates and the Homebrew cask.
+
 ### Later phases (after the MVP)
 
 - **9:** Podcast. A two-host script from the LLM, then TTS (OpenAI TTS, ElevenLabs, or local Kokoro), then merged audio with ffmpeg. Then Voice tutor mode and Dictate (Web Speech API or whisper).

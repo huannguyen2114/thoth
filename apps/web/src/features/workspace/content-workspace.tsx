@@ -13,6 +13,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { type Command, useCommands } from "@/app/_components/commands";
+import { useSkin } from "@/app/_components/use-skin";
 import { type ChatSummary, useChat } from "@/features/chat/use-chat";
 import { InitialJump } from "@/features/content-viewer/initial-jump";
 import { useViewer, ViewerProvider } from "@/features/content-viewer/viewer-context";
@@ -32,13 +33,21 @@ import { MenuButton, type MenuEntry } from "./menu-button";
 import { isWorkspacePanelId, panelTitle, type WorkspacePanelId } from "./panel-ids";
 import { workspacePanel, workspacePanels } from "./panels";
 import { PhoneWorkspace } from "./phone-workspace";
+import {
+  parseSplit,
+  SPLIT_PRESETS,
+  type SplitState,
+  SplitWorkspace,
+  splitShow,
+} from "./split-workspace";
 import { WorkspaceDataProvider } from "./workspace-data";
 
 const PHONE_QUERY = "(max-width: 767px)";
 const PHONE_TAB_KEY = "thoth.workspace.phoneTab";
+const SPLIT_KEY = "thoth.workspace.split";
 const SAVE_DELAY_MS = 300;
 
-type Mode = "pending" | "dock" | "phone";
+type Mode = "pending" | "dock" | "phone" | "split";
 
 function subscribeMode(onChange: () => void) {
   const m = window.matchMedia(PHONE_QUERY);
@@ -83,7 +92,15 @@ export function ContentWorkspace({
   /** Citation token to jump to on load, from `?at=`. */
   initialCite?: string | undefined;
 }) {
-  const mode = useMode();
+  const screen = useMode();
+  const skin = useSkin();
+  // The Modern look uses a fixed split instead of the dock (ADR-0050); phones stay as they are.
+  const mode: Mode =
+    screen === "pending" || skin === "pending"
+      ? "pending"
+      : screen === "dock" && skin === "modern"
+        ? "split"
+        : screen;
   const chat = useChat(content.id, chats);
   const api = useRef<DockviewApi | null>(null);
   const [phoneTab, setPhoneTab] = useState<WorkspacePanelId>("source");
@@ -149,6 +166,20 @@ function WorkspaceBody({
     [setPhoneTab],
   );
 
+  // ---------- Split (the Modern look), remembered per viewer ----------
+  const [split, setSplitState] = useState<SplitState>(SPLIT_PRESETS.study);
+  useEffect(() => {
+    try {
+      setSplitState(parseSplit(localStorage.getItem(SPLIT_KEY)));
+    } catch {}
+  }, []);
+  const setSplit = useCallback((s: SplitState) => {
+    setSplitState(s);
+    try {
+      localStorage.setItem(SPLIT_KEY, JSON.stringify(s));
+    } catch {}
+  }, []);
+
   // ---------- Dock ----------
   const onReady = useCallback(
     (dock: DockviewApi) => {
@@ -174,9 +205,10 @@ function WorkspaceBody({
 
   const applyPresetById = useCallback(
     (id: PresetId) => {
-      if (api.current) applyPreset(api.current, presetById(id), kind);
+      if (mode === "split") setSplit({ ...SPLIT_PRESETS[id] });
+      else if (api.current) applyPreset(api.current, presetById(id), kind);
     },
-    [api, kind],
+    [api, kind, mode, setSplit],
   );
   const resetLayout = useCallback(() => {
     clearLayout(storage());
@@ -185,9 +217,10 @@ function WorkspaceBody({
   const showPanel = useCallback(
     (id: WorkspacePanelId) => {
       if (mode === "phone") selectPhoneTab(id);
+      else if (mode === "split") setSplit(splitShow(split, id));
       else if (api.current) openPanel(api.current, id, kind);
     },
-    [mode, api, kind, selectPhoneTab],
+    [mode, api, kind, selectPhoneTab, split, setSplit],
   );
 
   // ---------- Palette commands (ADR-0020) ----------
@@ -199,7 +232,18 @@ function WorkspaceBody({
       keywords: ["panel", "open", p.id],
       run: () => showPanel(p.id),
     }));
-    if (mode !== "dock") return panels;
+    if (mode === "phone" || mode === "pending") return panels;
+    if (mode === "split")
+      return [
+        ...PRESETS.map((p) => ({
+          id: `workspace.preset.${p.id}`,
+          label: `Workspace: ${p.label} layout`,
+          group: "Workspace",
+          keywords: ["layout", "preset", "arrange"],
+          run: () => applyPresetById(p.id),
+        })),
+        ...panels,
+      ];
     return [
       ...PRESETS.map((p) => ({
         id: `workspace.preset.${p.id}`,
@@ -265,6 +309,9 @@ function WorkspaceBody({
           <h1 className="type-heading-3 min-w-0 flex-1 truncate text-ink" title={content.title}>
             {content.title}
           </h1>
+          {mode === "split" && (
+            <PresetSwitch current={currentPreset(split)} onPick={applyPresetById} />
+          )}
           {mode === "dock" && (
             <div className="flex shrink-0 items-center gap-1">
               <MenuButton label="Layout" icon={<LayoutIcon />} entries={layoutEntries} />
@@ -286,6 +333,9 @@ function WorkspaceBody({
             renderWatermark={() => <EmptyDock onReset={resetLayout} />}
           />
         )}
+        {mode === "split" && (
+          <SplitWorkspace kind={kind} state={split} onChange={setSplit} renderPanel={renderPanel} />
+        )}
         {mode === "phone" && (
           <PhoneWorkspace
             kind={kind}
@@ -296,6 +346,41 @@ function WorkspaceBody({
         )}
       </div>
     </div>
+  );
+}
+
+/** Which preset the split matches right now, if any. */
+function currentPreset(s: SplitState): PresetId | null {
+  for (const p of PRESETS) {
+    const v = SPLIT_PRESETS[p.id];
+    if (v.lower === s.lower && v.tool === s.tool) return p.id;
+  }
+  return null;
+}
+
+/** The Modern header's layout switch: a segmented control of the presets. */
+function PresetSwitch({
+  current,
+  onPick,
+}: {
+  current: PresetId | null;
+  onPick: (id: PresetId) => void;
+}) {
+  return (
+    <fieldset className="ws-preset-switch">
+      <legend className="sr-only">Layout</legend>
+      {PRESETS.map((p) => (
+        <button
+          key={p.id}
+          type="button"
+          aria-pressed={current === p.id}
+          onClick={() => onPick(p.id)}
+          className="ws-preset-switch__btn"
+        >
+          {p.label}
+        </button>
+      ))}
+    </fieldset>
   );
 }
 

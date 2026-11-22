@@ -10,7 +10,7 @@ import {
   useCommands,
   useRegistry,
 } from "./commands";
-import { applySidebar, applyTheme, readSidebar } from "./prefs";
+import { applySidebar, applySkin, applyTheme, readSidebar } from "./prefs";
 
 /** Cmd/Ctrl+K palette (ADR-0020): commands now; global search results from providers (Lane 3). */
 export function CommandPalette({ spaces }: { spaces: { id: string; name: string }[] }) {
@@ -68,6 +68,20 @@ export function CommandPalette({ spaces }: { spaces: { id: string; name: string 
         label: "Match system theme",
         group: "Theme",
         run: () => applyTheme("system"),
+      },
+      {
+        id: "skin-modern",
+        label: "Use the Modern look",
+        group: "Theme",
+        keywords: ["skin", "glass", "minimal", "appearance"],
+        run: () => applySkin("modern"),
+      },
+      {
+        id: "skin-hearth",
+        label: "Use the Hearth look",
+        group: "Theme",
+        keywords: ["skin", "warm", "classic", "appearance"],
+        run: () => applySkin("hearth"),
       },
     ],
     [router, spaces, setOpen],

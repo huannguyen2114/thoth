@@ -1,4 +1,4 @@
-import { listSpaces } from "@thoth/core";
+import { listRecentContents, listSpaces } from "@thoth/core";
 import { connection } from "next/server";
 import { type ReactNode, Suspense } from "react";
 import { SearchProvider } from "@/features/search/search-provider";
@@ -10,7 +10,10 @@ import { Sidebar } from "./sidebar";
 /** Spaces for the sidebar and palette: data, so it streams in after the frame paints. */
 async function ShellData() {
   await connection();
-  const spaces = (await listSpaces(await getContainer())).map((s) => ({
+  const c = await getContainer();
+  // Recent sources for the Modern sidebar (ADR-0050); Hearth hides them with CSS.
+  const recents = (await listRecentContents(c, 12)).map((x) => ({ id: x.id, title: x.title }));
+  const spaces = (await listSpaces(c)).map((s) => ({
     id: s.id,
     name: s.name,
     color: s.color,
@@ -18,7 +21,7 @@ async function ShellData() {
   }));
   return (
     <>
-      <Sidebar spaces={spaces} />
+      <Sidebar spaces={spaces} recents={recents} />
       <CommandPalette spaces={spaces} />
     </>
   );
