@@ -1,6 +1,6 @@
 # ADR-0047: The app gets an icon, an expressive layer, spring motion and a little glass
 
-- Status: Accepted
+- Status: Accepted; amended by ADR-0050 (a second theme)
 - Date: 2026-11-22
 - Amends: ADR-0009, ADR-0020
 - Builds on: ADR-0046

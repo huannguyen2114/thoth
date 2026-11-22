@@ -71,15 +71,13 @@ cask "thoth" do
 
   # Thoth updates itself from GitHub Releases; \`brew upgrade --greedy\` also works.
   auto_updates true
-  depends_on macos: ">= :big_sur"
+  depends_on macos: :big_sur
 
   app "Thoth.app"
 
   # The app is not notarised yet, so macOS would refuse to open it from a quarantined download.
-  postflight do
-    system_command "/usr/bin/xattr",
-                   args: ["-dr", "com.apple.quarantine", "#{appdir}/Thoth.app"],
-                   sudo: false
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "Thoth.app"], chdir: "{{appdir}}"
   end
 
   zap trash: [

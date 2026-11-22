@@ -6,6 +6,7 @@ import { AppPage } from "@/app/_components/app-shell";
 import { GearIcon } from "@/app/_components/icons";
 import { PageHeader } from "@/app/_components/page-header";
 import { SearchIndexStatus } from "@/features/search-index/search-index-status";
+import { Appearance } from "@/features/settings/appearance";
 import { ConnectionCheck } from "@/features/settings/connection-check";
 import { type ProfileView, ProvidersSection } from "@/features/settings/providers";
 import { TaskRouting } from "@/features/settings/task-routing";
@@ -21,8 +22,9 @@ export default function SettingsPage() {
           icon={<GearIcon />}
           tone="bg-neutral-tint text-ink-muted"
           title="Settings"
-          sub="Choose which models Thoth uses, and for what."
+          sub="How Thoth looks, and which models it uses for what."
         />
+        <Appearance />
         <Suspense fallback={<div className="h-96 animate-pulse rounded-lg bg-surface-300" />}>
           <LlmSettings />
         </Suspense>

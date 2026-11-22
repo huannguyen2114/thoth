@@ -20,6 +20,14 @@ flowchart LR
 - `packages/ui/src/motion.ts` exports `spring`, the shared spring transitions.
 - `ThothIcon` and `ThothMark` (`packages/ui/src/components/thoth-mark.tsx`) are the brand. The masters and the regeneration steps are in `design/brand/README.md`.
 
+## Themes (ADR-0050)
+
+- Hearth is the default look. Other looks live in `design/skins/<id>/tokens.json` and override Hearth's tokens by name. `pnpm --filter @thoth/ui tokens` writes them to `packages/ui/src/styles/skins.css` under `:root[data-skin="<id>"]`, in light and dark, with one block per accent.
+- Type styles read `--ff-<family>`, `--fs-`, `--lh-`, `--fw-` and `--ls-<style>` first, so a theme can change families and weights. Modern uses Geist semibold for headings.
+- What tokens can't do goes in CSS scoped to the look: `packages/ui/src/styles/modern.css` (glows, hero type, glass) and `apps/web/src/app/modern.css` (the app frame). `hearth-only` and `modern-only` swap parts of a page.
+- `packages/ui/src/contrast.test.ts` checks WCAG AA contrast for every theme, mode and accent.
+- Theme preview cards use `data-skin-preview="<id>"`, which carries that theme's light colours under any look.
+
 ## Using tokens
 
 | Need                            | Write                                                                                 | Not                       |

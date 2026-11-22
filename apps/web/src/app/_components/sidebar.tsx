@@ -69,7 +69,14 @@ const themeMeta: Record<ThemePref, { icon: ReactNode; label: string }> = {
  * The app sidebar (ADR-0020): fixed height, its own scroll for spaces, Settings pinned at the
  * bottom, collapsible to icons (mod+\), and a drawer on narrow screens.
  */
-export function Sidebar({ spaces }: { spaces: SidebarSpace[] }) {
+export function Sidebar({
+  spaces,
+  recents = [],
+}: {
+  spaces: SidebarSpace[];
+  /** Newest sources; shown only in the Modern look (ADR-0050). */
+  recents?: { id: string; title: string }[];
+}) {
   const { setPaletteOpen } = useRegistry();
   const pathname = usePathname();
   const [theme, setTheme] = useState<ThemePref>("system");
@@ -175,6 +182,27 @@ export function Sidebar({ spaces }: { spaces: SidebarSpace[] }) {
               spaces.map((s) => <SpaceNavItem key={s.id} space={s} />)
             )}
           </nav>
+          {recents.length > 0 && (
+            <div className="app-recents">
+              <p className="app-group type-overline text-ink-muted">Recent</p>
+              <nav aria-label="Recent sources" className="flex flex-col gap-px">
+                {recents.map((r) => {
+                  const href = `/content/${r.id}`;
+                  return (
+                    <Link
+                      key={r.id}
+                      href={href}
+                      title={r.title}
+                      aria-current={pathname === href ? "page" : undefined}
+                      className="type-body"
+                    >
+                      {r.title}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          )}
         </div>
 
         <div className="app-sidebar__foot">

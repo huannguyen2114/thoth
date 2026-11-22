@@ -15,16 +15,19 @@ flowchart LR
   palette["Command palette ⌘K<br/>(cmdk, overlay)"]
 ```
 
-| Piece                                                        | File                                               |
-| ------------------------------------------------------------ | -------------------------------------------------- |
-| Frame (`AppFrame`), rendered once by the `(shell)` layout    | `apps/web/src/app/(shell)/layout.tsx`              |
-| Page body (`AppPage`, `bleed` for full-screen pages)         | `apps/web/src/app/_components/app-shell.tsx`       |
-| Page title with the page's tone (`PageHeader`)               | `apps/web/src/app/_components/page-header.tsx`     |
-| Sidebar (collapse, drawer, theme)                            | `apps/web/src/app/_components/sidebar.tsx`         |
-| Commands, shortcuts, search providers                        | `apps/web/src/app/_components/commands.tsx`        |
-| Palette                                                      | `apps/web/src/app/_components/command-palette.tsx` |
-| Per-viewer prefs (theme, sidebar) and the first-paint script | `apps/web/src/app/_components/prefs.ts`            |
-| Styles                                                       | `apps/web/src/app/shell.css`                       |
+| Piece                                                       | File                                               |
+| ----------------------------------------------------------- | -------------------------------------------------- |
+| Frame (`AppFrame`), rendered once by the `(shell)` layout   | `apps/web/src/app/(shell)/layout.tsx`              |
+| Page body (`AppPage`, `bleed` for full-screen pages)        | `apps/web/src/app/_components/app-shell.tsx`       |
+| Page title with the page's tone (`PageHeader`)              | `apps/web/src/app/_components/page-header.tsx`     |
+| Sidebar (collapse, drawer, theme)                           | `apps/web/src/app/_components/sidebar.tsx`         |
+| Commands, shortcuts, search providers                       | `apps/web/src/app/_components/commands.tsx`        |
+| Palette                                                     | `apps/web/src/app/_components/command-palette.tsx` |
+| Per-viewer prefs (mode, look, accent, sidebar), first paint | `apps/web/src/app/_components/prefs.ts`            |
+| The look in JavaScript, for layouts that differ (`useSkin`) | `apps/web/src/app/_components/use-skin.ts`         |
+| Settings › Appearance                                       | `apps/web/src/features/settings/appearance.tsx`    |
+| The Modern look's frame                                     | `apps/web/src/app/modern.css`                      |
+| Styles                                                      | `apps/web/src/app/shell.css`                       |
 
 ## Rules
 
@@ -59,8 +62,12 @@ flowchart LR
    - Lists use hairline dividers (`border-subtle`), not cards, when there are many rows.
 10. **Modals** use `Dialog` from `@thoth/ui` (a native `<dialog>`). Render it only while open.
 11. **Empty states:** a serif `type-heading-3`, one sentence in `text-ink-muted`, and one primary action.
-12. **Theme:** use tokens only. Test every new screen in light and dark themes. The palette has "Use light theme" and "Use dark theme" commands.
+12. **Theme:** use tokens only. Test every new screen in light and dark, in both looks (rule 14). The palette has "Use light theme" and "Use dark theme" commands.
 13. **Phone** (under 768 px):
     - The sidebar becomes a drawer opened from the top bar.
     - Tap targets are at least 44 px.
     - Nothing may need hover to work.
+14. **Two looks** (ADR-0050): Hearth and Modern, picked in Settings › Appearance or from ⌘K.
+    - Style the look with CSS on `:root[data-skin="modern"]`. Read it in JavaScript (`useSkin`) only when the layout itself differs, as the content page's split does.
+    - Every screen must look right in both. `hearth-only` hides a part in Modern, and `modern-only` adds one.
+    - In Modern, the sidebar floats as glass and lists recent sources, the page sits on a solid rounded sheet, and home leads with the composer.

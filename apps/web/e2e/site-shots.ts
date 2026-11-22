@@ -324,4 +324,20 @@ test.describe
       await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
       await shot(page, "settings");
     });
+
+    test("the Modern look", async ({ page }) => {
+      // ADR-0050: the second theme, set the way the app stores it.
+      await page.addInitScript(() => localStorage.setItem("thoth.skin", "modern"));
+      await goto(page, "/");
+      await expect(
+        page.getByRole("heading", { level: 1, name: "What do you want to learn today?" }),
+      ).toBeVisible();
+      await shot(page, "modern-home");
+      await goto(page, pdf);
+      await expect(page.getByRole("tablist", { name: "Tools" })).toBeVisible();
+      await expect(page.locator(".pdf-text-layer[data-ready='true']").first()).toBeAttached({
+        timeout: 20_000,
+      });
+      await shot(page, "modern-workspace");
+    });
   });

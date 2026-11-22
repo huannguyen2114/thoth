@@ -26,6 +26,8 @@ export const shotIds = [
   "planner",
   "whiteboard",
   "settings",
+  "modern-home",
+  "modern-workspace",
   // Walkthrough frames for the landing page story (before-states).
   "home",
   "home-link",
@@ -175,6 +177,19 @@ export const site: Site = siteSchema.parse({
       points: ["Mind maps from any source", "Stickies, shapes, arrows and source badges"],
       shot: "whiteboard",
       docs: [18],
+    },
+    {
+      id: "looks",
+      kicker: "Your look",
+      title: "Warm and bookish, or clean and modern.",
+      body: "Pick the look that suits you in Settings. Hearth is warm paper with serif headings and panels you can dock. Modern is neutral and glassy, like a chat app: recent sources in the sidebar, and the tools beside your source.",
+      points: [
+        "Light, dark or follow your system",
+        "Five accent colours in Modern",
+        "Your library stays the same",
+      ],
+      shot: "modern-workspace",
+      docs: [11],
     },
     {
       id: "everywhere",

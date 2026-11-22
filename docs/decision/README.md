@@ -58,7 +58,7 @@ What becomes easier, what becomes harder, and the follow-ups.
 | [0006](0006-sqlite-libsql-drizzle.md)                         | SQLite through libSQL and Drizzle ORM                                                           | Accepted (amended by 0029)       |
 | [0007](0007-pwa-manifest-and-handwritten-service-worker.md)   | Built-in manifest + a hand-written service worker                                               | Accepted                         |
 | [0008](0008-llm-provider-port-api-key-and-subscription.md)    | One LLM port with two adapters: API key and Claude subscription                                 | Accepted (amended by 0013, 0037) |
-| [0009](0009-hearth-design-system-vendored-tokens.md)          | Hearth design system, vendored, with generated CSS tokens                                       | Accepted (amended by 0047)       |
+| [0009](0009-hearth-design-system-vendored-tokens.md)          | Hearth design system, vendored, with generated CSS tokens                                       | Accepted (amended by 0047, 0050) |
 | [0010](0010-tooling-biome-vitest-strict-ts.md)                | Biome, Vitest, strict TypeScript 5.9                                                            | Accepted                         |
 | [0011](0011-nextjs-16-cache-components-server-actions.md)     | Next.js 16 App Router with Cache Components; Server Actions as thin adapters                    | Accepted                         |
 | [0012](0012-feature-folders-in-web-app.md)                    | Feature folders in the web app                                                                  | Accepted                         |
@@ -96,8 +96,9 @@ What becomes easier, what becomes harder, and the follow-ups.
 | [0044](0044-landing-site-and-freshness-gate.md)               | A static landing site, one content source and a freshness gate                                  | Accepted (amended by 0046)       |
 | [0045](0045-open-source-agpl-and-releases.md)                 | Open source under AGPL-3.0, with releases under stable names                                    | Accepted                         |
 | [0046](0046-playful-landing-page.md)                          | A playful landing page: spring motion, live demos and guided walkthroughs (amends 0044)         | Accepted                         |
-| [0047](0047-app-redesign-icon-expressive-layer.md)            | The app gets an icon, an expressive layer, spring motion and a little glass (amends 0009, 0020) | Accepted                         |
+| [0047](0047-app-redesign-icon-expressive-layer.md)            | The app gets an icon, an expressive layer, spring motion and a little glass (amends 0009, 0020) | Accepted (amended by 0050)       |
 | [0048](0048-shared-app-frame-layout.md)                       | The app frame moves into a shared layout                                                        | Accepted                         |
 | [0049](0049-desktop-updates-and-homebrew.md)                  | The desktop app updates itself, and installs with Homebrew                                      | Accepted                         |
+| [0050](0050-modern-theme.md)                                  | A second look, Modern, beside Hearth (amends 0009, 0047)                                        | Accepted                         |
 
 Add a new row when you add an ADR. When you supersede one, change its status here as well.
