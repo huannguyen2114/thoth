@@ -3,6 +3,7 @@
 import type { Habits as HabitsData, HeatmapCell } from "@thoth/core";
 import { cx } from "@thoth/ui";
 import { useEffect, useRef, useState } from "react";
+import { CountUp } from "@/app/_components/motion/primitives";
 import { loadHabitsAction } from "./actions";
 
 /** Five Hearth steps: empty, then four accent strengths (light and dark both read as "more"). */
@@ -63,10 +64,10 @@ export function Habits({ compact = false }: { compact?: boolean }) {
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <Stat label="Current streak" value={`${stats.currentStreak}`} unit="days" />
-          <Stat label="Longest streak" value={`${stats.longestStreak}`} unit="days" />
-          <Stat label="This week" value={`${stats.thisWeek}`} unit="actions" />
-          <Stat label="This year" value={`${stats.thisYear}`} unit="actions" />
+          <Stat tone="tone-sage" label="Current streak" value={stats.currentStreak} unit="days" />
+          <Stat tone="tone-butter" label="Longest streak" value={stats.longestStreak} unit="days" />
+          <Stat tone="tone-sky" label="This week" value={stats.thisWeek} unit="actions" />
+          <Stat tone="tone-peach" label="This year" value={stats.thisYear} unit="actions" />
         </div>
       )}
       <Grid heatmap={heatmap} />
@@ -74,12 +75,23 @@ export function Habits({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function Stat({ label, value, unit }: { label: string; value: string; unit: string }) {
+/** A tinted habit tile (ADR-0047); the number counts up when it appears. */
+function Stat({
+  label,
+  value,
+  unit,
+  tone,
+}: {
+  label: string;
+  value: number;
+  unit: string;
+  tone: string;
+}) {
   return (
-    <div className="flex flex-col gap-1 rounded-lg border border-border-subtle bg-surface-200 p-4">
-      <span className="type-caption text-ink-muted">{label}</span>
-      <span className="type-heading-1 text-ink tabular-nums">
-        {value} <span className="type-caption text-ink-muted">{unit}</span>
+    <div className={cx("flex flex-col gap-1 rounded-xl p-4", tone)}>
+      <span className="type-caption opacity-80">{label}</span>
+      <span className="type-heading-1 tabular-nums">
+        <CountUp value={value} /> <span className="type-caption opacity-80">{unit}</span>
       </span>
     </div>
   );

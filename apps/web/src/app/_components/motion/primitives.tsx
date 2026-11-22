@@ -3,6 +3,7 @@
 import { spring } from "@thoth/ui";
 import { animate, type HTMLMotionProps, motion, useInView, useMotionValue } from "motion/react";
 import { type ReactNode, useEffect, useRef } from "react";
+import { formatCount } from "./format";
 
 /** Fades and rises into place the first time it scrolls into view, after `delay` seconds. */
 export function Reveal({
@@ -63,9 +64,4 @@ export function CountUp({ value, className }: { value: number; className?: strin
       {formatCount(value)}
     </span>
   );
-}
-
-/** Whole numbers with thousands separators; CountUp shows only these, never 3.4999. */
-export function formatCount(n: number): string {
-  return Math.round(n).toLocaleString("en");
 }

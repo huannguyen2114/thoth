@@ -41,18 +41,23 @@ flowchart LR
 6. **Chrome is not text.**
    - Buttons, tabs, nav items and panel headers use `cursor: default` and `user-select: none`; `shell.css` sets this.
    - Content stays selectable.
-7. **Motion** (Hearth motion guide):
-   - Durations: 150 ms for hover and press, 200 ms for menus and drawers, 300 ms for modals.
-   - Easing: `cubic-bezier(0.2, 0, 0, 1)` for elements entering.
+7. **Motion** (ADR-0047): springs, like iOS and Material You.
+   - Use the springs from `@thoth/ui` (`spring.snappy` for presses, toggles and pills; `smooth` for cards and panels; `gentle` for large reveals; `bouncy` for playful moments) with `motion` components. Shared pieces are in `apps/web/src/app/_components/motion/`: `Reveal`, `Lift`, `CountUp`, `Ring`, `NavPill`, `PageEnter`.
+   - CSS transitions and keyframes are fine for small things (the composer focus glow, the palette opening). Use `cubic-bezier(0.2, 0, 0, 1)` there.
    - Animate only color, opacity and transform.
-   - Respect `prefers-reduced-motion`.
-8. **Density.**
+   - `MotionProvider` (`reducedMotion="user"`) and the global reduced-motion rule turn movement off. Every interaction must still work then; the e2e suite runs that way.
+8. **Colour and glass** (ADR-0047): bold chrome, calm reading.
+   - Tones from `@thoth/ui` (`tone-peach`, `tone-sage`, `tone-sky`, `tone-butter`, `tone-lilac`) fill tiles, cards, chips and sidebar icon tiles. Content kinds use `kindTone`, and spaces use their own accent (`data-accent`, `accent-tile`).
+   - `glass` (translucent and blurred) is for floating chrome only: the sidebar, palette, dialogs and the home composer card.
+   - Never put a tone or glass behind reading text: the PDF, transcript, notes, chat answers or whiteboard content.
+   - `prefers-reduced-transparency` makes the glass opaque.
+9. **Density.**
    - Interactive rows are 32–36 px in chrome, and at least 40 px for primary buttons.
    - Lists use hairline dividers (`border-subtle`), not cards, when there are many rows.
-9. **Modals** use `Dialog` from `@thoth/ui` (a native `<dialog>`). Render it only while open.
-10. **Empty states:** a serif `type-heading-3`, one sentence in `text-ink-muted`, and one primary action.
-11. **Theme:** use tokens only. Test every new screen in light and dark themes. The palette has "Use light theme" and "Use dark theme" commands.
-12. **Phone** (under 768 px):
+10. **Modals** use `Dialog` from `@thoth/ui` (a native `<dialog>`). Render it only while open.
+11. **Empty states:** a serif `type-heading-3`, one sentence in `text-ink-muted`, and one primary action.
+12. **Theme:** use tokens only. Test every new screen in light and dark themes. The palette has "Use light theme" and "Use dark theme" commands.
+13. **Phone** (under 768 px):
     - The sidebar becomes a drawer opened from the top bar.
     - Tap targets are at least 44 px.
     - Nothing may need hover to work.
