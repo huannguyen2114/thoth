@@ -181,9 +181,7 @@ function Quiz() {
             transition={spring.smooth}
             className="type-caption"
           >
-            {picked === correct
-              ? "Right. That's the second law."
-              : "Not quite. Heat flows from hot to cold on its own."}
+            {picked === correct ? landing.quiz.right : landing.quiz.wrong}
           </motion.p>
         )}
       </AnimatePresence>
@@ -225,10 +223,10 @@ function Node({
 function MindMap() {
   const bounds = useRef<HTMLDivElement>(null);
   const base = [
-    { label: "Entropy", x: 160, y: 90 },
-    { label: "Heat flow", x: 50, y: 30 },
-    { label: "Engines", x: 270, y: 35 },
-    { label: "Microstates", x: 270, y: 150 },
+    { label: landing.mindmap[0] ?? "", x: 160, y: 90 },
+    { label: landing.mindmap[1] ?? "", x: 60, y: 28 },
+    { label: landing.mindmap[2] ?? "", x: 262, y: 34 },
+    { label: landing.mindmap[3] ?? "", x: 262, y: 150 },
   ];
   const [offsets, setOffsets] = useState(base.map(() => ({ x: 0, y: 0 })));
   const move = (i: number) => (x: number, y: number) =>

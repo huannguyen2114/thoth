@@ -1,6 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { expect, type Page, test } from "@playwright/test";
+import { makePdf } from "../../../packages/ingest/src/__fixtures__/make-pdf";
 import { addFlashcards, addPastedText, goto, runCommand } from "./support";
 
 /**
@@ -11,8 +12,51 @@ import { addFlashcards, addPastedText, goto, runCommand } from "./support";
  * Runs with `pnpm site:shots` (playwright.shots.config.ts), never as part of the e2e suite.
  */
 const OUT = join(import.meta.dirname, "../../site/public/shots");
-const PDF = join(import.meta.dirname, "fixtures", "thermo-lecture.pdf");
-const PASSAGE = "The second law says that the entropy of an isolated system never decreases.";
+/**
+ * The example course matches the landing page demo: distributed systems (consistency and
+ * consensus). These are our own short study notes, not text from any book.
+ */
+const NOTES_TITLE = "Consistency and consensus: study notes";
+const PDF = {
+  name: "consensus-notes.pdf",
+  mimeType: "application/pdf",
+  buffer: Buffer.from(
+    makePdf(
+      [
+        [
+          NOTES_TITLE,
+          "",
+          "Linearizability makes a replicated system look like a single copy of the data.",
+          "Every read returns the value of the most recent completed write.",
+        ],
+        [
+          "Ordering guarantees",
+          "",
+          "Causal order respects happens-before, and is weaker than linearizability.",
+          "Total order broadcast delivers every message to every node in the same order.",
+        ],
+        [
+          "Consensus",
+          "",
+          "A majority quorum lets nodes agree even when a minority of them has crashed.",
+          "Raft elects one leader per term, and the leader replicates its log to followers.",
+        ],
+        [
+          "Two-phase commit",
+          "",
+          "If the coordinator fails after the participants vote yes, they must wait for it.",
+        ],
+      ],
+      { title: NOTES_TITLE },
+    ),
+  ),
+};
+const PASSAGE = "Linearizability makes a replicated system look like a single copy of the data.";
+const NOTES = [
+  "Replication keeps a copy of the same data on several nodes, so the system survives a crash.",
+  "A leader takes the writes and sends them to followers. Followers that lag behind serve stale reads.",
+  "Consensus lets the nodes agree on one value. Raft needs votes from a majority to elect a leader.",
+];
 
 async function shot(page: Page, id: string) {
   await mkdir(OUT, { recursive: true });
@@ -37,11 +81,11 @@ async function uploadPdf(page: Page): Promise<string> {
   await page.locator("#pdf-upload").setInputFiles(PDF);
   const row = page
     .getByRole("listitem")
-    .filter({ has: page.getByRole("link", { name: /thermo/i }) })
+    .filter({ has: page.getByRole("link", { name: /consensus/i }) })
     .first();
   await expect(row).toContainText("Ready", { timeout: 30_000 });
   const href = await row
-    .getByRole("link", { name: /thermo/i })
+    .getByRole("link", { name: /consensus/i })
     .first()
     .getAttribute("href");
   if (!href) throw new Error("The uploaded PDF has no link.");
@@ -85,7 +129,7 @@ test.describe
 
       await page
         .getByRole("textbox", { name: "Ask a question about this source" })
-        .fill("What does the second law say?");
+        .fill("Why does consensus need a majority?");
       await page.getByRole("button", { name: "Send question" }).click();
       const chat = page.getByRole("region", { name: "Chat" });
       await expect(
@@ -97,7 +141,7 @@ test.describe
       const bar = await selectInPdf(page, PASSAGE);
       await bar.getByRole("button", { name: "Add to notes" }).click();
       const notes = page.getByRole("tabpanel", { name: "Notes" });
-      await expect(notes.locator("blockquote")).toContainText("entropy");
+      await expect(notes.locator("blockquote")).toContainText("single copy");
       await expect(notes.getByRole("status")).toHaveText("Saved");
       await page.keyboard.press("Escape");
       await shot(page, "notes");
@@ -109,7 +153,7 @@ test.describe
     });
 
     test("quiz and progress", async ({ page }) => {
-      const path = await addPastedText(page, "Thermodynamics: entropy and heat");
+      const path = await addPastedText(page, "Replication and consensus", NOTES);
       await goto(page, path);
       await page.getByRole("tab", { name: "Quiz", exact: true }).click();
       const quiz = page.getByRole("tabpanel", { name: "Quiz" });
@@ -131,17 +175,17 @@ test.describe
 
     test("space dashboard", async ({ page }) => {
       await goto(page, "/");
-      await page.getByRole("textbox", { name: "New space" }).fill("Physics 101");
+      await page.getByRole("textbox", { name: "New space" }).fill("Distributed systems");
       await page.getByRole("button", { name: "Create space" }).click();
       await page
-        .getByRole("link", { name: /Physics 101/ })
+        .getByRole("link", { name: /Distributed systems/ })
         .first()
         .click();
       await page.waitForURL(/\/spaces\//);
       const space = new URL(page.url()).pathname;
       for (const [title, body] of [
-        ["Heat engines", "A heat engine turns some heat into work, never all of it."],
-        ["Entropy", "Entropy measures disorder. In an isolated system it never decreases."],
+        ["Replication", "Leaders send writes to followers. Lagging followers serve stale reads."],
+        ["Consensus", "Raft elects one leader per term with votes from a majority of the nodes."],
       ] as const) {
         await goto(page, `${space}?tab=contents`);
         const panel = page.getByRole("tabpanel", { name: "Contents" });
@@ -152,10 +196,12 @@ test.describe
         await panel.getByRole("button", { name: "Add text" }).click();
         await expect(panel.getByRole("link", { name: title })).toBeVisible({ timeout: 30_000 });
         const href = await panel.getByRole("link", { name: title }).getAttribute("href");
-        if (href && title === "Entropy") await addFlashcards(page, href, 8);
+        if (href && title === "Consensus") await addFlashcards(page, href, 8);
       }
       await goto(page, `${space}?tab=overview`);
-      await expect(page.getByRole("heading", { level: 1, name: "Physics 101" })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { level: 1, name: "Distributed systems" }),
+      ).toBeVisible();
       await page.waitForLoadState("networkidle");
       await shot(page, "space");
     });
@@ -164,7 +210,7 @@ test.describe
       await goto(page, "/planner");
       await page.getByRole("button", { name: "New plan" }).click();
       const dialog = page.getByRole("dialog", { name: "New study plan" });
-      await dialog.getByLabel("Name").fill("Final exam");
+      await dialog.getByLabel("Name").fill("Distributed systems final");
       const sunday = dialog.getByRole("button", { name: "Sun" });
       if ((await sunday.getAttribute("aria-pressed")) !== "true") await sunday.click();
       await dialog.getByRole("button", { name: "Create plan" }).click();
@@ -174,7 +220,7 @@ test.describe
     });
 
     test("whiteboard", async ({ page }) => {
-      const path = await addPastedText(page, "Laws of thermodynamics");
+      const path = await addPastedText(page, "Consensus and Raft", NOTES);
       await goto(page, path);
       const tab = page.getByRole("tab", { name: "Whiteboard", exact: true });
       await tab.click();

@@ -10,25 +10,11 @@ import { SiteHeader } from "@/components/site-header";
 
 /** The landing page (Phase 12, doc 23): short, playful and interactive. Details live on /features. */
 export default function Home() {
-  const providers = ["Claude", "OpenAI", "OpenRouter", "Ollama", "LM Studio", "Your own model"];
   return (
     <>
       <SiteHeader />
       <main>
         <Hero />
-
-        <div
-          className="overflow-hidden border-y border-border-subtle bg-surface-200 py-5"
-          aria-label="Works with"
-        >
-          <div className="marquee gap-12 pr-12">
-            {[...providers, ...providers, ...providers, ...providers].map((p, i) => (
-              <span key={`${p}-${i}`} className="type-heading-3 whitespace-nowrap text-ink-muted">
-                {p} <span className="text-accent">✦</span>
-              </span>
-            ))}
-          </div>
-        </div>
 
         <section className="px-4 py-24 md:px-6 md:py-32">
           <div className="mx-auto flex max-w-6xl flex-col items-center gap-12 text-center">

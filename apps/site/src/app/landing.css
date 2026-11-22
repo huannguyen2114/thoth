@@ -114,3 +114,15 @@
     animation: none;
   }
 }
+
+/* The demo's video player: dark in both themes, like a real embed. */
+.player {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+@media (prefers-color-scheme: dark) {
+  .player {
+    background: var(--color-surface-300);
+    color: var(--color-ink);
+  }
+}
