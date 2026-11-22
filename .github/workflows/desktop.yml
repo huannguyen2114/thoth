@@ -88,8 +88,10 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ] && [ -n "$TAURI_UPDATER_PUBKEY" ]; then
-            node scripts/tauri.mjs build --target ${{ matrix.target }} \
-              --config '{"bundle":{"createUpdaterArtifacts":true}}'
+            # The CLI checks the config's public key when it signs, so the key goes in too. A file,
+            # not inline JSON: Windows strips the quotes from an inline --config.
+            node -e 'require("fs").writeFileSync("updater.conf.json", JSON.stringify({bundle: {createUpdaterArtifacts: true}, plugins: {updater: {pubkey: process.env.TAURI_UPDATER_PUBKEY.trim()}}}))'
+            node scripts/tauri.mjs build --target ${{ matrix.target }} --config updater.conf.json
           elif [ -n "$TAURI_SIGNING_PRIVATE_KEY$TAURI_UPDATER_PUBKEY" ]; then
             echo "::error::Set both the TAURI_SIGNING_PRIVATE_KEY secret and the TAURI_UPDATER_PUBKEY variable, or neither."
             exit 1
