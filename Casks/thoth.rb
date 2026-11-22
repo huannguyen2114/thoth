@@ -5,8 +5,9 @@
 cask "thoth" do
   arch arm: "arm64", intel: "x64"
 
-  version "0.1.0"
-  sha256 :no_check
+  version "0.1.1"
+  sha256 arm:   "58ed74bb78089b9fb3d5129de1d882d9f85264bf6a8a6b192790978eb8902f83",
+         intel: "f51ca2eee799d0ac452a0a122bfcf6fe7bbdbf58449b63b97300b8ece1767bb2"
 
   url "https://github.com/huannguyen2114/thoth/releases/download/v#{version}/Thoth-macOS-#{arch}.dmg"
   name "Thoth"
