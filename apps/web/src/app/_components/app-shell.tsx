@@ -5,6 +5,7 @@ import { type ReactNode, Suspense } from "react";
 import { SearchProvider } from "@/features/search/search-provider";
 import { getContainer } from "@/server/container";
 import { CommandPalette } from "./command-palette";
+import { PageEnter } from "./motion/page-enter";
 import { Sidebar } from "./sidebar";
 
 /** Spaces for the sidebar and palette: data, so it streams in after the frame paints. */
@@ -44,7 +45,7 @@ export function AppShell({ children, bleed = false }: { children: ReactNode; ble
       </Suspense>
       <SearchProvider />
       <main id="main" className={cx("app-main", !bleed && "app-main--padded")}>
-        {children}
+        {bleed ? children : <PageEnter>{children}</PageEnter>}
       </main>
     </div>
   );

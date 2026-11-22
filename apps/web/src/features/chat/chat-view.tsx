@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, cx } from "@thoth/ui";
+import { Button, cx, spring } from "@thoth/ui";
+import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { InstructionsDialog } from "./instructions-dialog";
 import { RichText } from "./rich-text";
@@ -63,17 +64,29 @@ export function ChatView({ chat }: { chat: ChatController }) {
           <div className="thread mx-auto">
             {chat.messages.map((m) =>
               m.role === "user" ? (
-                <div key={m.id} className="msg--user whitespace-pre-wrap">
+                <motion.div
+                  key={m.id}
+                  initial={{ opacity: 0, y: 12, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={spring.snappy}
+                  className="msg--user origin-bottom-right whitespace-pre-wrap"
+                >
                   {m.text}
-                </div>
+                </motion.div>
               ) : (
-                <div key={m.id} className="msg--assistant">
+                <motion.div
+                  key={m.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={spring.smooth}
+                  className="msg--assistant"
+                >
                   {m.text ? (
                     <RichText text={m.text} />
                   ) : (
-                    <p className="type-body text-ink-muted">Reading the source</p>
+                    <p className="type-body animate-pulse text-ink-muted">Reading the source</p>
                   )}
-                </div>
+                </motion.div>
               ),
             )}
             {chat.context?.mode === "search" && chat.status === "idle" && (

@@ -1,0 +1,105 @@
+/*
+ * Hearth, turned up (ADR-0046, ADR-0047): the expressive layer the app and the landing site share.
+ * Hand-written, not generated. Built only from Hearth tokens with color-mix, never hex.
+ * Tones are for cards, tiles and chips in chrome; never put one behind reading text (PDF, notes,
+ * chat answers).
+ */
+
+/* Five card grounds, each with ink that reads on it, in light and dark. */
+@utility tone-peach {
+  background: var(--color-accent-tint);
+  color: color-mix(in oklab, var(--color-accent-text) 70%, var(--color-ink));
+}
+@utility tone-sage {
+  background: var(--color-success-tint);
+  color: color-mix(in oklab, var(--color-success) 60%, var(--color-ink));
+}
+@utility tone-sky {
+  background: var(--color-info-tint);
+  color: color-mix(in oklab, var(--color-info) 60%, var(--color-ink));
+}
+@utility tone-butter {
+  background: var(--color-warning-tint);
+  color: color-mix(in oklab, var(--color-warning) 55%, var(--color-ink));
+}
+@utility tone-lilac {
+  background: color-mix(in oklab, var(--color-info-tint) 50%, var(--color-danger-tint));
+  color: color-mix(
+    in oklab,
+    color-mix(in oklab, var(--color-info) 50%, var(--color-danger)) 60%,
+    var(--color-ink)
+  );
+}
+
+/* Display sizes larger than Hearth's display-xl, for heroes and big numbers. */
+@utility type-hero {
+  font-family: var(--font-serif);
+  font-size: 88px;
+  line-height: 92px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+@utility type-hero-sm {
+  font-family: var(--font-serif);
+  font-size: 52px;
+  line-height: 56px;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+
+/* Soft drifting glows behind the hero. */
+.glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(80px);
+  opacity: 0.55;
+  pointer-events: none;
+  animation: glow-drift 18s ease-in-out infinite alternate;
+}
+.glow--accent {
+  background: color-mix(in oklab, var(--color-accent) 55%, transparent);
+}
+.glow--peach {
+  background: color-mix(in oklab, var(--color-accent-muted) 70%, transparent);
+}
+.glow--sky {
+  background: color-mix(in oklab, var(--color-info) 40%, transparent);
+  animation-duration: 22s;
+}
+@keyframes glow-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(6%, -8%, 0) scale(1.15);
+  }
+}
+
+/* A faint dotted grid. */
+.dot-grid {
+  background-image: radial-gradient(
+    color-mix(in oklab, var(--color-ink) 12%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+
+.perspective {
+  perspective: 1200px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow {
+    animation: none;
+  }
+}
+.flip-back {
+  transform: rotateY(180deg);
+}

@@ -26,6 +26,8 @@ export default defineConfig({
   reporter: [["list"], ["html", { open: "never", outputFolder: "e2e/.report" }]],
   use: {
     baseURL,
+    // The app animates with springs (ADR-0047); journeys never wait on motion.
+    reducedMotion: "reduce",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     actionTimeout: 15_000,

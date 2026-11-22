@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { getContainer } from "@/server/container";
 import { retryContentAction } from "./actions";
 import { KindIcon, kindLabels } from "./icons";
+import { kindTone } from "./kind-tone";
 import { RefreshWhileBusy } from "./refresh-while-busy";
 import { StatusBadge } from "./status-badge";
 import { TagButton, TagChip, TagFilteredList } from "./tags";
@@ -60,7 +61,10 @@ function RecentItem({
 }) {
   return (
     <div className="flex items-start gap-3 px-4 py-3">
-      <span className="mt-1 text-ink-muted" title={kindLabels[c.kind]}>
+      <span
+        className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg ${kindTone[c.kind]}`}
+        title={kindLabels[c.kind]}
+      >
         <KindIcon kind={c.kind} />
         <span className="sr-only">{kindLabels[c.kind]}</span>
       </span>

@@ -1,7 +1,8 @@
 "use client";
 
 import { citationToken, type QuizQuestion, type StudySet, type SubmittedAnswer } from "@thoth/core";
-import { Button } from "@thoth/ui";
+import { Button, spring } from "@thoth/ui";
+import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { loadQuizQuestionsAction, submitQuizAnswerAction } from "./actions";
 import { typeLabels } from "./generate-dialog";
@@ -98,12 +99,21 @@ export function QuizPlayer({
           Back to quizzes
         </Button>
       </header>
-      <progress
-        className="h-1 w-full"
-        value={index + (result ? 1 : 0)}
-        max={questions.length}
+      <div
+        role="progressbar"
         aria-label="Progress"
-      />
+        aria-valuemin={0}
+        aria-valuemax={questions.length}
+        aria-valuenow={index + (result ? 1 : 0)}
+        className="h-1.5 w-full overflow-hidden rounded-pill bg-neutral-tint"
+      >
+        <motion.div
+          className="h-full rounded-pill bg-accent"
+          initial={false}
+          animate={{ width: `${((index + (result ? 1 : 0)) / questions.length) * 100}%` }}
+          transition={spring.smooth}
+        />
+      </div>
 
       <div className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-surface-200 p-6">
         <span className="badge badge--neutral self-start">{typeLabels[question.type]}</span>
@@ -124,7 +134,15 @@ export function QuizPlayer({
         )}
 
         {attempt && (
-          <div
+          <motion.div
+            key={question.id}
+            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            animate={
+              attempt.correct || attempt.score > 0
+                ? { opacity: 1, y: 0, scale: 1 }
+                : { opacity: 1, y: 0, scale: 1, x: [0, -8, 8, -5, 5, 0] }
+            }
+            transition={attempt.correct || attempt.score > 0 ? spring.bouncy : { duration: 0.45 }}
             className={`callout ${attempt.correct ? "callout--success" : attempt.score > 0 ? "callout--warning" : "callout--danger"}`}
             role="status"
           >
@@ -151,7 +169,7 @@ export function QuizPlayer({
                 </button>
               )}
             </div>
-          </div>
+          </motion.div>
         )}
 
         <div className="flex justify-end gap-2">

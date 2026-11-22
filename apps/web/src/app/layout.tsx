@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, JetBrains_Mono, Newsreader } from "next/font/google";
 import { CommandsProvider } from "./_components/commands";
+import { MotionProvider } from "./_components/motion/motion-provider";
 import { PREFS_SCRIPT } from "./_components/prefs";
 import { ServiceWorkerRegister } from "./_components/service-worker-register";
 import "./globals.css";
@@ -42,7 +43,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: PREFS_SCRIPT }} />
       </head>
       <body>
-        <CommandsProvider>{children}</CommandsProvider>
+        <MotionProvider>
+          <CommandsProvider>{children}</CommandsProvider>
+        </MotionProvider>
         <ServiceWorkerRegister />
       </body>
     </html>

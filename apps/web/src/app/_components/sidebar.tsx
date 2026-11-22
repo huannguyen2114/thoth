@@ -1,5 +1,6 @@
 "use client";
 
+import { ThothIcon } from "@thoth/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
@@ -21,6 +22,7 @@ import {
   SidebarIcon,
   SunIcon,
 } from "./icons";
+import { NavPill } from "./motion/nav-pill";
 import { applySidebar, applyTheme, readSidebar, readTheme, type ThemePref } from "./prefs";
 
 /** A space in the sidebar: name, plus its Hearth accent and icon names (doc 22). */
@@ -46,6 +48,7 @@ function Item({
       aria-current={current ? "page" : undefined}
       title={label}
     >
+      <NavPill show={current} />
       {icon}
       <span className="app-label truncate">{label}</span>
     </Link>
@@ -126,7 +129,7 @@ export function Sidebar({ spaces }: { spaces: SidebarSpace[] }) {
             title="Thoth home"
           >
             <span className="app-brand__mark" aria-hidden="true">
-              T
+              <ThothIcon size={28} />
             </span>
             <span className="app-label">Thoth</span>
           </Link>
