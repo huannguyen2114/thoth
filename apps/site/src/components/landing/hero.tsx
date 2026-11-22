@@ -7,14 +7,16 @@ import { Download } from "@/components/download";
 import { spring } from "@/motion/tokens";
 import { HeroDemo } from "./hero-demo";
 
+const WORD_COUNT = landing.rotatingWords.length;
+
 /** The landing hero: a headline with a rotating word, stickers, and the live demo. */
 export function Hero() {
   const words = landing.rotatingWords;
   const [i, setI] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setI((n) => (n + 1) % words.length), 2200);
+    const t = setInterval(() => setI((n) => (n + 1) % WORD_COUNT), 2200);
     return () => clearInterval(t);
-  }, [words.length]);
+  }, []);
 
   return (
     <section className="relative overflow-hidden px-4 pt-14 pb-24 md:px-6 md:pt-20">

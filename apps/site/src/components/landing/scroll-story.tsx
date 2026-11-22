@@ -106,6 +106,7 @@ function Walkthrough({ story }: { story: Story }) {
   const [click, setClick] = useState(0);
   const [run, setRun] = useState(0);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `run` restarts the timeline (loop and Replay)
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
     let t = 0;
@@ -117,11 +118,12 @@ function Walkthrough({ story }: { story: Story }) {
       at(n === 0 ? 500 : 1500, () => setI(n));
       if ("click" in s && s.click) at(900, () => setClick((c) => c + 1));
     });
-    at(2600, () => setRun((r) => r + 1));
+    at(2600, () => {
+      setI(0);
+      setRun((r) => r + 1);
+    });
     return () => timers.forEach(clearTimeout);
   }, [steps, run]);
-
-  useEffect(() => setI(0), [run]);
 
   const step = steps[i] ?? steps[0];
   if (!step) return null;
@@ -129,7 +131,7 @@ function Walkthrough({ story }: { story: Story }) {
   const frames = [...new Set(steps.map((s) => s.shot))] as ShotId[];
   const cx_ = spot ? (spot.x + spot.w / 2) * 100 : 50;
   const cy_ = spot ? (spot.y + spot.h / 2) * 100 : 50;
-  const right = cx_ > 62;
+  const right = cx_ > 55;
 
   return (
     <div className="flex flex-col gap-3">
@@ -141,7 +143,10 @@ function Walkthrough({ story }: { story: Story }) {
           <span className="ml-3 type-caption text-ink-subtle">Thoth</span>
           <button
             type="button"
-            onClick={() => setRun((r) => r + 1)}
+            onClick={() => {
+              setI(0);
+              setRun((r) => r + 1);
+            }}
             className="ml-auto rounded-pill px-2 py-0.5 type-caption text-ink-muted hover:bg-neutral-tint"
           >
             Replay
@@ -169,7 +174,7 @@ function Walkthrough({ story }: { story: Story }) {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
                 transition={spring.snappy}
-                className="pointer-events-none absolute rounded-md ring-2 ring-accent ring-offset-2 ring-offset-transparent"
+                className="pointer-events-none absolute rounded-md ring-1 ring-accent/80"
                 style={{
                   left: `${spot.x * 100}%`,
                   top: `${spot.y * 100}%`,
@@ -221,7 +226,7 @@ function Walkthrough({ story }: { story: Story }) {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={spring.snappy}
                 className={cx(
-                  "absolute top-6 whitespace-nowrap rounded-pill bg-primary px-3 py-1.5 type-label text-on-primary shadow-hearth-md",
+                  "absolute top-6 w-max max-w-40 rounded-lg bg-primary px-3 py-1.5 type-caption text-on-primary shadow-hearth-md sm:max-w-none sm:rounded-pill sm:type-label",
                   right ? "right-2" : "left-4",
                 )}
               >
@@ -232,7 +237,7 @@ function Walkthrough({ story }: { story: Story }) {
         </div>
       </div>
       <div className="flex justify-center gap-2" aria-hidden="true">
-        {steps.map((s, n) => (
+        {steps.map((_, n) => (
           <motion.span
             // biome-ignore lint/suspicious/noArrayIndexKey: steps never reorder
             key={n}

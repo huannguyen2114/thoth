@@ -141,6 +141,26 @@ export function HeroDemo() {
     [sample, pos],
   );
   const asked = new Set(turns.map((t) => t.q));
+
+  // Panels: "Add panel" opens more tools beside the chat; drag a panel's tabs (or use Layout)
+  // to move it to the other side, like the app's dockable workspace.
+  const [extra, setExtra] = useState<ExtraPanel[]>([]);
+  const [tab, setTab] = useState<"chat" | ExtraPanel>("chat");
+  const [swapped, setSwapped] = useState(false);
+  const [menu, setMenu] = useState<null | "add" | "layout">(null);
+  function addPanel(p: ExtraPanel) {
+    setExtra((e) => (e.includes(p) ? e : [...e, p]));
+    setTab(p);
+    setMenu(null);
+  }
+  function closePanel(p: ExtraPanel) {
+    setExtra((e) => e.filter((x) => x !== p));
+    setTab((t) => (t === p ? "chat" : t));
+  }
+  const dragToSwap = (side: "left" | "right") => (_: unknown, info: { offset: { x: number } }) => {
+    const towardOther = (side === "left") !== swapped ? info.offset.x > 80 : info.offset.x < -80;
+    if (towardOther) setSwapped((v) => !v);
+  };
   const viewerTab = sample.kind === "video" ? "Video" : "PDF";
 
   return (
@@ -194,20 +214,97 @@ export function HeroDemo() {
                   {sample.title}
                 </motion.p>
               </AnimatePresence>
-              <span className="ml-auto hidden items-center gap-4 type-label text-ink lg:flex">
-                <span className="flex items-center gap-1.5">
-                  <LayoutIcon /> Layout <ChevronIcon />
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <PlusIcon /> Add panel <ChevronIcon />
-                </span>
+              <span className="relative ml-auto flex items-center gap-1 type-label text-ink">
+                <HeaderButton
+                  open={menu === "layout"}
+                  onClick={() => setMenu(menu === "layout" ? null : "layout")}
+                >
+                  <LayoutIcon /> <span className="hidden sm:inline">Layout</span> <ChevronIcon />
+                </HeaderButton>
+                <HeaderButton
+                  open={menu === "add"}
+                  onClick={() => setMenu(menu === "add" ? null : "add")}
+                >
+                  <PlusIcon /> <span className="hidden sm:inline">Add panel</span> <ChevronIcon />
+                </HeaderButton>
+                <AnimatePresence>
+                  {menu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                      transition={spring.snappy}
+                      className="menu absolute top-full right-0 z-20 mt-1 w-52 origin-top-right"
+                      role="menu"
+                    >
+                      {menu === "add" ? (
+                        EXTRA_PANELS.map((p) => (
+                          <button
+                            key={p}
+                            type="button"
+                            role="menuitem"
+                            disabled={extra.includes(p)}
+                            onClick={() => addPanel(p)}
+                            className="menu__item w-full text-left disabled:opacity-40"
+                          >
+                            {p}
+                          </button>
+                        ))
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="menu__item w-full text-left"
+                            onClick={() => {
+                              setSwapped((v) => !v);
+                              setMenu(null);
+                            }}
+                          >
+                            Swap sides
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="menu__item w-full text-left"
+                            onClick={() => {
+                              setSwapped(false);
+                              setExtra([]);
+                              setTab("chat");
+                              setMenu(null);
+                            }}
+                          >
+                            Reset layout
+                          </button>
+                        </>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </span>
             </div>
 
-            <div className="grid min-h-0 md:grid-cols-5">
-              {/* Left group: viewer, then chapters */}
-              <div className="flex min-w-0 flex-col border-border-subtle md:col-span-3 md:border-r">
-                <PanelTabs tabs={[viewerTab]} />
+            <div className="flex min-h-0 flex-col md:flex-row">
+              {/* Source group: viewer, then chapters. Drag its tabs to move it. */}
+              <motion.div
+                layout
+                transition={spring.smooth}
+                style={{ order: swapped ? 2 : 1 }}
+                className={cx(
+                  "flex min-w-0 flex-col border-border-subtle md:w-3/5",
+                  swapped ? "md:border-l" : "md:border-r",
+                )}
+              >
+                <motion.div
+                  drag="x"
+                  dragSnapToOrigin
+                  dragElastic={0.3}
+                  onDragEnd={dragToSwap("left")}
+                  whileDrag={{ scale: 1.02, opacity: 0.85 }}
+                  className="cursor-grab touch-pan-y active:cursor-grabbing"
+                >
+                  <PanelTabs tabs={[viewerTab]} />
+                </motion.div>
                 <div className="p-3">
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.div
@@ -263,98 +360,127 @@ export function HeroDemo() {
                     </li>
                   ))}
                 </ol>
-              </div>
+              </motion.div>
 
-              {/* Right group: chat */}
-              <div className="flex min-h-96 min-w-0 flex-col md:col-span-2">
-                <PanelTabs tabs={["Chat"]} />
-                <div className="flex items-center gap-4 border-b border-border-subtle px-4 py-2 type-caption text-ink">
-                  <span className="truncate">{last ? last.q : "New chat"}</span>
-                  <span className="ml-auto">History</span>
-                  <span className="hidden text-ink-muted sm:inline">New chat</span>
-                </div>
-                <div
-                  ref={scroller}
-                  className="flex max-h-80 flex-1 flex-col gap-3 overflow-y-auto p-4"
+              {/* Tools group: chat plus any panels added. Drag its tabs to move it. */}
+              <motion.div
+                layout
+                transition={spring.smooth}
+                style={{ order: swapped ? 1 : 2 }}
+                className="flex min-h-96 min-w-0 flex-col md:w-2/5"
+              >
+                <motion.div
+                  drag="x"
+                  dragSnapToOrigin
+                  dragElastic={0.3}
+                  onDragEnd={dragToSwap("right")}
+                  whileDrag={{ scale: 1.02, opacity: 0.85 }}
+                  className="cursor-grab touch-pan-y active:cursor-grabbing"
                 >
-                  {turns.length === 0 ? (
-                    <div className="flex flex-1 flex-col items-center justify-center gap-3 py-4 text-center">
-                      <p className="type-heading-3 text-ink">Ask about this source</p>
-                      <p className="type-caption text-ink-muted">
-                        Every answer cites the page or moment it comes from. Click a citation to
-                        jump there.
-                      </p>
-                      <Suggestions
-                        sample={sample}
-                        asked={asked}
-                        touched={touched}
-                        disabled={streaming}
-                        onAsk={ask}
-                      />
+                  <GroupTabs
+                    tabs={["chat", ...extra]}
+                    active={tab}
+                    onPick={setTab}
+                    onClose={closePanel}
+                  />
+                </motion.div>
+                {tab !== "chat" ? (
+                  <ExtraPanelView panel={tab} sample={sample} onCite={jump} />
+                ) : (
+                  <>
+                    <div className="flex items-center gap-4 border-b border-border-subtle px-4 py-2 type-caption text-ink">
+                      <span className="truncate">{last ? last.q : "New chat"}</span>
+                      <span className="ml-auto">History</span>
+                      <span className="hidden text-ink-muted sm:inline">New chat</span>
                     </div>
-                  ) : (
-                    <AnimatePresence initial={false}>
-                      {turns.map((t) => (
-                        <motion.div
-                          key={t.id}
-                          layout
-                          initial={{ opacity: 0, y: 16 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={spring.smooth}
-                          className="flex flex-col gap-2"
-                        >
-                          <p className="ml-auto max-w-xs rounded-lg bg-accent-tint px-3 py-1.5 type-body text-ink">
-                            {t.q}
+                    <div
+                      ref={scroller}
+                      className="flex max-h-80 flex-1 flex-col gap-3 overflow-y-auto p-4"
+                    >
+                      {turns.length === 0 ? (
+                        <div className="flex flex-1 flex-col items-center justify-center gap-3 py-4 text-center">
+                          <p className="type-heading-3 text-ink">Ask about this source</p>
+                          <p className="type-caption text-ink-muted">
+                            Every answer cites the page or moment it comes from. Click a citation to
+                            jump there.
                           </p>
-                          <p className="type-body text-ink">
-                            {t.tokens.slice(0, t === last ? shown : t.tokens.length).map((tok) =>
-                              "word" in tok ? (
-                                <span key={tok.n}>{tok.word}</span>
-                              ) : (
-                                <motion.button
-                                  key={tok.n}
-                                  type="button"
-                                  initial={{ scale: 0.6, opacity: 0 }}
-                                  animate={{ scale: 1, opacity: 1 }}
-                                  whileTap={{ scale: 0.9 }}
-                                  transition={spring.bouncy}
-                                  onClick={() => jump(tok.at)}
-                                  className="badge badge--neutral mx-0.5 cursor-pointer align-baseline hover:underline"
-                                  aria-label={`Go to ${tok.cite} in the source`}
-                                >
-                                  {tok.cite}
-                                </motion.button>
-                              ),
-                            )}
-                            {t === last && streaming && (
-                              <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-accent align-middle" />
-                            )}
-                          </p>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  )}
-                </div>
-                {turns.length > 0 && (
-                  <div className="px-4 pb-2">
-                    <Suggestions
-                      sample={sample}
-                      asked={asked}
-                      touched
-                      disabled={streaming}
-                      onAsk={ask}
-                    />
-                  </div>
+                          <Suggestions
+                            sample={sample}
+                            asked={asked}
+                            touched={touched}
+                            disabled={streaming}
+                            onAsk={ask}
+                          />
+                        </div>
+                      ) : (
+                        <AnimatePresence initial={false}>
+                          {turns.map((t) => (
+                            <motion.div
+                              key={t.id}
+                              layout
+                              initial={{ opacity: 0, y: 16 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={spring.smooth}
+                              className="flex flex-col gap-2"
+                            >
+                              <p className="ml-auto max-w-xs rounded-lg bg-accent-tint px-3 py-1.5 type-body text-ink">
+                                {t.q}
+                              </p>
+                              <p className="type-body text-ink">
+                                {t.tokens
+                                  .slice(0, t === last ? shown : t.tokens.length)
+                                  .map((tok) =>
+                                    "word" in tok ? (
+                                      <span key={tok.n}>{tok.word}</span>
+                                    ) : (
+                                      <motion.button
+                                        key={tok.n}
+                                        type="button"
+                                        initial={{ scale: 0.6, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        transition={spring.bouncy}
+                                        onClick={() => jump(tok.at)}
+                                        className="badge badge--neutral mx-0.5 cursor-pointer align-baseline hover:underline"
+                                        aria-label={`Go to ${tok.cite} in the source`}
+                                      >
+                                        {tok.cite}
+                                      </motion.button>
+                                    ),
+                                  )}
+                                {t === last && streaming && (
+                                  <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-accent align-middle" />
+                                )}
+                              </p>
+                            </motion.div>
+                          ))}
+                        </AnimatePresence>
+                      )}
+                    </div>
+                    {turns.length > 0 && (
+                      <div className="px-4 pb-2">
+                        <Suggestions
+                          sample={sample}
+                          asked={asked}
+                          touched
+                          disabled={streaming}
+                          onAsk={ask}
+                        />
+                      </div>
+                    )}
+                    <div className="px-3 pb-3">
+                      <div className="composer">
+                        <span className="composer__input type-body text-ink-subtle">
+                          Ask anything
+                        </span>
+                        <span className="composer__send" aria-hidden="true">
+                          <ArrowUpIcon />
+                        </span>
+                      </div>
+                    </div>
+                  </>
                 )}
-                <div className="px-3 pb-3">
-                  <div className="composer">
-                    <span className="composer__input type-body text-ink-subtle">Ask anything</span>
-                    <span className="composer__send" aria-hidden="true">
-                      <ArrowUpIcon />
-                    </span>
-                  </div>
-                </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>
@@ -363,6 +489,192 @@ export function HeroDemo() {
         A live recreation of the app. {landing.exampleNote}
       </p>
     </div>
+  );
+}
+
+const EXTRA_PANELS = ["Notes", "Summary", "Quiz", "Flashcards"] as const;
+type ExtraPanel = (typeof EXTRA_PANELS)[number];
+
+function HeaderButton({
+  open,
+  onClick,
+  children,
+}: {
+  open: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <motion.button
+      type="button"
+      aria-expanded={open}
+      onClick={onClick}
+      whileTap={{ scale: 0.95 }}
+      transition={spring.snappy}
+      className={cx(
+        "flex items-center gap-1.5 rounded-md px-2 py-1 hover:bg-neutral-tint",
+        open && "bg-neutral-tint",
+      )}
+    >
+      {children}
+    </motion.button>
+  );
+}
+
+/** The tools group's tab strip: pick a tab, close an added one; the strip is the drag handle. */
+function GroupTabs({
+  tabs,
+  active,
+  onPick,
+  onClose,
+}: {
+  tabs: ("chat" | ExtraPanel)[];
+  active: "chat" | ExtraPanel;
+  onPick: (t: "chat" | ExtraPanel) => void;
+  onClose: (t: ExtraPanel) => void;
+}) {
+  return (
+    <div className="flex items-center gap-3 overflow-x-auto border-b border-border-subtle px-3">
+      {tabs.map((t) => (
+        <motion.span
+          key={t}
+          layout
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={spring.snappy}
+          className="relative flex items-center gap-1.5 py-2"
+        >
+          <button
+            type="button"
+            onClick={() => onPick(t)}
+            className={cx("type-label", t === active ? "text-ink" : "text-ink-muted")}
+          >
+            {t === "chat" ? "Chat" : t}
+          </button>
+          {t !== "chat" && (
+            <button
+              type="button"
+              aria-label={`Close ${t}`}
+              onClick={() => onClose(t)}
+              className="text-ink-muted hover:text-ink"
+            >
+              <XIcon />
+            </button>
+          )}
+          {t === active && (
+            <motion.span
+              layoutId="tools-tab"
+              transition={spring.snappy}
+              className="absolute inset-x-0 bottom-0 h-0.5 bg-ink"
+            />
+          )}
+        </motion.span>
+      ))}
+      <span className="ml-auto shrink-0 text-ink-muted">
+        <ExpandIcon />
+      </span>
+    </div>
+  );
+}
+
+/** A panel added from "Add panel": a small, working taste of that tool for this source. */
+function ExtraPanelView({
+  panel,
+  sample,
+  onCite,
+}: {
+  panel: ExtraPanel;
+  sample: DemoSample;
+  onCite: (at: number) => void;
+}) {
+  const [flipped, setFlipped] = useState(false);
+  const [picked, setPicked] = useState<number | null>(null);
+  const chip = (c: DemoSample["chapters"][number]) => (
+    <button
+      type="button"
+      onClick={() => onCite(c.at)}
+      className="badge badge--neutral mx-0.5 cursor-pointer align-baseline hover:underline"
+    >
+      {sample.kind === "video" ? clock(c.at) : `p. ${c.at}`}
+    </button>
+  );
+  return (
+    <motion.div
+      key={panel}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={spring.smooth}
+      className="flex max-h-96 flex-1 flex-col gap-3 overflow-y-auto p-4 text-ink"
+    >
+      {panel === "Notes" && (
+        <>
+          <p className="type-heading-3">Notes</p>
+          {sample.chapters.slice(0, 3).map((c) => (
+            <p key={c.at} className="type-body">
+              <span className="type-body-strong">{c.title}.</span> {c.summary} {chip(c)}
+            </p>
+          ))}
+        </>
+      )}
+      {panel === "Summary" && (
+        <>
+          <p className="type-heading-3">Summary</p>
+          <ul className="flex list-disc flex-col gap-1.5 pl-5">
+            {sample.chapters.map((c) => (
+              <li key={c.at} className="type-body">
+                {c.summary} {chip(c)}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {panel === "Quiz" && (
+        <>
+          <p className="type-overline text-ink-muted">Question 1 of 4</p>
+          <p className="type-body-strong">{landing.quiz.q}</p>
+          {landing.quiz.choices.map((c, i) => (
+            <motion.button
+              key={c}
+              type="button"
+              onClick={() => setPicked(i)}
+              whileTap={{ scale: 0.97 }}
+              animate={
+                picked === i && i !== landing.quiz.correct ? { x: [0, -6, 6, -4, 4, 0] } : { x: 0 }
+              }
+              className={cx(
+                "rounded-md border px-3 py-2 text-left type-label",
+                picked !== null && i === landing.quiz.correct
+                  ? "border-success"
+                  : picked === i
+                    ? "border-danger"
+                    : "border-border-control",
+              )}
+            >
+              {c}
+            </motion.button>
+          ))}
+          {picked !== null && (
+            <p className="type-caption text-ink-muted">
+              {picked === landing.quiz.correct ? landing.quiz.right : landing.quiz.wrong}
+            </p>
+          )}
+        </>
+      )}
+      {panel === "Flashcards" && (
+        <>
+          <p className="type-overline text-ink-muted">1 card due · tap to flip</p>
+          <motion.button
+            type="button"
+            onClick={() => setFlipped((f) => !f)}
+            animate={{ rotateX: flipped ? 360 : 0 }}
+            transition={spring.smooth}
+            className="flex min-h-36 items-center justify-center rounded-lg border border-border-subtle bg-surface-200 p-4 text-center type-heading-3"
+          >
+            {flipped ? landing.flashcard.back : landing.flashcard.front}
+          </motion.button>
+        </>
+      )}
+    </motion.div>
   );
 }
 
@@ -394,7 +706,7 @@ function Suggestions({
           className="relative rounded-md border border-border-control bg-surface-100 px-3 py-1 type-caption text-ink disabled:opacity-50"
         >
           {!touched && i === 0 && (
-            <span className="absolute -inset-1 animate-ping rounded-md border-2 border-accent/40" />
+            <span className="absolute -inset-0.5 animate-ping rounded-md border border-accent/40" />
           )}
           {x.q}
         </motion.button>

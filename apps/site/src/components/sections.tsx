@@ -1,7 +1,6 @@
 import { type Feature, REPO_URL, site } from "@content/site";
 import { cx } from "@thoth/ui";
 import { Download } from "@/components/download";
-import { Gallery } from "@/components/gallery";
 import { Shot } from "@/components/shot";
 import type { buildData } from "@/lib/build-data";
 

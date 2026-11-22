@@ -4,6 +4,7 @@
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { landing } from "../content/landing.ts";
 import { site } from "../content/site.ts";
 import { staleness } from "../src/lib/freshness.ts";
 import { docNumbers, parseMatrixTargets, shotsInScript } from "../src/lib/parse.ts";
@@ -17,6 +18,10 @@ const problems = staleness(site, {
   shots: shotsInScript(read("apps/web/e2e/site-shots.ts")),
   shotFiles: readdirSync(resolve(root, "apps/site/public/shots")),
   targets: parseMatrixTargets(read(".github/workflows/desktop.yml")),
+  story: landing.story.flatMap((b) =>
+    b.steps.map((s) => ({ shot: s.shot, ...("at" in s && s.at ? { at: s.at } : {}) })),
+  ),
+  hotspots: JSON.parse(read("apps/site/content/hotspots.json")),
 });
 
 if (problems.length > 0) {

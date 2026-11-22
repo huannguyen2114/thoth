@@ -203,7 +203,13 @@ test.describe
     test("quiz and progress", async ({ page }) => {
       const path = await addPastedText(page, "Replication and consensus", NOTES);
       await goto(page, path);
-      await page.getByRole("tab", { name: "Quiz", exact: true }).click();
+      const quizTab = page.getByRole("tab", { name: "Quiz", exact: true });
+      await quizTab.click();
+      // Give the quiz the whole workspace, so the landing page shows it large.
+      await quizTab
+        .locator("xpath=ancestor::*[.//button[@aria-label='Maximise panel']][1]")
+        .getByRole("button", { name: "Maximise panel" })
+        .click();
       const quiz = page.getByRole("tabpanel", { name: "Quiz" });
       await quiz.getByRole("button", { name: "Generate quiz" }).first().click();
       const dialog = page.getByRole("dialog", { name: "Generate a quiz" });

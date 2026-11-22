@@ -1,6 +1,6 @@
 # ADR-0044: A static landing site, one content source and a freshness gate
 
-- Status: Accepted
+- Status: Accepted; amended by ADR-0046 (pages, motion, YouTube embed on click)
 - Date: 2026-11-21
 - Builds on: ADR-0009, ADR-0028, ADR-0036
 

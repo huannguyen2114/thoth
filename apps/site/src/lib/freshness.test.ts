@@ -11,6 +11,8 @@ const fresh: RepoFacts = {
   shots,
   shotFiles: shots.flatMap((s) => [`${s}-light.png`, `${s}-dark.png`]),
   targets: [...new Set(site.platforms.map((p) => p.target))],
+  story: [{ shot: "chat", at: "chip" }, { shot: "workspace" }],
+  hotspots: { chat: { chip: { x: 0, y: 0, w: 0, h: 0 } } },
 };
 
 describe("staleness (the site:check gate)", () => {
@@ -44,5 +46,14 @@ describe("staleness (the site:check gate)", () => {
       targets: [...fresh.targets, "riscv64gc-unknown-linux-gnu"],
     });
     expect(problems).toEqual([expect.stringContaining("riscv64gc")]);
+  });
+
+  it("fails when a walkthrough frame is not taken or its cursor target was not recorded", () => {
+    const problems = staleness(site, {
+      ...fresh,
+      story: [{ shot: "nope" }, { shot: "chat", at: "missing" }],
+    });
+    expect(problems.join("\n")).toContain('shows screenshot "nope"');
+    expect(problems.join("\n")).toContain('points at "missing" on "chat"');
   });
 });
