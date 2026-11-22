@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@thoth/ui/styles.css";
+@import "./landing.css";
 
 @source "../../../../packages/ui/src";
 
