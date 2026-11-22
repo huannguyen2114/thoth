@@ -7,7 +7,19 @@
     height: 100dvh;
     overflow: hidden;
     overscroll-behavior: none;
-    background: var(--surface-100);
+    /* Soft ambient light behind the glass chrome (ADR-0047). */
+    background:
+      radial-gradient(
+        56rem 36rem at 0% -12%,
+        color-mix(in oklab, var(--accent) 11%, transparent),
+        transparent 62%
+      ),
+      radial-gradient(
+        48rem 36rem at 100% -8%,
+        color-mix(in oklab, var(--info) 9%, transparent),
+        transparent 60%
+      ),
+      var(--surface-100);
   }
   .app-main {
     flex: 1;
@@ -34,8 +46,12 @@
     height: 100dvh;
     flex-shrink: 0;
     padding: var(--space-3) var(--space-2);
-    background: var(--surface-300);
-    border-right: 1px solid var(--border-subtle);
+    /* Liquid glass, lightly (ADR-0047): the ambient light shows through. */
+    background: color-mix(in oklab, var(--surface-300) 58%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    backdrop-filter: blur(24px) saturate(1.5);
+    border-right: 1px solid color-mix(in oklab, var(--ink) 8%, transparent);
+    box-shadow: inset -1px 0 0 color-mix(in oklab, var(--surface-100) 60%, transparent);
     user-select: none;
     transition: width 200ms cubic-bezier(0.2, 0, 0, 1);
     overflow: hidden;
@@ -54,16 +70,16 @@
     gap: var(--space-2);
     min-width: 0;
   }
+  /* Thoth's icon (design/brand): a cream tile, ringed so it holds its edge on the sidebar. */
   .app-brand__mark {
     display: grid;
     place-items: center;
     width: 28px;
     height: 28px;
     flex-shrink: 0;
-    border-radius: var(--radius-md);
-    background: var(--ink);
-    color: var(--surface-100);
-    font: 500 17px / 1 var(--font-serif);
+    border-radius: 7px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px var(--border-subtle);
   }
   .app-sidebar__scroll {
     flex: 1;
@@ -84,10 +100,23 @@
     padding: var(--space-3) var(--space-3) var(--space-1);
   }
   .app-nav-item {
+    position: relative;
+    isolation: isolate;
     height: 34px;
     background: transparent;
     border: 0;
     cursor: default;
+  }
+  /* The sliding pill (NavPill) paints the current item, so the item itself stays clear. */
+  .app-nav-item[aria-current="page"] {
+    background: transparent;
+  }
+  .app-nav-pill {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: var(--radius-md);
+    background: var(--accent-tint);
   }
   .app-icon-btn {
     display: grid;
@@ -213,10 +242,14 @@
     width: min(640px, calc(100vw - 2 * var(--space-4)));
     transform: translateX(-50%);
     overflow: hidden;
-    border: 1px solid var(--border-subtle);
+    border: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
     border-radius: var(--radius-xl);
-    background: var(--surface-200);
-    box-shadow: var(--shadow-lg);
+    background: color-mix(in oklab, var(--surface-200) 72%, transparent);
+    -webkit-backdrop-filter: blur(28px) saturate(1.7);
+    backdrop-filter: blur(28px) saturate(1.7);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--surface-100) 75%, transparent),
+      var(--shadow-lg);
   }
   .palette__input {
     width: 100%;
@@ -343,5 +376,71 @@
     .app-main pre {
       overflow-x: auto;
     }
+  }
+}
+
+/* The composer glows softly while you type (ADR-0047). */
+.composer {
+  transition:
+    box-shadow 200ms cubic-bezier(0.2, 0, 0, 1),
+    border-color 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+.composer:focus-within {
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--border-subtle));
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 14%, transparent);
+}
+
+/* Dialogs float as glass too (ADR-0047). */
+.modal {
+  background: color-mix(in oklab, var(--surface-200) 80%, transparent);
+  -webkit-backdrop-filter: blur(28px) saturate(1.7);
+  backdrop-filter: blur(28px) saturate(1.7);
+  border: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
+}
+
+/* Sidebar icons sit on small coloured tiles, like a native app's settings list (ADR-0047). */
+.app-nav-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 7px;
+}
+.app-nav-icon svg {
+  color: currentColor;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .app-sidebar,
+  .palette__content,
+  .modal {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .app-sidebar {
+    background: var(--surface-300);
+  }
+}
+
+/* The palette springs open (ADR-0047); the global reduced-motion rule turns this off. */
+@keyframes palette-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+.palette__content {
+  animation: palette-in 260ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.palette__overlay {
+  animation: fade-in 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
   }
 }

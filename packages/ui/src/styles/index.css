@@ -3,6 +3,8 @@
 @import "./theme.css";
 /* Layered so Tailwind utilities can override Hearth component defaults. */
 @import "./components.css" layer(components);
+/* Hearth, turned up: tones, glows, display type (ADR-0047). */
+@import "./expressive.css";
 
 @layer base {
   html {

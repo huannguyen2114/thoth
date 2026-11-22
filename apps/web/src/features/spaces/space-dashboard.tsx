@@ -1,9 +1,10 @@
 "use client";
 
 import type { HistoryItem, SpaceDashboard } from "@thoth/core";
-import { Button } from "@thoth/ui";
+import { Button, cx } from "@thoth/ui";
 import Link from "next/link";
 import { type ReactNode, useEffect, useState } from "react";
+import { CountUp } from "@/app/_components/motion/primitives";
 import { loadSpaceDashboardAction } from "./actions";
 
 const tzOffset = () => new Date().getTimezoneOffset();
@@ -69,12 +70,12 @@ export function SpaceDashboardView({
         {data.resume ? (
           <Link
             href={data.resume.href}
-            className="flex flex-col gap-1 rounded-lg border border-border-subtle bg-surface-200 p-4 no-underline hover:bg-surface-300"
+            className="flex flex-col gap-1 rounded-xl tone-peach p-5 no-underline transition-transform duration-150 hover:-translate-y-0.5"
           >
-            <span className="type-overline text-ink-muted">
+            <span className="type-overline opacity-80">
               {data.resume.reason === "recent" ? "Continue where you left off" : "Start here"}
             </span>
-            <span className="truncate type-heading-3 text-ink">{data.resume.title}</span>
+            <span className="truncate type-heading-2">{data.resume.title}</span>
           </Link>
         ) : (
           <Card label="Continue">
@@ -84,17 +85,17 @@ export function SpaceDashboardView({
         {data.countdown ? (
           <Link
             href="/planner"
-            className="flex flex-col gap-1 rounded-lg border border-border-subtle bg-surface-200 p-4 no-underline hover:bg-surface-300"
+            className="flex flex-col gap-1 rounded-xl tone-lilac p-5 no-underline transition-transform duration-150 hover:-translate-y-0.5"
           >
-            <span className="type-overline text-ink-muted">{data.countdown.title}</span>
-            <span className="type-heading-3 text-ink">
+            <span className="type-overline opacity-80">{data.countdown.title}</span>
+            <span className="type-heading-2">
               {data.countdown.daysLeft === 0
                 ? "Today"
                 : `${data.countdown.daysLeft} ${data.countdown.daysLeft === 1 ? "day" : "days"} left`}
             </span>
           </Link>
         ) : (
-          <Card label="Ask across sources">
+          <Card label="Ask across sources" tone="tone-lilac">
             <button
               type="button"
               className="text-left text-accent-text"
@@ -107,13 +108,18 @@ export function SpaceDashboardView({
       </div>
 
       <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Stat label="Sources ready" value={`${data.contents.ready} of ${data.contents.total}`} />
         <Stat
+          tone="tone-sky"
+          label="Sources ready"
+          value={`${data.contents.ready} of ${data.contents.total}`}
+        />
+        <Stat
+          tone="tone-sage"
           label="Accuracy"
           value={data.progress.accuracy === null ? "None yet" : pct(data.progress.accuracy)}
         />
-        <Stat label="Answers" value={String(data.progress.answered)} />
-        <Stat label="Cards due" value={String(data.cards.due)} />
+        <Stat tone="tone-butter" label="Answers" value={String(data.progress.answered)} />
+        <Stat tone="tone-peach" label="Cards due" value={String(data.cards.due)} />
       </dl>
 
       {data.cards.sets.length > 0 && (
@@ -258,20 +264,28 @@ function Section({
   );
 }
 
-function Card({ label, children }: { label: string; children: ReactNode }) {
+function Card({ label, children, tone }: { label: string; children: ReactNode; tone?: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-lg border border-border-subtle bg-surface-200 p-4">
+    <div
+      className={cx(
+        "flex flex-col gap-1 rounded-xl p-5",
+        tone ?? "border border-border-subtle bg-surface-200",
+      )}
+    >
       <span className="type-overline text-ink-muted">{label}</span>
       {children}
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+/** A tinted number tile (ADR-0047); whole numbers count up when they appear. */
+function Stat({ label, value, tone }: { label: string; value: string; tone: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-lg border border-border-subtle bg-surface-200 p-4">
-      <dt className="type-caption text-ink-muted">{label}</dt>
-      <dd className="type-heading-2 tabular-nums text-ink">{value}</dd>
+    <div className={cx("flex flex-col gap-1 rounded-xl p-4", tone)}>
+      <dt className="type-caption opacity-80">{label}</dt>
+      <dd className="type-display-lg tabular-nums">
+        {/^\d+$/.test(value) ? <CountUp value={Number(value)} /> : value}
+      </dd>
     </div>
   );
 }

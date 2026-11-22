@@ -290,6 +290,9 @@ importers:
       dockview:
         specifier: 8.8.3
         version: 8.8.3
+      motion:
+        specifier: 14.10.1
+        version: 14.10.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       next:
         specifier: 16.4.6
         version: 16.4.6(@opentelemetry/api@1.10.0)(@playwright/test@1.64.1)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)

@@ -1,7 +1,7 @@
 "use client";
 
 import { REPO_URL, site } from "@content/site";
-import { cx } from "@thoth/ui";
+import { cx, ThothIcon } from "@thoth/ui";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -37,12 +37,7 @@ export function SiteHeader() {
         )}
       >
         <Link href="/" className="flex items-center gap-2 text-ink no-underline">
-          <span
-            aria-hidden="true"
-            className="inline-flex size-8 items-center justify-center rounded-md bg-primary font-serif text-on-primary type-heading-3"
-          >
-            T
-          </span>
+          <ThothIcon size={32} className="rounded-md ring-1 ring-border-subtle" />
           <span className="type-heading-3">{site.name}</span>
         </Link>
         <nav aria-label="Pages" className="ml-auto hidden items-center gap-1 md:flex">

@@ -117,3 +117,11 @@ button.tag-chip:hover {
     transition: none;
   }
 }
+
+/* A whole card in the accent (Home space tiles, ADR-0047). Ink stays readable on it. */
+.accent-tile {
+  background: color-mix(in oklab, var(--accent-fg) 20%, var(--color-surface-200));
+}
+.accent-tile:hover {
+  background: color-mix(in oklab, var(--accent-fg) 28%, var(--color-surface-200));
+}

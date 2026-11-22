@@ -1,6 +1,6 @@
 # ADR-0020: Native app feel: fixed app frame, collapsible sidebar, Cmd+K, theme switch
 
-- Status: Accepted
+- Status: Accepted; motion rule amended by ADR-0047 (springs)
 - Date: 2026-11-15
 
 ## Context

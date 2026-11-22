@@ -14,6 +14,12 @@ flowchart LR
 
 **Before building any UI, read `design/hearth/README.md`** (the brand book) and the guideline at `design/hearth/components/<Comp>/README.md`.
 
+## Expressive layer and brand (ADR-0047)
+
+- `packages/ui/src/styles/expressive.css` is hand-written, not generated. It holds the tones, glows, `type-hero` and `type-hero-sm`, the 3D helpers and `glass`, all from Hearth tokens. `index.css` imports it, so the app and the landing site share it.
+- `packages/ui/src/motion.ts` exports `spring`, the shared spring transitions.
+- `ThothIcon` and `ThothMark` (`packages/ui/src/components/thoth-mark.tsx`) are the brand. The masters and the regeneration steps are in `design/brand/README.md`.
+
 ## Using tokens
 
 | Need                            | Write                                                                                 | Not                       |

@@ -1,6 +1,6 @@
 # ADR-0009: Hearth design system, vendored, with generated CSS tokens
 
-- Status: Accepted
+- Status: Accepted; amended by ADR-0047 (tones and glass in app chrome)
 - Date: 2026-11-15
 
 ## Context

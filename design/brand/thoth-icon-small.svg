@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" width="64" height="64">
+  <title>Thoth</title>
+  <!-- The 16-32 px cut: a bolder neck and beak, a bigger eye and moon, nothing thin. -->
+  <rect width="140" height="140" rx="32" fill="#FAF7F2"/>
+  <circle cx="100" cy="30" r="14" fill="#E8B9A2"/>
+  <path d="M40 126 C32 96 40 66 58 52 C70 42 90 40 100 50 C122 52 134 74 134 106 C124 86 112 76 98 72 C92 82 82 84 74 84 C64 94 64 108 68 126 Z" fill="#B2502C"/>
+  <circle cx="84" cy="60" r="6" fill="#FAF7F2"/>
+</svg>

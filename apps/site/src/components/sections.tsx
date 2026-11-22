@@ -1,5 +1,5 @@
 import { type Feature, REPO_URL, site } from "@content/site";
-import { cx } from "@thoth/ui";
+import { cx, ThothIcon } from "@thoth/ui";
 import { Download } from "@/components/download";
 import { Shot } from "@/components/shot";
 import type { buildData } from "@/lib/build-data";
@@ -7,17 +7,7 @@ import type { buildData } from "@/lib/build-data";
 /** Sections of the detailed pages (/features, /changelog, /download). Copy comes from content/site.ts. */
 
 export function Mark({ className }: { className?: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={cx(
-        "inline-flex size-8 items-center justify-center rounded-md bg-primary font-serif text-on-primary type-heading-3",
-        className,
-      )}
-    >
-      T
-    </span>
-  );
+  return <ThothIcon size={32} className={cx("rounded-md ring-1 ring-border-subtle", className)} />;
 }
 
 export function Header() {

@@ -1,7 +1,7 @@
 "use client";
 
 import { type AnswerPart, type DemoSample, landing } from "@content/landing";
-import { cx } from "@thoth/ui";
+import { cx, ThothIcon } from "@thoth/ui";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { spring } from "@/motion/tokens";
@@ -761,9 +761,7 @@ function Sidebar() {
   return (
     <aside className="hidden w-52 shrink-0 flex-col gap-3 border-r border-border-subtle bg-surface-200 p-3 lg:flex">
       <div className="flex items-center gap-2">
-        <span className="inline-flex size-6 items-center justify-center rounded-sm bg-primary font-serif text-on-primary type-label">
-          T
-        </span>
+        <ThothIcon size={24} className="rounded-sm ring-1 ring-border-subtle" />
         <span className="type-heading-3 text-ink">Thoth</span>
         <span className="ml-auto text-ink-muted">
           <SidebarIcon />

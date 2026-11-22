@@ -1,5 +1,6 @@
 "use client";
 
+import { ThothIcon } from "@thoth/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
@@ -21,6 +22,7 @@ import {
   SidebarIcon,
   SunIcon,
 } from "./icons";
+import { NavPill } from "./motion/nav-pill";
 import { applySidebar, applyTheme, readSidebar, readTheme, type ThemePref } from "./prefs";
 
 /** A space in the sidebar: name, plus its Hearth accent and icon names (doc 22). */
@@ -30,11 +32,14 @@ function Item({
   href,
   icon,
   label,
+  tone,
   exact = false,
 }: {
   href: string;
   icon: ReactNode;
   label: string;
+  /** The icon tile's colour (ADR-0047). */
+  tone: string;
   exact?: boolean;
 }) {
   const pathname = usePathname();
@@ -46,7 +51,8 @@ function Item({
       aria-current={current ? "page" : undefined}
       title={label}
     >
-      {icon}
+      <NavPill show={current} />
+      <span className={`app-nav-icon ${tone}`}>{icon}</span>
       <span className="app-label truncate">{label}</span>
     </Link>
   );
@@ -126,7 +132,7 @@ export function Sidebar({ spaces }: { spaces: SidebarSpace[] }) {
             title="Thoth home"
           >
             <span className="app-brand__mark" aria-hidden="true">
-              T
+              <ThothIcon size={28} />
             </span>
             <span className="app-label">Thoth</span>
           </Link>
@@ -153,11 +159,11 @@ export function Sidebar({ spaces }: { spaces: SidebarSpace[] }) {
         </button>
 
         <nav aria-label="Main" className="flex flex-col gap-0.5">
-          <Item href="/" exact icon={<PlusIcon />} label="Add content" />
-          <Item href="/review" icon={<CardsIcon />} label="Review" />
-          <Item href="/planner" icon={<PlannerIcon />} label="Planner" />
-          <Item href="/history" icon={<HistoryIcon />} label="History" />
-          <Item href="/progress" icon={<ChartIcon />} label="Progress" />
+          <Item href="/" exact tone="tone-peach" icon={<PlusIcon />} label="Add content" />
+          <Item href="/review" tone="tone-sky" icon={<CardsIcon />} label="Review" />
+          <Item href="/planner" tone="tone-butter" icon={<PlannerIcon />} label="Planner" />
+          <Item href="/history" tone="tone-lilac" icon={<HistoryIcon />} label="History" />
+          <Item href="/progress" tone="tone-sage" icon={<ChartIcon />} label="Progress" />
         </nav>
 
         <div className="app-sidebar__scroll">
@@ -178,10 +184,17 @@ export function Sidebar({ spaces }: { spaces: SidebarSpace[] }) {
             onClick={cycleTheme}
             title={`${themeMeta[theme].label}. Click to change.`}
           >
-            {themeMeta[theme].icon}
+            <span className="app-nav-icon bg-neutral-tint text-ink-muted">
+              {themeMeta[theme].icon}
+            </span>
             <span className="app-label truncate">{themeMeta[theme].label}</span>
           </button>
-          <Item href="/settings" icon={<GearIcon />} label="Settings" />
+          <Item
+            href="/settings"
+            tone="bg-neutral-tint text-ink-muted"
+            icon={<GearIcon />}
+            label="Settings"
+          />
         </div>
       </aside>
     </>

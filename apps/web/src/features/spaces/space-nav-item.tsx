@@ -4,6 +4,7 @@ import type { AccentColor, SpaceIcon as SpaceIconName } from "@thoth/core";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { NavPill } from "@/app/_components/motion/nav-pill";
 import { moveContentAction } from "./actions";
 import { useContentDrop } from "./drag";
 import { SpaceIcon } from "./space-icon";
@@ -44,7 +45,10 @@ export function SpaceNavItem({ space }: { space: NavSpace }) {
       title={space.name}
       {...dropProps}
     >
-      <SpaceIcon icon={space.icon ?? null} color={space.color ?? null} />
+      <NavPill show={current} />
+      <span className="app-nav-icon accent-tile" data-accent={space.color ?? "orange"}>
+        <SpaceIcon icon={space.icon ?? null} color={space.color ?? null} />
+      </span>
       <span className="app-label truncate">{space.name}</span>
       {note && (
         <span role="status" className="app-label ml-auto shrink-0 type-caption text-ink-muted">

@@ -2,6 +2,8 @@ import { getProgress, type Progress, type TopicProgress } from "@thoth/core";
 import { cx } from "@thoth/ui";
 import Link from "next/link";
 import { connection } from "next/server";
+import { CountUp } from "@/app/_components/motion/primitives";
+import { Ring } from "@/app/_components/motion/ring";
 import { getContainer } from "@/server/container";
 import { PracticeButton } from "./practice-button";
 
@@ -13,12 +15,15 @@ export async function ProgressView() {
   return (
     <div className="flex flex-col gap-12">
       <section className="grid gap-4 sm:grid-cols-3">
-        <Stat label="Questions answered" value={String(p.answered)} />
+        <Stat tone="tone-sky" label="Questions answered" value={String(p.answered)} />
         <Stat
+          tone="tone-sage"
           label="Average score"
           value={p.accuracy === null ? "None yet" : `${Math.round(p.accuracy * 100)}%`}
+          ring={p.accuracy}
         />
         <Stat
+          tone="tone-peach"
           label="Cards due"
           value={String(p.cardsDue)}
           action={p.cardsDue > 0 ? { href: "/review", label: "Review now" } : undefined}
@@ -46,24 +51,34 @@ export async function ProgressView() {
   );
 }
 
+/** A tinted number tile (ADR-0047): whole numbers count up, a score fills its ring. */
 function Stat({
   label,
   value,
   action,
+  tone,
+  ring,
 }: {
   label: string;
   value: string;
   action?: { href: string; label: string } | undefined;
+  tone: string;
+  ring?: number | null;
 }) {
   return (
-    <div className="flex flex-col gap-1 rounded-lg border border-border-subtle bg-surface-200 p-5">
-      <span className="type-caption text-ink-muted">{label}</span>
-      <span className="type-heading-1 text-ink">{value}</span>
-      {action && (
-        <Link href={action.href} className="type-label text-accent-text">
-          {action.label}
-        </Link>
-      )}
+    <div className={cx("flex items-center justify-between gap-3 rounded-xl p-5", tone)}>
+      <div className="flex flex-col gap-1">
+        <span className="type-caption opacity-80">{label}</span>
+        <span className="type-display-lg tabular-nums">
+          {/^\d+$/.test(value) ? <CountUp value={Number(value)} /> : value}
+        </span>
+        {action && (
+          <Link href={action.href} className="type-label underline-offset-4 hover:underline">
+            {action.label}
+          </Link>
+        )}
+      </div>
+      {typeof ring === "number" && <Ring value={ring} />}
     </div>
   );
 }

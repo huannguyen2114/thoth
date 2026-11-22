@@ -244,6 +244,12 @@ Each phase ends with something that runs. After each phase I check it in the bro
 - The detailed tour moved to /features, with /changelog and /download beside it.
 - The freshness gate also checks the walkthroughs' screens and cursor targets.
 
+### Phase 13: An icon, and the app redesigned — DONE 2026-11-22
+
+- Thoth's icon, an ibis head under the moon, in the app, the PWA, the favicons, the desktop app and the landing page (ADR-0047; `design/brand/`).
+- The app picks up the landing page's look: tinted tiles that count up, kind-tinted recents, coloured spaces and sidebar icons, a 3D flashcard flip with tinted ratings, springy quiz feedback, and score rings.
+- Spring motion through `motion`, and a light touch of glass on the sidebar, palette, dialogs and composer. Reading surfaces stay calm.
+
 ### Later phases (after the MVP)
 
 - **9:** Podcast. A two-host script from the LLM, then TTS (OpenAI TTS, ElevenLabs, or local Kokoro), then merged audio with ffmpeg. Then Voice tutor mode and Dictate (Web Speech API or whisper).
