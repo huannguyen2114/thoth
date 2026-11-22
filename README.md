@@ -2,6 +2,8 @@
 
 **Learn anything from your own sources.**
 
+[Website](https://thoth-5j7.pages.dev) · [Download](https://github.com/huannguyen2114/thoth/releases/latest) · [Docs](docs/README.md)
+
 Thoth turns your PDFs, lectures, YouTube videos and web pages into chats, notes, quizzes, flashcards and exams. It runs on your computer, with the AI model you choose: your Claude subscription, an Anthropic API key, or any OpenAI-compatible provider, including a local model through Ollama or LM Studio.
 
 <picture>

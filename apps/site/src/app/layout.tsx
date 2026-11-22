@@ -15,7 +15,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], weight: ["400"], variable: "--
 const title = `${site.name}: ${site.tagline.replace(/\.$/, "")}`;
 
 /** The public address. Set SITE_URL in the deploy when the Pages project gets another name or a domain. */
-const SITE_URL = process.env.SITE_URL ?? "https://thoth.pages.dev";
+const SITE_URL = process.env.SITE_URL ?? "https://thoth-5j7.pages.dev";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

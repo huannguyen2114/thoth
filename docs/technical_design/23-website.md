@@ -53,7 +53,7 @@ flowchart LR
 
 - `site.yml` deploys `apps/site/out` with `wrangler pages deploy` to the Pages project `thoth` on pushes to `main`.
 - It runs only when the repo has the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets. Without them, the step prints a notice and the built site is uploaded as the `site` artifact.
-- Set the repo variable `SITE_URL` if the address is not `https://thoth.pages.dev` (another project name, or a custom domain). It sets the canonical and social-preview URLs.
+- The live address is **https://thoth-5j7.pages.dev** (Cloudflare added the suffix because `thoth` was taken). The repo variable `SITE_URL` holds it and sets the canonical and social-preview URLs; change it there, and in `layout.tsx`'s default, if the project gets a custom domain.
 
 ## Downloads
 
