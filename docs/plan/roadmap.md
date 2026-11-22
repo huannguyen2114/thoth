@@ -238,6 +238,12 @@ Each phase ends with something that runs. After each phase I check it in the bro
 - A freshness gate in CI: a new feature area cannot ship without a place on the page.
 - Thoth is free software under the AGPL-3.0, with installers published to GitHub releases under stable names (ADR-0045).
 
+### Phase 12: A playful landing page — DONE 2026-11-22
+
+- A new landing page with spring motion; a live recreation of the workspace that plays Kleppmann's consensus lecture and a small example chapter; a drop-anything transform; guided walkthroughs over real screens; and try-it widgets (ADR-0046; doc 23).
+- The detailed tour moved to /features, with /changelog and /download beside it.
+- The freshness gate also checks the walkthroughs' screens and cursor targets.
+
 ### Later phases (after the MVP)
 
 - **9:** Podcast. A two-host script from the LLM, then TTS (OpenAI TTS, ElevenLabs, or local Kokoro), then merged audio with ffmpeg. Then Voice tutor mode and Dictate (Web Speech API or whisper).

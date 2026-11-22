@@ -12,6 +12,10 @@ export interface RepoFacts {
   shotFiles: string[];
   /** desktop.yml matrix targets. */
   targets: string[];
+  /** The landing story's walkthrough steps (content/landing.ts). */
+  story: { shot: string; at?: string }[];
+  /** Positions site-shots.ts recorded (content/hotspots.json). */
+  hotspots: Record<string, Record<string, unknown>>;
 }
 
 /** Every reason the site is stale. Empty means fresh. Pure, so it is unit-tested. */
@@ -67,6 +71,18 @@ export function staleness(site: Site, facts: RepoFacts): string[] {
   for (const t of targets) {
     if (!site.platforms.some((p) => p.target === t)) {
       problems.push(`desktop.yml builds ${t}, but the site offers no download for it.`);
+    }
+  }
+  for (const step of facts.story) {
+    if (!made.has(step.shot)) {
+      problems.push(
+        `The landing story shows screenshot "${step.shot}", which apps/web/e2e/site-shots.ts does not take.`,
+      );
+    }
+    if (step.at && !facts.hotspots[step.shot]?.[step.at]) {
+      problems.push(
+        `The landing story points at "${step.at}" on "${step.shot}", but site-shots.ts records no such hotspot. Add a hot("${step.shot}", "${step.at}", …) call and run pnpm site:shots.`,
+      );
     }
   }
   return problems;

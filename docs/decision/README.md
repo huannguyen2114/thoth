@@ -93,7 +93,8 @@ What becomes easier, what becomes harder, and the follow-ups.
 | [0041](0041-annotation-colours-notes-bridge-pdf-export.md)    | Annotation colours, the notes bridge and PDF export                                         | Accepted                         |
 | [0042](0042-space-chat-citations-accents-playlists-tabs.md)   | Space chat citations, accent swatches, playlist listing, space tabs                         | Accepted                         |
 | [0043](0043-desktop-server-entry-bundle-cli-shim.md)          | Desktop server entry, flat bundle and CLI shim                                              | Accepted                         |
-| [0044](0044-landing-site-and-freshness-gate.md)               | A static landing site, one content source and a freshness gate                              | Accepted                         |
+| [0044](0044-landing-site-and-freshness-gate.md)               | A static landing site, one content source and a freshness gate                              | Accepted (amended by 0046)       |
 | [0045](0045-open-source-agpl-and-releases.md)                 | Open source under AGPL-3.0, with releases under stable names                                | Accepted                         |
+| [0046](0046-playful-landing-page.md)                          | A playful landing page: spring motion, live demos and guided walkthroughs (amends 0044)     | Accepted                         |
 
 Add a new row when you add an ADR. When you supersede one, change its status here as well.

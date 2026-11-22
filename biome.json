@@ -7,6 +7,7 @@
       "!**/design/hearth",
       "!**/.next",
       "!**/drizzle/meta",
+      "!apps/site/content/hotspots.json",
       "!packages/ui/src/styles/tokens.css",
       "!packages/ui/src/styles/theme.css",
       "!packages/ui/src/styles/components.css"

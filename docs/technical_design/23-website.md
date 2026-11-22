@@ -1,6 +1,6 @@
 # 23. Website (landing page)
 
-Status: Current (Phase 11). Decisions: ADR-0044, ADR-0045.
+Status: Current (Phase 12). Decisions: ADR-0044, ADR-0045, ADR-0046.
 
 The public page that introduces Thoth and offers the downloads. It is a static site in `apps/site`, built from one content file and real screenshots of the current app, and a CI gate fails when it falls behind the app.
 
@@ -16,6 +16,26 @@ The public page that introduces Thoth and offers the downloads. It is a static s
 | Freshness gate (pure) and its CLI                          | `apps/site/src/lib/freshness.ts`, `apps/site/scripts/check.ts`      |
 | Screenshot scenes                                          | `apps/web/e2e/site-shots.ts`, `apps/web/playwright.shots.config.ts` |
 | Build, shots, gate, deploy                                 | `.github/workflows/site.yml`                                        |
+
+## Pages
+
+| Route        | What it is                                                                                           | Built from                                        |
+| ------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `/`          | The playful landing: hero demo, drop anything, the walkthrough story, try-it widgets, call to action | `content/landing.ts`, `src/components/landing/**` |
+| `/features`  | The documented tour with real screenshots, gallery, models, privacy, keyboard, FAQ                   | `content/site.ts`, `src/components/sections.tsx`  |
+| `/changelog` | What's new, from the roadmap                                                                         | `docs/plan/roadmap.md`                            |
+| `/download`  | The installer for your system, every installer, FAQ                                                  | `content/site.ts`                                 |
+
+## The landing page
+
+- **Motion** (ADR-0046): `motion` with the springs in `src/motion/tokens.ts` (snappy, smooth, gentle, bouncy). Presses shrink, pills and tabs slide (`layoutId`), and the story follows the scroll. Under `prefers-reduced-motion` nothing moves, and every demo still works.
+- **Colour and type** ("Hearth, turned up"): `src/app/landing.css` adds tinted card grounds (`tone-peach`, `tone-sage`, `tone-sky`, `tone-butter`, `tone-lilac`), glows, `type-hero`, `type-hero-sm` and `aspect-shot`, all from Hearth tokens.
+- **Hero demo** (`hero-demo.tsx`): a recreation of the content workspace with the app's Hearth classes and icons (`app-icons.tsx` copies the app's icons). It has two examples:
+  - **Lecture video**: Kleppmann's _Distributed Systems 6.1: Consensus_, embedded from `youtube-nocookie.com` only after a click (Play or a citation). Citations seek the real player through the IFrame API messages, and its playhead drives the chapter highlight. The chapter times come from the lecture's transcript; keep them in step if the example changes.
+  - **Book chapter (PDF)**: a short chapter we wrote, not book text. `scripts/make-example-pdf.ts` turns the same text into `public/examples/consistency-and-consensus.pdf` before every build.
+  - "Add panel" opens Notes, Summary, Quiz or Flashcards beside the chat. Drag a group's tabs, or use Layout → Swap sides, to move it.
+- **Walkthrough story** (`scroll-story.tsx`): scrolling moves between five beats. Each beat plays steps over real screenshots: the cursor goes to a recorded hotspot, clicks, and shows a tip. The beats and steps are in `landing.story`.
+- **Try-it widgets** (`bento.tsx`): flashcard, quiz, notes, whiteboard (mind map, stickies, drag), model switch and privacy counters.
 
 ## How the page stays current
 
@@ -42,6 +62,10 @@ flowchart LR
   - the download targets and the `desktop.yml` build matrix disagree.
 
   It runs in the `check` job of CI and in the site workflow. Its logic is unit-tested in `freshness.test.ts`, including the case of a new doc 24 with no site entry.
+
+## Hotspots
+
+Before it takes a screenshot, `site-shots.ts` calls `hot("<shot>", "<name>", locator)`. That records the element's box, in 0..1 of the 1440×900 frame, into `apps/site/content/hotspots.json`. A walkthrough step `{ shot, at: name }` puts the cursor there. CI retakes shots and hotspots together, so the cursor always lands on the real button. `site:check` fails if a step names a shot the script does not take, or a hotspot it does not record.
 
 ## Adding or changing a feature
 

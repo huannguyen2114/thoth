@@ -1,0 +1,87 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R 7 0 R 9 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 11 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 528 >>
+stream
+BT /F1 12 Tf 72 720 Td (Consistency and Consensus: a short example chapter) Tj ET
+BT /F1 12 Tf 72 704 Td () Tj ET
+BT /F1 12 Tf 72 688 Td (1. Consistency guarantees) Tj ET
+BT /F1 12 Tf 72 672 Td () Tj ET
+BT /F1 12 Tf 72 656 Td (Replicas of the same data can briefly disagree while writes travel between them.) Tj ET
+BT /F1 12 Tf 72 640 Td (Eventual consistency only promises that replicas converge once writes stop.) Tj ET
+BT /F1 12 Tf 72 624 Td (Stronger guarantees are easier to reason about, but need more coordination.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 6 0 R /Resources << /Font << /F1 11 0 R >> >> >>
+endobj
+6 0 obj
+<< /Length 395 >>
+stream
+BT /F1 12 Tf 72 720 Td (2. Linearizability) Tj ET
+BT /F1 12 Tf 72 704 Td () Tj ET
+BT /F1 12 Tf 72 688 Td (A linearizable system behaves as if there were a single copy of the data.) Tj ET
+BT /F1 12 Tf 72 672 Td (Once any read has returned a new value, every later read returns it too.) Tj ET
+BT /F1 12 Tf 72 656 Td (It is a recency guarantee, and it costs latency when the network is slow.) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 8 0 R /Resources << /Font << /F1 11 0 R >> >> >>
+endobj
+8 0 obj
+<< /Length 426 >>
+stream
+BT /F1 12 Tf 72 720 Td (3. Ordering and causality) Tj ET
+BT /F1 12 Tf 72 704 Td () Tj ET
+BT /F1 12 Tf 72 688 Td (Causal order keeps every cause before its effect, and is cheaper than a total order.) Tj ET
+BT /F1 12 Tf 72 672 Td (Total order broadcast delivers every message to every node in the same order.) Tj ET
+BT /F1 12 Tf 72 656 Td (With total order broadcast, replicas can apply the same writes in the same order.) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 10 0 R /Resources << /Font << /F1 11 0 R >> >> >>
+endobj
+10 0 obj
+<< /Length 390 >>
+stream
+BT /F1 12 Tf 72 720 Td (4. Consensus) Tj ET
+BT /F1 12 Tf 72 704 Td () Tj ET
+BT /F1 12 Tf 72 688 Td (Consensus gets nodes to agree on one value, even when some of them crash.) Tj ET
+BT /F1 12 Tf 72 672 Td (A majority quorum means any two decisions share at least one node.) Tj ET
+BT /F1 12 Tf 72 656 Td (Raft elects one leader per term, and the leader asks a quorum before it commits.) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+12 0 obj
+<< /Title (Consistency and Consensus: a short example chapter) >>
+endobj
+xref
+0 13
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000133 00000 n 
+0000000260 00000 n 
+0000000839 00000 n 
+0000000966 00000 n 
+0000001412 00000 n 
+0000001539 00000 n 
+0000002016 00000 n 
+0000002144 00000 n 
+0000002586 00000 n 
+0000002657 00000 n 
+trailer
+<< /Size 13 /Root 1 0 R /Info 12 0 R >>
+startxref
+2739
+%%EOF
