@@ -78,7 +78,9 @@ export function TodayStrip({ last }: { last: { id: string; title: string } | nul
             >
               <span className="type-overline opacity-80">{t.label}</span>
               {t.value === null ? (
-                <span className="line-clamp-2 type-heading-3">{t.text || "…"}</span>
+                <span className="line-clamp-2 type-heading-3 break-words hyphens-auto">
+                  {t.text || "…"}
+                </span>
               ) : (
                 <span className="flex items-baseline gap-1.5">
                   <CountUp value={t.value} className="type-display-lg" />

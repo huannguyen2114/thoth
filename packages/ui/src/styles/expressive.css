@@ -103,3 +103,25 @@
 .flip-back {
   transform: rotateY(180deg);
 }
+
+/*
+ * A light touch of liquid glass (ADR-0047): translucent, blurred surfaces for chrome that floats
+ * (sidebar, palette, dialogs, the home composer), so Thoth feels like an app. Never behind
+ * reading text. Opaque when the OS asks for reduced transparency.
+ */
+@utility glass {
+  background: color-mix(in oklab, var(--color-surface-200) 64%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  backdrop-filter: blur(22px) saturate(1.6);
+  border: 1px solid color-mix(in oklab, var(--color-ink) 9%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--color-surface-100) 75%, transparent),
+    var(--shadow-md);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--color-surface-200);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

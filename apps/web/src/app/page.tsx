@@ -36,7 +36,7 @@ export default function HomePage() {
             Add a lecture, a PDF or a web page. Thoth turns it into chapters, answers with
             citations, notes, quizzes and flashcards.
           </p>
-          <div className="relative w-full rounded-xl bg-surface-200 p-3 text-left shadow-hearth-md">
+          <div className="glass relative w-full rounded-xl p-4 text-left">
             <AddContentComposer />
           </div>
         </section>

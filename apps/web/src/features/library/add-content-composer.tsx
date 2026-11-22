@@ -67,7 +67,7 @@ export function AddContentComposer({ spaceId }: { spaceId?: string } = {}) {
   }
 
   return (
-    <div className="flex w-full max-w-xl flex-col gap-4 text-left">
+    <div className="flex w-full flex-col gap-4 text-left">
       <div role="tablist" aria-label="Add learning material" className="tabs" onKeyDown={onTabKey}>
         {tabs.map(({ id, label, Icon }) => (
           <button

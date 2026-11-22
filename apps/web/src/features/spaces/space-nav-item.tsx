@@ -46,7 +46,9 @@ export function SpaceNavItem({ space }: { space: NavSpace }) {
       {...dropProps}
     >
       <NavPill show={current} />
-      <SpaceIcon icon={space.icon ?? null} color={space.color ?? null} />
+      <span className="app-nav-icon accent-tile" data-accent={space.color ?? "orange"}>
+        <SpaceIcon icon={space.icon ?? null} color={space.color ?? null} />
+      </span>
       <span className="app-label truncate">{space.name}</span>
       {note && (
         <span role="status" className="app-label ml-auto shrink-0 type-caption text-ink-muted">
